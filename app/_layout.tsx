@@ -1,42 +1,36 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack, Redirect, Slot } from 'expo-router';
+import { Slot } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { StatusBar } from 'expo-status-bar';
-import { useEffect, useState } from 'react';
+// import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
-
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { View } from 'react-native';
+import { AppState } from 'react-native';
 import {
 	SafeAreaView,
-	SafeAreaProvider,
-	SafeAreaInsetsContext,
-	useSafeAreaInsets,
-  } from 'react-native-safe-area-context';
+} from 'react-native-safe-area-context';
+import { supabase } from '@/lib/supabase';
+
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
+// Auto refresh setup for Supabase
+AppState.addEventListener('change', (state) => {
+	if (state === 'active') {
+		supabase.auth.startAutoRefresh()
+	} else {
+		supabase.auth.stopAutoRefresh()
+	}
+})
+
+
 export default function RootLayout() {
-	const colorScheme = useColorScheme();
 	const [loaded] = useFonts({
 		SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
 	});
 
-	const [user, setUser] = useState(null)
-
-	useEffect(() => {
-		if (loaded) {
-			SplashScreen.hideAsync();
-		}
-	}, [loaded]);
-
 	if (!loaded) {
 		return null;
 	}
-
-	// if (!user) return <Redirect href="/login" />;
 
 	return (
 		<SafeAreaView style={{flex: 1}} edges={['top', 'left', 'right']}>
