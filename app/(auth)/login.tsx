@@ -1,77 +1,54 @@
-import { ActivityIndicator, Button, ScrollView, StyleSheet, View } from 'react-native'
-import React from 'react'
-import Input from '@/components/Input'
-import handleAuth from '@/api/handleAuth';
-import { useAuthStore } from '@/stores/useAuthStore';
+import React, { useState } from 'react';
+import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
+import { Link } from 'expo-router';
+import { supabase } from '../../lib/supabase'; // Adjust path
 
-const login = () => {
+export default function LoginScreen() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
-    const [email, setEmail] = React.useState('aheroboovie@yopmail.com');
-    const [password, setPassword] = React.useState('Qwerty@12345');
-    const [isLoading, setIsLoading] = React.useState(false);
+  const handleLogin = async () => {
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    setLoading(false);
 
-    const session = useAuthStore(state => state.session);
-    console.log("🚀 ~ login ~ session:", session)
-
-
-    const handleLogin = async (): Promise<void> => {
-        try {
-            setIsLoading(true);
-            await handleAuth.login({
-                email,
-                password
-            });
-
-        } catch (error) {
-            console.log('error: ', error)
-        } finally {
-            setIsLoading(false);
-        }
+    if (error) {
+      Alert.alert('Login Error', error.message);
+    } else {
+      // Navigation is handled by the root layout's auth state listener
+      // console.log('Login successful');
     }
-    
+  };
 
-    return (
-        <ScrollView
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-            contentContainerStyle={styles.container}
-        >
-            <View style={styles.main}>
-                {isLoading && <ActivityIndicator color={'black'} />}
-                <Input
-                    placeholder='email'
-                    value={email}
-                    onChangeText={setEmail}
-                />
-                <Input
-                    placeholder='password'
-                    value={password}
-                    onChangeText={setPassword}
-                    isPasswordInput={false}
-                />
-                <Button
-                    title='Login'
-                    onPress={handleLogin}
-                />
-            </View>
-        </ScrollView>
-    )
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Login</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Email"
+        value={email}
+        onChangeText={setEmail}
+        autoCapitalize="none"
+        keyboardType="email-address"
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Password"
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+      />
+      <Button title={loading ? "Logging in..." : "Login"} onPress={handleLogin} disabled={loading} />
+      <Link href="/(auth)/signup" style={styles.link}>Don't have an account? Sign Up</Link>
+      <Link href="/(auth)/forgotPassword" style={styles.link}>Forgot Password?</Link>
+    </View>
+  );
 }
 
-export default login
-
-const styles = StyleSheet.create({
-    container: {
-        paddingHorizontal: 20,
-        flexGrow: 1,
-    },
-    main: {
-        width: '100%',
-        height: '100%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 20,
-        paddingBottom: 50,
-    }
-})
+const styles = StyleSheet.create({ // Add basic styles
+    container: { flex: 1, justifyContent: 'center', padding: 20, backgroundColor: 'white' },
+    title: { fontSize: 24, marginBottom: 20, textAlign: 'center' },
+    input: { borderWidth: 1, borderColor: '#ccc', padding: 10, marginBottom: 15, borderRadius: 5 },
+    link: { marginTop: 15, textAlign: 'center', color: 'blue' }
+});

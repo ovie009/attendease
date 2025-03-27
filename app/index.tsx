@@ -1,53 +1,38 @@
-import React, { useEffect, useState } from 'react'
-import { Redirect } from 'expo-router';
-import { AllowedRoutes, useAuthStore } from '../stores/useAuthStore'
-import { supabase } from "../lib/supabase"
-import * as SplashScreen from 'expo-splash-screen';
+import React from 'react';
+import { View, Text, Button, StyleSheet } from 'react-native';
+import { Link } from 'expo-router';
 
+export default function IndexScreen() {
 
+  // Example of how logging in HERE could set isFirstLaunch to false
+  // This is often handled by the auth listener in _layout, but can be explicit
+  // const handleProceed = () => {
+  //   // If user chooses Login/Signup, we know it's no longer the "very first" launch experience
+  //   // Even if they don't log in successfully yet.
+  //   // Note: The auth listener in RootLayout already handles this on SIGNED_IN.
+  //   // setIsFirstLaunch(false); // You might or might not need this explicit call depending on flow.
+  //   // Let's navigate instead, the listener will handle the flag on successful sign-in.
+  //    router.push('/(auth)/login');
+  // };
 
-const Index = () => {
-
-    const [initialRouteName, setInitialRouteName] = useState<AllowedRoutes | null>(null);
-    // console.log("🚀 ~ Index ~ initialRouteName:", initialRouteName)
-    const [initialParams, setInitialParams] = useState<object>({});
-
-    // Get the necessary functions from your auth store
-    const sessionLoading = useAuthStore(state => state.sessionLoading);
-    
-    const { 
-        initializeSession,
-        handleSessionChange, 
-    } = useAuthStore.getState();
-
-    // // Session handling
-    useEffect(() => {
-        // Initial session check
-        initializeSession()
-
-        // Listen for auth changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(
-            async (_event, session) => {
-                try {
-                    if (sessionLoading) return;
-                    const sessionResponse = await handleSessionChange({ session })
-
-                    if (sessionResponse?.route) {
-                        setInitialRouteName(sessionResponse?.route || '/login');
-                        setInitialParams(sessionResponse?.routeParams);
-                        SplashScreen.hideAsync()
-                    }
-                } catch (error) {
-                    console.log('error', error)
-                }
-            }
-        );
-
-        return () => subscription.unsubscribe()
-    }, [sessionLoading]);
-
-    if (!initialRouteName) return null;
-    return <Redirect href={initialRouteName as any} />;
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Welcome!</Text>
+      <Text>This is the initial startup screen.</Text>
+      <Link href="/(auth)/login" asChild>
+         <Button title="Go to Login" />
+      </Link>
+      <View style={{ marginVertical: 10 }} />
+      <Link href="/(auth)/signup" asChild>
+        <Button title="Go to Sign Up" />
+      </Link>
+       {/* Example alternative button that sets the flag */}
+       {/* <Button title="Proceed to Login (Sets Flag)" onPress={handleProceed} /> */}
+    </View>
+  );
 }
 
-export default Index
+const styles = StyleSheet.create({
+    container: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
+    title: { fontSize: 24, marginBottom: 20 }
+});

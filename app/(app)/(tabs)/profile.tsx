@@ -1,14 +1,14 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 
-const ScanQRCode = () => {
+const profile = () => {
   return (
     <View>
-      <Text>ScanQRCode</Text>
+      <Text>profile</Text>
     </View>
   )
 }
 
-export default ScanQRCode
+export default profile
 
 const styles = StyleSheet.create({})

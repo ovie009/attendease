@@ -1,14 +1,14 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 
-const Dashboard = () => {
+const forgotPassword = () => {
   return (
     <View>
-      <Text>Dashboard</Text>
+      <Text>forgotPassword</Text>
     </View>
   )
 }
 
-export default Dashboard
+export default forgotPassword
 
 const styles = StyleSheet.create({})
