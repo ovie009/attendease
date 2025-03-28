@@ -16,7 +16,7 @@ export default function AppLayout() {
   // If the user is not signed in, redirect away from the app group
   if (!session) {
     // Redirect to the login screen
-    return <Redirect href="/(auth)/login" />;
+    return <Redirect href="/(root)/(auth)/login" />;
   }
 
   // Render the child route within the authenticated group (tabs, settings)

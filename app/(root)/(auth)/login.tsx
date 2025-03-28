@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
 import { Link } from 'expo-router';
-import { supabase } from '../../lib/supabase'; // Adjust path
+import { supabase } from '@/lib/supabase';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -40,8 +40,8 @@ export default function LoginScreen() {
         secureTextEntry
       />
       <Button title={loading ? "Logging in..." : "Login"} onPress={handleLogin} disabled={loading} />
-      <Link href="/(auth)/signup" style={styles.link}>Don't have an account? Sign Up</Link>
-      <Link href="/(auth)/forgotPassword" style={styles.link}>Forgot Password?</Link>
+      <Link href="/(root)/(auth)/signup" style={styles.link}>Don't have an account? Sign Up</Link>
+      <Link href="/(root)/(auth)/forgotPassword" style={styles.link}>Forgot Password?</Link>
     </View>
   );
 }

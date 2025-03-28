@@ -1,14 +1,15 @@
+// ./app/(app)/(tabs)/home.tsx
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 
-const settings = () => {
+const Home = () => {
   return (
     <View>
-      <Text>settings</Text>
+      <Text>Home</Text>
     </View>
   )
 }
 
-export default settings
+export default Home
 
 const styles = StyleSheet.create({})

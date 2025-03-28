@@ -1,14 +1,15 @@
+// ./app/(app)/departments.tsx
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 
-const profile = () => {
+const Departments = () => {
   return (
     <View>
-      <Text>profile</Text>
+      <Text>Departments</Text>
     </View>
   )
 }
 
-export default profile
+export default Departments
 
 const styles = StyleSheet.create({})
