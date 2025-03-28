@@ -30,3 +30,12 @@ npm install react-native-svg
 
 # svg transformer
 npm install --save-dev react-native-svg-transformer
+
+npm install react-native-paper
+npm install react-native-vector-icons
+# npm install @tamagui/core
+# npm install tamagui
+# npm install @tamagui/config
+# npm install @tamagui/babel-plugin
+# npm uninstall tamagui @tamagui/config @tamagui/metro-plugin @tamagui/babel-plugin @tamagui/core
+# npm install --save-dev @babel/preset-react

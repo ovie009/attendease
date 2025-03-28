@@ -1,7 +1,7 @@
 // ./app/index.tsx
 import React from 'react';
 import { View, Text, Button, StyleSheet } from 'react-native';
-import { Link } from 'expo-router';
+import { Link, RelativePathString } from 'expo-router';
 
 export default function IndexScreen() {
 
@@ -42,11 +42,11 @@ export default function IndexScreen() {
 		<View style={styles.container}>
 			<Text style={styles.title}>Welcome!</Text>
 			<Text>This is the initial startup screen.</Text>
-			<Link href="/(root)/(auth)/login" asChild>
+			<Link href={"/(root)/(auth)/login" as RelativePathString} asChild>
 				<Button title="Go to Login" />
 			</Link>
 			<View style={{ marginVertical: 10 }} />
-			<Link href="/(root)/(auth)/signup" asChild>
+			<Link href={"/(root)/(auth)/signup" as RelativePathString} asChild>
 				<Button title="Go to Sign Up" />
 			</Link>
 			{/* Example alternative button that sets the flag */}

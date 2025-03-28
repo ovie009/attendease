@@ -1,9 +1,9 @@
 // ./app/_layout.tsx
 import React, { useEffect } from 'react';
-import { Slot, useSegments, usePathname, useRouter } from 'expo-router';
+import { Slot, useSegments, usePathname, useRouter, Redirect } from 'expo-router';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-
+import { useFonts } from 'expo-font'
 import { useAuthStore } from '@/stores/useAuthStore';
 import { supabase } from '@/lib/supabase';
 // import { useAuthStore } from '../lib/useAuthStore'; // Adjust path if needed
@@ -11,7 +11,7 @@ import { supabase } from '@/lib/supabase';
 
 
 export default function RootLayout() {
-	const router = useRouter();
+
 	const segments = useSegments(); // Get current route segments
 	const pathname = usePathname();
 	console.log("🚀 ~ RootLayout ~ pathname:", pathname)
@@ -101,7 +101,8 @@ export default function RootLayout() {
         // If we are NOT already on the index screen, redirect there.
         // Check segments length to avoid redirecting from the root '/' itself.
 		if (segments.length > 0) {
-			return router.replace("/");
+			// return router.replace("/");
+			return <Redirect href={'/'} />
 		}
         // Otherwise, stay on index (render Slot)
 	}
@@ -110,7 +111,8 @@ export default function RootLayout() {
 	if (!isFirstLaunch && !session) {
 		// If we are not already somewhere in the auth group, redirect to login.
 		if (!inAuthGroup) {
-			return router.replace("/(root)/(auth)/login")
+			// return router.replace("/(root)/(auth)/login")
+			return <Redirect href={'/(root)/(auth)/login'} />
 		}
         // Otherwise, stay in auth group (render Slot)
 	}
@@ -119,7 +121,8 @@ export default function RootLayout() {
 	if (!isFirstLaunch && session) {
 		// If we are not already somewhere in the app group, redirect to home.
 		if (!inAppGroup) {
-			return router.replace("/(root)/(app)/(tabs)/home")
+			// return router.replace("/(root)/(app)/(tabs)/home");
+			return <Redirect href={'/(root)/(app)/(tabs)/home'} />
 		}
         // Otherwise, stay in app group (render Slot)
 	}
