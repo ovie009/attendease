@@ -1,9 +1,8 @@
 // ./app/_layout.tsx
 import React, { useEffect } from 'react';
-import { Slot, useSegments, usePathname, useRouter, Redirect } from 'expo-router';
+import { Slot, useSegments, Redirect } from 'expo-router';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { useFonts } from 'expo-font'
 import { useAuthStore } from '@/stores/useAuthStore';
 import { supabase } from '@/lib/supabase';
 // import { useAuthStore } from '../lib/useAuthStore'; // Adjust path if needed
@@ -13,15 +12,12 @@ import { supabase } from '@/lib/supabase';
 export default function RootLayout() {
 
 	const segments = useSegments(); // Get current route segments
-	const pathname = usePathname();
-	console.log("🚀 ~ RootLayout ~ pathname:", pathname)
 
 	// Zustand state selectors
 	const session = useAuthStore((state) => state.session);
 	const setSession = useAuthStore((state) => state.setSession);
 	const setUser = useAuthStore((state) => state.setUser);
 	const isFirstLaunch = useAuthStore((state) => state.isFirstLaunch);
-	const setIsFirstLaunch = useAuthStore((state) => state.setIsFirstLaunch);
 	const signOut = useAuthStore((state) => state.signOut);
 	const initialized = useAuthStore((state) => state.initialized); // Use store's initialized flag
 	const setInitialized = useAuthStore((state) => state.setInitialized);
@@ -35,13 +31,6 @@ export default function RootLayout() {
 				setSession(session); // Update Zustand store with the session
 				setUser(session?.user ?? null); // Update user derived from session
 				// console.log("🚀 ~ useEffect ~ session:", session)
-
-				// If user signs in during the first launch (on index screen)
-				if (event === 'SIGNED_IN' && isFirstLaunch) {
-					// console.log('First launch SIGNED_IN detected, setting isFirstLaunch to false');
-					setIsFirstLaunch(false);
-					// Redirect is handled by Effect 2
-				}
 
 				// If user signs out, ensure isFirstLaunch doesn't block login screen
 				if (event === 'SIGNED_OUT') {
@@ -101,8 +90,11 @@ export default function RootLayout() {
         // If we are NOT already on the index screen, redirect there.
         // Check segments length to avoid redirecting from the root '/' itself.
 		if (segments.length > 0) {
-			// return router.replace("/");
-			return <Redirect href={'/'} />
+			return (
+				<SafeAreaProvider>
+					<Slot />
+				</SafeAreaProvider>
+			);
 		}
         // Otherwise, stay on index (render Slot)
 	}

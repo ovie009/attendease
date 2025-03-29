@@ -1,11 +1,19 @@
 // ./app/index.tsx
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, Button, StyleSheet } from 'react-native';
 import { Link, RelativePathString } from 'expo-router';
+import { useAuthStore } from '@/stores/useAuthStore';
 
 export default function IndexScreen() {
 
 	// --- Declarative Routing ---
+	// const isFirstLaunch = useAuthStore((state) => state.isFirstLaunch);
+	// console.log("🚀 ~ IndexScreen ~ isFirstLaunch:", isFirstLaunch)
+	const setIsFirstLaunch = useAuthStore((state) => state.setIsFirstLaunch);
+
+	useEffect(() => {
+		setIsFirstLaunch(false);
+	}, [])
 
 	// 1. First Launch? -> Force to index
 	// if (isFirstLaunch) {

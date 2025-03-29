@@ -4,14 +4,14 @@ import {
     BottomSheetBackdrop,
     BottomSheetView,
     BottomSheetModalProps,
-    BottomSheetHandleProps, // Keep this for props spreading
 } from "@gorhom/bottom-sheet";
 import React, { useMemo, useCallback } from "react"; // Removed FC, added forwardRef
 import ModalHandle from "./ModalHandle";
 // import CloseIcon from "../assets/icons/CloseIcon";
+import AntDesign from '@expo/vector-icons/AntDesign'
 import { colors } from "../utilities/colors";
 import { HEIGHT } from "../utilities/dimensions";
-import { Title } from "react-native-paper";
+import { Text, Title } from "react-native-paper";
 import { BottomSheetDefaultBackdropProps } from "@gorhom/bottom-sheet/lib/typescript/components/bottomSheetBackdrop/types";
 
 // Interface for props remains mostly the same
@@ -110,12 +110,11 @@ const CustomBottomSheet = React.forwardRef<BottomSheetModal, CustomBottomSheetPr
                             // Use onPressClose if provided, otherwise fall back to closeBottomSheet
                             onPress={typeof onPressClose === 'function' ? onPressClose : closeBottomSheet}
                         >
-                            {/* <CloseIcon /> Placeholder */}
-                            <Title style={{ transform: [{ rotateZ: '45deg' }] }}>+</Title>
+                            <AntDesign name="close" size={20} color={colors.black} />
                         </TouchableOpacity>
                         {sheetTitle && (
                             <BottomSheetView style={styles.sheetTitle}>
-                                <Title>{sheetTitle}</Title>
+                                <Text variant={'titleLarge'}>{sheetTitle}</Text>
                             </BottomSheetView>
                         )}
                     </BottomSheetView>
@@ -123,6 +122,7 @@ const CustomBottomSheet = React.forwardRef<BottomSheetModal, CustomBottomSheetPr
                 <BottomSheetView
                     style={[
                         styles.modalWrapper,
+                        // {maxHeight: 300},
                         contentContainerStyle && contentContainerStyle, // Apply custom contentContainerStyle
                     ]}
                 >
@@ -173,11 +173,8 @@ const styles = StyleSheet.create({
         // ]
     },
     modalWrapper: {
-        display: "flex",
-        flexDirection: "column",
         flex: 1,
         paddingHorizontal: 20,
-        paddingBottom: 20, // Add padding at the bottom if needed
     }
 });
 

@@ -5,8 +5,8 @@ export type College = {
     updated_at: string;
 };
 
-export type Response = {
+export type Response<T> = {
     isSuccessful: boolean;
     message: string;
-    data: any
+    data: T
 } 

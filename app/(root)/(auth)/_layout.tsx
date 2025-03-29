@@ -1,6 +1,6 @@
 // ./app/(auth)/_layout.tsx
 import React from 'react';
-import { Redirect, Slot } from 'expo-router';
+import { Redirect, RelativePathString, Slot } from 'expo-router';
 import { useAuthStore } from '@/stores/useAuthStore';
 
 export default function AuthLayout() {
@@ -15,7 +15,7 @@ export default function AuthLayout() {
 
   // If the user is signed in, redirect away from the auth group
   if (session) {
-    return <Redirect href="/(app)/(tabs)/home" />; // Redirect to the main app screen
+    return <Redirect href={"/(app)/(tabs)/home" as RelativePathString} />; // Redirect to the main app screen
   }
 
   // Render the child route (login, signup, etc.)

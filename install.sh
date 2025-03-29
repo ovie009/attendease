@@ -33,6 +33,10 @@ npm install --save-dev react-native-svg-transformer
 
 npm install react-native-paper
 npm install react-native-vector-icons
+
+npx expo install expo-linear-gradient
+npx expo install @shopify/flash-list
+npm i react-native-shimmer-placeholder --save
 # npm install @tamagui/core
 # npm install tamagui
 # npm install @tamagui/config
