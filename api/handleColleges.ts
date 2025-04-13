@@ -1,11 +1,12 @@
 import { supabase } from "@/lib/supabase"
 import { College, Response } from "@/types/api";
 
+const tableName = "colleges"
 
 const create = async (college_name: string): Promise<Response<College>> => {
     try {
         const { data, error, status } = await supabase
-            .from('colleges')
+            .from(tableName)
             .insert({ 
                 college_name 
             })
@@ -29,7 +30,7 @@ const create = async (college_name: string): Promise<Response<College>> => {
 const getAll = async (): Promise<Response<College[] | []>> => {
     try {
         const { data, error, status } = await supabase
-            .from('colleges')
+            .from(tableName)
             .select('*')
             .order('college_name', {ascending: true});
 

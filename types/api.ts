@@ -5,6 +5,20 @@ export type College = {
     updated_at: string;
 };
 
+export type Admin = {
+    id: string,
+    email: string,
+    is_active: boolean,
+    full_name: string,
+    created_at: string;
+    updated_at: string;
+}
+
+export type User = Admin & {
+    isAdmin: boolean,
+    role?: string,
+}
+
 export type Response<T> = {
     isSuccessful: boolean;
     message: string;

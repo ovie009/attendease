@@ -43,3 +43,5 @@ npm i react-native-shimmer-placeholder --save
 # npm install @tamagui/babel-plugin
 # npm uninstall tamagui @tamagui/config @tamagui/metro-plugin @tamagui/babel-plugin @tamagui/core
 # npm install --save-dev @babel/preset-react
+
+npx expo install expo-navigation-bar

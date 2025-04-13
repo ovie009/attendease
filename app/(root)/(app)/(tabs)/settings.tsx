@@ -1,41 +1,76 @@
 // ./app/(app)/(tabs)/settings.tsx
 import { Button, ScrollView, StyleSheet, View } from 'react-native'
-import React from 'react'
+import React, { ReactNode } from 'react'
 import { Link, RelativePathString } from 'expo-router'
+import { colors } from '@/utilities/colors'
+import FontAwesome6 from '@expo/vector-icons/FontAwesome6'
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
+import CollegeIcon from '@/assets/svg/CollegeIcon.svg';
+import SessionIcon from '@/assets/svg/SessionIcon.svg';
+import DepartmentIcon from '@/assets/svg/DepartmentIcon.svg';
+import CourseIcon from '@/assets/svg/CourseIcon.svg';
+import CardIcon from '@/assets/svg/CardIcon.svg';
+import LecturerIcon from '@/assets/svg/LecturerIcon.svg';
+import ScheduleIcon from '@/assets/svg/ScheduleIcon.svg';
+import SettingsListItem from '@/components/SettingsListItem'
+
 
 const Settings = () => {
 
-	const buttons: { name: string, href: string, onPress: () => void }[] = [
-		{
-			name: "Session",
-			href: '/(app)/session',
-			onPress: () => {},
-		},
+	const buttons: { name: string, href: RelativePathString, onPress: () => void, Icon: ReactNode }[] = [
 		{
 			name: "Colleges",
-			href: '/(app)/colleges',
+			href: '../colleges',
 			onPress: () => {},
+			Icon: <CollegeIcon width={20} height={20} />
+		},
+		{
+			name: "Session",
+			href: '../session',
+			onPress: () => {},
+			Icon: <SessionIcon width={20} height={20} />
 		},
 		{
 			name: "Departments",
-			href: '/(app)/departments',
+			href: '../departments',
 			onPress: () => {},
+			Icon: <DepartmentIcon width={20} height={20} />
 		},
 		{
 			name: "Courses",
-			href: '/(app)/courses',
+			href: '../courses',
 			onPress: () => {},
+			Icon: <CourseIcon width={20} height={20} />
+		},
+		{
+			name: "Cards",
+			href: '../cards',
+			onPress: () => {},
+			Icon: <CardIcon width={20} height={20} />
+		},
+		{
+			name: "Lecturers",
+			href: '../lecturers',
+			onPress: () => {},
+			Icon: <LecturerIcon width={20} height={20} />
+		},
+		{
+			name: "Schedules",
+			href: '../schedules',
+			onPress: () => {},
+			Icon: <ScheduleIcon width={20} height={20} />
 		},
 	]
 
 
 	return (
-		<ScrollView style={styles.container}>
+		<ScrollView contentContainerStyle={styles.contentContainer}>
 			<View style={styles.list}>
-				{buttons.map((button, index) => (
-					<Link key={index} href={button.href as RelativePathString} asChild>
-						<Button title={button.name} onPress={button.onPress} />
-					</Link>
+				{buttons.map((button) => (
+					<SettingsListItem
+						key={button?.name}
+						{...button}
+					/>
 				))}
 			</View>
 
@@ -46,15 +81,15 @@ const Settings = () => {
 export default Settings
 
 const styles = StyleSheet.create({
-    container: {
+    contentContainer: {
         flexGrow: 1,
-		paddingHorizontal: 20,
+		padding: 20,
 		paddingBottom: 30,
+		backgroundColor: colors.white,
     },
 	list: {
 		display: 'flex',
 		justifyContent: 'flex-start',
 		alignItems: 'flex-start',
-		gap: 20,
 	}
 })

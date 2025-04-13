@@ -1,23 +1,22 @@
-// ./app/(app)/(tabs)/home.tsx
+// ./app/(app)/session.tsx
 import { ScrollView, StyleSheet, Text, View } from 'react-native'
 import React from 'react'
-import { colors } from '@/utilities/colors'
 
-const Home = () => {
+const Schedules = () => {
 	return (
 		<ScrollView
 			contentContainerStyle={styles.contentContainer}
 		>
-		<Text>Home</Text>
+		<Text>Schedules</Text>
 		</ScrollView>
 	)
 }
 
-export default Home
+export default Schedules
 
 const styles = StyleSheet.create({
 	contentContainer: {
-		backgroundColor: colors.white,
 		flexGrow: 1,
+		backgroundColor: 'white',
 	}
 })

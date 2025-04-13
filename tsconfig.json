@@ -7,14 +7,24 @@
       "@/*": [
         "./*"
       ],
+      // This path alias is for importing modules from ./types,
+      // like import { ToastType } from '@/types/general';
+      // It doesn't directly relate to finding the global .d.ts file
+      // unless you place declarations.d.ts inside the ./types folder.
       "@types/*": ["./types/*"]
     }
   },
   "include": [
+    // Keep existing patterns
     "**/*.ts",
     "**/*.tsx",
     ".expo/types/**/*.ts",
-    "expo-env.d.ts", 
-    "stores/useAuthStore.js"
+    "expo-env.d.ts",
+    "stores/useAuthStore.js", // Note: Including JS files might require allowJs:true if not set in base
+
+    // --- Add this line ---
+    "declarations.d.ts" // Explicitly include the global declaration file
+    // --------------------
   ]
+  // "exclude": ["node_modules"] // exclude is often inherited or implied, but good practice
 }

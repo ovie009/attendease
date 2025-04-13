@@ -13,7 +13,6 @@ import { useAppStore } from '@/stores/useAppStore'
 import handleColleges from '@/api/handleColleges'
 import { handleDisableDataLoading } from '@/utilities/handleDisableDataLoading'
 import CollegeCard from '@/components/CollegeCard'
-import loadingData from '../../../data/loading_data.json';
 import { getLoadingData } from '@/utilities/getLoadingData'
 import FloatingButton from '@/components/FloatingButton'
 
@@ -76,8 +75,6 @@ const Colleges = () => {
 
 	// list of collegs
 	const [colleges, setColleges] = useState<College[]>([]);
-
-	console.log('loading data', getLoadingData(['college_name'], ['loading...']))
 
 	const data = useMemo<any>(() => {
 		if (dataLoading.colleges) {

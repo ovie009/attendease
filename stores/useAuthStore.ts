@@ -2,7 +2,8 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Session, User } from '@supabase/supabase-js';
+import { Session } from '@supabase/supabase-js';
+import { User } from '@/types/api';
 
 interface AuthState {
   session: Session | null;
@@ -19,15 +20,15 @@ interface AuthState {
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
-      session: null,
-      user: null,
-      isFirstLaunch: true, // Initialize as true
-	  initialized: false, // Start as false
-      setSession: (session) => set(() => ({ session })),
-      setUser: (user) => set(() => ({ user })),
-      setIsFirstLaunch: (isFirst) => set(() => ({ isFirstLaunch: isFirst })),
-	  setInitialized: (init) => set({ initialized: init }),
-      signOut: () => set(() => ({ session: null, user: null })), // Clear session/user on sign out
+		session: null,
+		user: null,
+		isFirstLaunch: true, // Initialize as true
+		initialized: false, // Start as false
+		setSession: (session) => set(() => ({ session })),
+		setUser: (user) => set(() => ({ user })),
+		setIsFirstLaunch: (isFirst) => set(() => ({ isFirstLaunch: isFirst })),
+		setInitialized: (init) => set({ initialized: init }),
+		signOut: () => set(() => ({ session: null, user: null })), // Clear session/user on sign out
     }),
     {
 		name: 'auth-storage', // Unique name for storage

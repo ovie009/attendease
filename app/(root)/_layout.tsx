@@ -1,13 +1,14 @@
 // ./app/_layout.tsx
 import React, { useEffect } from 'react';
 import { Slot, useSegments, Redirect } from 'expo-router';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { supabase } from '@/lib/supabase';
+import handleAdmin from '@/api/handleAdmin';
 // import { useAuthStore } from '../lib/useAuthStore'; // Adjust path if needed
-
-
+import * as NavigationBar from 'expo-navigation-bar';
+import { colors } from '@/utilities/colors';
 
 export default function RootLayout() {
 
@@ -29,9 +30,16 @@ export default function RootLayout() {
 			(event, session) => {
 				// console.log('Auth state changed:', event, !!session);
 				setSession(session); // Update Zustand store with the session
-				setUser(session?.user ?? null); // Update user derived from session
-				// console.log("🚀 ~ useEffect ~ session:", session)
-
+				if (session?.user) {
+					handleAdmin.getAdminById(session?.user?.id).then(adminResponse => {
+						console.log("🚀 ~ handleAdmin.getAdminById ~ adminResponse:", adminResponse)
+						if (adminResponse.data) {
+							setUser({...adminResponse.data, isAdmin: true})
+						}
+					})
+				} else {
+					setUser(null)
+				}
 				// If user signs out, ensure isFirstLaunch doesn't block login screen
 				if (event === 'SIGNED_OUT') {
 					// Clear store explicitly (though listener also sets session to null)
@@ -53,7 +61,16 @@ export default function RootLayout() {
 			if (!initialized) { // Only if listener hasn't fired yet
 				// console.log('Initial getSession result:', !!session);
 				setSession(session);
-				setUser(session?.user ?? null);
+				if (session?.user) {
+					handleAdmin.getAdminById(session?.user?.id).then(adminResponse => {
+						console.log("🚀 ~ handleAdmin.getAdminById ~ adminResponse:", adminResponse)
+						if (adminResponse.data) {
+							setUser({...adminResponse.data, isAdmin: true})
+						}
+					})
+				} else {
+					setUser(null)
+				}
 				setInitialized(true);
 				// console.log('Initial getSession check complete.');
 			}
@@ -67,6 +84,42 @@ export default function RootLayout() {
 		// Run only once on mount, depend on functions from store
 	}, []);
 
+	// useEffect(() => {
+	// 	if (!session) return;
+
+	// 	(async () => {
+	// 		// console.log('Session changed:', session);
+	// 		// const { data: { user } } = await supabase.auth.getUser();
+	// 		// setUser(user);
+	// 		try {
+	// 			const adminResponse = await handleAdmin.getAdminById(session.user.id);
+	// 			console.log("🚀 ~ adminResponse:", adminResponse)
+
+	// 		} catch (error: any) {
+	// 			console.log('error', error?.message)
+	// 		}
+	// 	})()
+
+	// }, [session])
+
+    // set system navigation bar color
+    useEffect(() => {
+        (async () => {
+            try {
+                if (Platform.OS === 'android') {
+                    // position navigation bar
+                    await NavigationBar.setPositionAsync('relative');
+
+                    // set system navigation bar color
+                    await NavigationBar.setBackgroundColorAsync(colors.white); 
+                }
+                    console.log("🚀 ~ colors.white:", colors.white)
+            } catch (error: any) {
+                console.log('navigation bar error', error?.message)
+            } 
+        })();
+    }, []);
+
 	// Render loading indicator until initialization is complete
 	if (!initialized) {
 		// console.log('Rendering loading indicator...');
@@ -76,6 +129,8 @@ export default function RootLayout() {
 		</View>
 		);
 	}
+
+
 
 	// Hide splash screen now that we're initialized
     // SplashScreen.hideAsync();
