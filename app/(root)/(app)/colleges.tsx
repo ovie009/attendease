@@ -1,7 +1,7 @@
 // ./app/(app)/colleges.tsx
 import { Platform, StyleSheet, View } from 'react-native'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Button, Paragraph, Text, TextInput, Title } from 'react-native-paper'
+import { Button, Paragraph, TextInput, Title } from 'react-native-paper'
 import { FlashList } from '@shopify/flash-list'
 import { colors } from '../../../utilities/colors'
 import { College } from '@/types/api'
@@ -12,13 +12,15 @@ import { BottomSheetModal } from '@gorhom/bottom-sheet'
 import { useAppStore } from '@/stores/useAppStore'
 import handleColleges from '@/api/handleColleges'
 import { handleDisableDataLoading } from '@/utilities/handleDisableDataLoading'
-import CollegeCard from '@/components/CollegeCard'
+import CollegeListItem from '@/components/CollegeListItem'
 import { getLoadingData } from '@/utilities/getLoadingData'
-import FloatingButton from '@/components/FloatingButton'
+import Input from '@/components/Input'
+import FixedButton from '@/components/FixedButton'
+import AddCircleIcon from "@/assets/svg/AddCircleIcon.svg"
 
 // Let's stick with 'is_loading' as used in useMemo annotation.
-type CollegeListItem = College & {
-    is_loading: boolean;
+type CollegeListItemProps = College & {
+    is_loading?: boolean | undefined;
 };
 
 const Colleges = () => {
@@ -75,17 +77,25 @@ const Colleges = () => {
 
 	// list of collegs
 	const [colleges, setColleges] = useState<College[]>([]);
+	const [searchInput, setSearchInput] = useState<string>("");
 
 	const data = useMemo<any>(() => {
 		if (dataLoading.colleges) {
 			return getLoadingData(['college_name'], ['loading...']);
 		}
 
+		if (searchInput) {
+			return colleges.filter(item => item.college_name.toLowerCase().includes(searchInput.toLowerCase())).map(item => ({
+				...item,
+				is_loading: false
+			}));
+		}
+
 		return colleges.map(item => ({
 			...item,
 			is_loading: false
 		}));
-	}, [colleges, dataLoading.colleges]);
+	}, [colleges, dataLoading.colleges, searchInput]);
 
 
 	useEffect(() => {
@@ -131,14 +141,11 @@ const Colleges = () => {
 		}
 	}
 
-	const RenderItem = useCallback(({item}: {item: CollegeListItem}) => (
-		<CollegeCard
-			id={item.id}
+	const RenderItem = useCallback(({item, index}: {item: CollegeListItemProps, index: number}) => (
+		<CollegeListItem
+			index={index}
 			isLoading={item?.is_loading}
 			collegeName={item.college_name}
-			onPressEdit={(id) => {
-				console.log("🚀 ~ Colleges ~ id:", id)
-			}}
 		/>
 	), []);
 
@@ -148,9 +155,11 @@ const Colleges = () => {
 				keyExtractor={(item) => item.id}
 				ListHeaderComponent={
 					<View style={styles.header}>
-						<Text variant='titleLarge'>
-							Added Colleges
-						</Text>
+						<Input
+							value={searchInput}
+							onChangeText={setSearchInput}
+							placeholder='Search Colleges'
+						/>
 					</View>
 				}
 				data={data}
@@ -181,6 +190,11 @@ const Colleges = () => {
 				)}
 			/> 
 		</View>
+		<FixedButton
+			onPress={() => {}}
+			text={"Add Department"}
+			Icon={<AddCircleIcon />}
+		/>
 		<CustomBottomSheet
 			ref={sheetRef}
 			closeBottomSheet={closeBottomSheet}
@@ -206,7 +220,7 @@ const Colleges = () => {
 							// outlineStyle={{alignSelf: 'flex-start'}}
 						/>
 					</View>
-					<View style={styles.buttonWrapper}>
+					<View style={styles.modalButtonWrapper}>
 						<Button
 							buttonColor={colors.primary}
 							textColor={colors.white}
@@ -220,10 +234,6 @@ const Colleges = () => {
 				</View>
 			)} 
 		</CustomBottomSheet>
-		<FloatingButton
-			Icon={<FontAwesome6 name="add" size={30} color={colors.white} />}
-			onPress={() => openBottomSheet("Add College")}
-		/>
 	</>)
 }
 
@@ -240,10 +250,11 @@ const styles = StyleSheet.create({
 		// alignItems: 'center',
 		gap: 20,
 		width: WIDTH,
-		// backgroundColor: 'pink',
+		backgroundColor: colors.white,
+		position: 'relative',
 	},
 	header: {
-		marginBottom: 30,
+		marginBottom: 40,
 	},
 	text: {
 		display: 'flex',
@@ -258,6 +269,14 @@ const styles = StyleSheet.create({
 		height: HEIGHT/2,
 		width: '100%',
 		// width: WIDTH - 20,
+	},
+	buttonWrapper: {
+		position: 'absolute',
+		bottom: 0,
+		left: 0,
+		width: '100%',
+		backgroundColor: colors.grey,
+		height: 100,
 	},
 	// BOTTOM SHEEET
 	// BOTTOM SHEEET
@@ -289,7 +308,7 @@ const styles = StyleSheet.create({
 	inputOutline: {
 		backgroundColor: 'orange',
 	},
-	buttonWrapper: {
+	modalButtonWrapper: {
 		flex: 1,
 		justifyContent: 'flex-end',
 		// display: 'flex',`

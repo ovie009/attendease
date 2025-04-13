@@ -5,11 +5,12 @@ export const colors = {
     textSecondary: '#4F5E7B', // Dark text on light background
     black: '#282424', // Dark text on light background
     accent: '#F5A623', // Example accent (like for an edit icon) - optional
-    border: '#D0D7E0', // Slightly darker than secondary for borders
     error: '#D9534F', // Standard error re
     white: '#FFFFFF',
     success: '#4CAF50',
     skeleton1: "#ebebeb",
     skeleton2: "#dbdbdb",
     grey: "#CCD3D4",
+    inputBorder: '#D1D1D1',
+    border: '#FCF5F4',
 };

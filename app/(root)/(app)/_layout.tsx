@@ -3,6 +3,7 @@ import React from 'react';
 import { ExternalPathString, Redirect, RelativePathString, Stack } from 'expo-router';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { colors } from '@/utilities/colors';
+import InterText from '@/components/InterText';
 
 export default function AppLayout() {
     const session = useAuthStore((state) => state.session);
@@ -24,21 +25,25 @@ export default function AppLayout() {
 
     // Render the child route within the authenticated group (tabs, settings)
     return (
-		<Stack>
+		<Stack
+			screenOptions={{
+			}}
+		>
 			<Stack.Screen name="(tabs)" options={{ headerShown: false }} />
 			<Stack.Screen 
 				name="session" 
 				options={{
 					headerBackVisible: false,
-					headerBackTitle: ""
+					headerBackTitle: "",
+					headerTitle: () => <InterText fontSize={32} fontWeight={600} lineHeight={35}>Session</InterText>,
 				}} 
 			/>
 			<Stack.Screen 
 				name="colleges"
 				options={{
-					title: "Colleges",
 					headerTintColor: colors.black,
-					headerBackTitle: "Settings"
+					headerBackTitle: "Settings",
+					headerTitle: () => <InterText fontSize={32} fontWeight={600} lineHeight={35}>Colleges</InterText>,
 				}} 
 			/>
 			<Stack.Screen 

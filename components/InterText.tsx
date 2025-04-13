@@ -3,7 +3,7 @@ import React, { FC, ReactNode } from 'react'
 import { colors } from '../utilities/colors'
 
 
-interface InterTextProps extends TextProps {
+export interface InterTextProps extends TextProps {
     fontWeight?: string | number | undefined,
     fontSize?: number | undefined,
     lineHeight?: number | undefined,
@@ -13,7 +13,7 @@ interface InterTextProps extends TextProps {
     textAlign?: 'center' | 'left' | 'right' | undefined,
     textStyle?: TextStyle | undefined,
     onPress?: () => void | undefined,
-    children: ReactNode
+    children?: ReactNode | undefined,
 }
 
 const InterText: FC<InterTextProps> = ({children, fontWeight, fontSize, lineHeight, color, numberOfLines, capitalize, textAlign, textStyle, onPress, ...rest}) => {
