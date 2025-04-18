@@ -1,13 +1,11 @@
 // ./app/(app)/(tabs)/settings.tsx
-import { Button, ScrollView, StyleSheet, View } from 'react-native'
+import { ScrollView, StyleSheet, View } from 'react-native'
 import React, { ReactNode } from 'react'
-import { Link, RelativePathString } from 'expo-router'
+import { RelativePathString } from 'expo-router'
 import { colors } from '@/utilities/colors'
-import FontAwesome6 from '@expo/vector-icons/FontAwesome6'
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
 import CollegeIcon from '@/assets/svg/CollegeIcon.svg';
-import SessionIcon from '@/assets/svg/SessionIcon.svg';
 import DepartmentIcon from '@/assets/svg/DepartmentIcon.svg';
+import SessionIcon from '@/assets/svg/SessionIcon.svg';
 import CourseIcon from '@/assets/svg/CourseIcon.svg';
 import CardIcon from '@/assets/svg/CardIcon.svg';
 import LecturerIcon from '@/assets/svg/LecturerIcon.svg';

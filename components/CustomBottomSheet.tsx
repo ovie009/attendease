@@ -13,6 +13,7 @@ import { colors } from "../utilities/colors";
 import { HEIGHT } from "../utilities/dimensions";
 import { Text, Title } from "react-native-paper";
 import { BottomSheetDefaultBackdropProps } from "@gorhom/bottom-sheet/lib/typescript/components/bottomSheetBackdrop/types";
+import InterText from "./InterText";
 
 // Interface for props remains mostly the same
 interface CustomBottomSheetProps extends Omit<BottomSheetModalProps, 'children' | 'snapPoints'> { // Omit props handled explicitly
@@ -114,7 +115,14 @@ const CustomBottomSheet = React.forwardRef<BottomSheetModal, CustomBottomSheetPr
                         </TouchableOpacity>
                         {sheetTitle && (
                             <BottomSheetView style={styles.sheetTitle}>
-                                <Text variant={'titleLarge'}>{sheetTitle}</Text>
+                                {/* <Text variant={'titleLarge'}>{sheetTitle}</Text> */}
+                                <InterText
+                                    fontSize={20}
+                                    lineHeight={23}
+                                    fontWeight={600}
+                                >
+                                    {sheetTitle}
+                                </InterText>
                             </BottomSheetView>
                         )}
                     </BottomSheetView>

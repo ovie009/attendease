@@ -30,6 +30,8 @@ export default function AppLayout() {
 			}}
 		>
 			<Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+			<Stack.Screen name="(college)" options={{ headerShown: false }} />
+			<Stack.Screen name="college" options={{ headerShown: false }} />
 			<Stack.Screen 
 				name="session" 
 				options={{
@@ -42,7 +44,7 @@ export default function AppLayout() {
 				name="colleges"
 				options={{
 					headerTintColor: colors.black,
-					headerBackTitle: "Settings",
+					headerBackTitle: "",
 					headerTitle: () => <InterText fontSize={32} fontWeight={600} lineHeight={35}>Colleges</InterText>,
 				}} 
 			/>

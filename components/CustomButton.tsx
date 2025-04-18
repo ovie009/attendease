@@ -15,9 +15,10 @@ export interface CustomButtonProps extends InterTextProps {
     text: string,
     TextComponent?: ReactNode | undefined,
     Icon?: ReactNode | undefined,
+    diabledButtonColor?: string | undefined,
 }
 
-const CustomButton: FC<CustomButtonProps> = ({onPress, disabled, isLoading, isSecondary, buttonStyle, width, height, fontWeight, fontSize, lineHeight, color, text, TextComponent, Icon, ...rest}) => {
+const CustomButton: FC<CustomButtonProps> = ({onPress, disabled, isLoading, isSecondary, buttonStyle, width, height, diabledButtonColor, fontWeight, fontSize, lineHeight, color, text, TextComponent, Icon, ...rest}) => {
 // console.log("🚀 ~ Icon:", Icon)
 
     // handle font color
@@ -51,6 +52,8 @@ const CustomButton: FC<CustomButtonProps> = ({onPress, disabled, isLoading, isSe
                 styles.button,
                 width !== undefined && { width },
                 height !== undefined && { height },
+                (disabled && !diabledButtonColor && !isSecondary) && {backgroundColor: colors.primaryDisable},
+                diabledButtonColor && {backgroundColor: diabledButtonColor},
                 isSecondary === true && { backgroundColor: colors.grey}, 
                 (buttonStyle?.height !== undefined || height !== undefined) && { minHeight: undefined },
                 buttonStyle && buttonStyle,

@@ -45,3 +45,5 @@ npm i react-native-shimmer-placeholder --save
 # npm install --save-dev @babel/preset-react
 
 npx expo install expo-navigation-bar
+
+npm install moment

@@ -1,9 +1,10 @@
 export const colors = {
     primary: '#D2544A', // Dark Blue
+    primaryDisable: 'rgba(210, 84, 74, 0.5)',
     secondary: '#D8E4F3', // Light Blue-Grey (derived light version)
-    textPrimary: '#FFFFFF', // White text on dark background
+    subtext: '#585858',
     textSecondary: '#4F5E7B', // Dark text on light background
-    black: '#282424', // Dark text on light background
+    black: '#000000', // Dark text on light background
     accent: '#F5A623', // Example accent (like for an edit icon) - optional
     error: '#D9534F', // Standard error re
     white: '#FFFFFF',
@@ -13,4 +14,7 @@ export const colors = {
     grey: "#CCD3D4",
     inputBorder: '#D1D1D1',
     border: '#FCF5F4',
+    label: "#585858",
+    accentLight: '#FCF5F4',
+    lightGrey: '#F3F3F3',
 };

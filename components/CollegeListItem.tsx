@@ -10,11 +10,15 @@ interface CollegeCardProps {
     collegeName?: string,
     nameOfDean?: string | undefined,
     isLoading?: boolean | undefined,
+    onPress?: () => void | undefined,
 }
 
-const CollegeListItem: FC<CollegeCardProps> = ({index, collegeName, nameOfDean, isLoading}) => {
+const CollegeListItem: FC<CollegeCardProps> = ({index, collegeName, nameOfDean, isLoading, onPress}) => {
     return (
-        <TouchableOpacity style={styles.container}>
+        <TouchableOpacity 
+            style={styles.container}
+            onPress={onPress}
+        >
             {isLoading ? (
                 <Skeleton
                     width={45}

@@ -1,13 +1,10 @@
 // ./app/(app)/colleges.tsx
 import { Platform, StyleSheet, View } from 'react-native'
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Button, Paragraph, TextInput, Title } from 'react-native-paper'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { Paragraph, Title } from 'react-native-paper'
 import { FlashList } from '@shopify/flash-list'
 import { College } from '@/types/api'
 import { HEIGHT, WIDTH } from '@/utilities/dimensions'
-import FontAwesome6 from '@expo/vector-icons/FontAwesome6'
-import CustomBottomSheet from '@/components/CustomBottomSheet'
-import { BottomSheetModal } from '@gorhom/bottom-sheet'
 import { useAppStore } from '@/stores/useAppStore'
 import handleColleges from '@/api/handleColleges'
 import { handleDisableDataLoading } from '@/utilities/handleDisableDataLoading'
@@ -26,7 +23,7 @@ type CollegeListItemProps = College & {
 	onPress?: () => void | undefined;
 };
 
-const Colleges = () => {
+const CollegeDetails = () => {
 
 	const router = useRouter()
 
@@ -35,7 +32,8 @@ const Colleges = () => {
 	const {
 		displayToast,
 	} = useAppStore.getState()
-	
+	// console.log("🚀 ~ Colleges ~ keyboardHeight:", keyboardHeight)
+
 	const [dataLoading, setDataloading] = useState<{colleges: boolean}>({
 		colleges: true,
 	});
@@ -118,19 +116,19 @@ const Colleges = () => {
 		<View style={styles.contentContainerStyle}>
 			<FlashList
 				keyExtractor={(item) => item.id}
-				ListHeaderComponent={(!dataLoading.colleges && colleges.length !== 0) ? (
+				ListHeaderComponent={
 					<View style={styles.header}>
 						<Input
 							value={searchInput}
 							onChangeText={setSearchInput}
-							placeholder='Search Colleges'
+							placeholder='Search Departments'
 						/>
 					</View>
-				) : <></>}
+				}
 				data={data}
 				renderItem={RenderItem}
 				estimatedItemSize={100}
-				ListEmptyComponent={(colleges.length === 0 && data.length === 0) ? (
+				ListEmptyComponent={(
 					<View style={styles.listEmptyComponent}>
 						<View style={styles.text}>
 							<Title>
@@ -144,26 +142,24 @@ const Colleges = () => {
 							onPress={() => {
 								router.push('/(root)/(app)/(college)/addCollege')				
 							}}
-							text={"Add College"}
+							text={"Add Department"}
 							Icon={<AddCircleIcon />}
 						/>
 					</View>
-				) : <></>}
+				)}
 			/> 
 		</View>
-		{(!dataLoading.colleges && data.length !== 0) && (
-			<FixedButton
-				onPress={() => {
-					router.push('/(root)/(app)/(college)/addCollege')				
-				}}
-				text={"Add College"}
-				Icon={<AddCircleIcon />}
-			/>
-		)}
+		<FixedButton
+			onPress={() => {
+				router.push('/(root)/(app)/(college)/addCollege')				
+			}}
+			text={"Add Department"}
+			Icon={<AddCircleIcon />}
+		/>
 	</>)
 }
 
-export default Colleges
+export default CollegeDetails
 
 const styles = StyleSheet.create({
 	contentContainerStyle: {
