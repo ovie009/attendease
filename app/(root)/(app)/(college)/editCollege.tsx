@@ -186,6 +186,7 @@ const handleSelectedDean = useCallback((id: string): void => {
 				data={lecturers}
 				keyExtractor={(item) => item.id}
 				contentContainerStyle={{paddingBottom: 30}}
+                estimatedItemSize={81}
 				renderItem={renderItem}
 			/>
 		</CustomBottomSheet>

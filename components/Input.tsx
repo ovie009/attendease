@@ -1,5 +1,6 @@
 import { StyleSheet, TextInput, TextInputProps, View } from 'react-native';
-import React, { FC } from 'react';
+// Make sure React is imported
+import React, { forwardRef } from 'react';
 import { colors } from '@/utilities/colors';
 import InterText from './InterText';
 
@@ -9,22 +10,27 @@ export interface InputProps extends TextInputProps {
 	error?: string;
 	onInputEmpty?: (message: string) => void;
 	isPasswordInput?: boolean;
-	label?: string | undefined,
+	label?: string | undefined;
+	// Note: 'ref' should NOT be part of InputProps when using forwardRef
 }
 
-const Input: FC<InputProps> = ({
+// Use React.forwardRef
+// Generic types:
+// 1. TextInput: The type of the element the ref will point to
+// 2. InputProps: The type of the props your component accepts
+const Input = forwardRef<TextInput, InputProps>(({
     value,
     onChangeText,
-    error,
+    error, // Note: The error prop is defined but not visually used yet
     onInputEmpty,
     isPasswordInput = false,
     keyboardType,
     onSubmitEditing,
     returnKeyType = 'next',
+	editable = true,
 	label,
 	...rest
-}) => {
-	const previousValue = React.useRef(value);
+}, ref) => { // Receive 'ref' as the second argument
 
 	const handleBlur = () => {
 		// Handle blur event
@@ -35,12 +41,12 @@ const Input: FC<InputProps> = ({
 	};
 
 	const handleChangeText = (text: string) => {
-		if (onChangeText) onChangeText(text);
+		onChangeText(text); // Call the passed handler first
 
-		if (previousValue.current.length === 1 && text.length === 0) {
-		onInputEmpty && onInputEmpty("empty fields");
+		// Simpler check for becoming empty
+		if (value.length > 0 && text.length === 0) {
+			onInputEmpty?.("empty fields"); // Use optional chaining
 		}
-		previousValue.current = text;
 	};
 
 	return (
@@ -49,14 +55,18 @@ const Input: FC<InputProps> = ({
 				<InterText
 					fontSize={13}
 					lineHeight={15}
-					color={colors?.label}
+					color={colors.label}
 				>
 					{label}
 				</InterText>
 			)}
 			<TextInput
+				ref={ref} // <-- Pass the forwarded ref here
 				{...rest}
-				style={styles.input}
+				style={[
+					styles.input,
+					!editable && {backgroundColor: colors.lightGrey}
+				]} // Use combined style
 				value={value}
 				onChangeText={handleChangeText}
 				onBlur={handleBlur}
@@ -64,11 +74,22 @@ const Input: FC<InputProps> = ({
 				keyboardType={keyboardType}
 				secureTextEntry={isPasswordInput}
 				onSubmitEditing={onSubmitEditing}
+				editable={editable}
 				returnKeyType={returnKeyType}
+				// placeholderTextColor={colors?.placeholder} // Example: Add placeholder color
 			/>
+			{/* Optionally display the error message */}
+			{/* {error && (
+				<InterText style={styles.errorText}>
+					{error}
+				</InterText>
+			)} */}
 		</View>
 	);
-};
+});
+
+// Optional: Add a display name for better debugging
+Input.displayName = 'Input';
 
 export default Input;
 

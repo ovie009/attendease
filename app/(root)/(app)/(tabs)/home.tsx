@@ -12,8 +12,11 @@ import LinkText from '@/components/LinkText';
 import moment from 'moment';
 import TicketListItem from '@/components/TicketLIstItem';
 import Flex from '@/components/Flex';
+import { useRouter } from 'expo-router';
 
 const Home = () => {
+
+	const router = useRouter();
 
 	const [stats, setStats] = useState<Array<{stat_name: string, value: number, Icon: ReactNode}>>([
 		{
@@ -110,6 +113,9 @@ const Home = () => {
 				</View>
 				<TouchableOpacity
 					style={styles.scanCardButton}
+					onPress={() => {
+						router.push('/(root)/(app)/(card)/scanCard')
+					}}
 				>
 					<Flex
 						style={styles.scanCardButtonContent}

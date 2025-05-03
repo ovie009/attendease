@@ -1,5 +1,5 @@
 // ./app/_layout.tsx
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Slot, useSegments, Redirect } from 'expo-router';
 import { View, ActivityIndicator, StyleSheet, Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -9,6 +9,8 @@ import handleAdmin from '@/api/handleAdmin';
 // import { useAuthStore } from '../lib/useAuthStore'; // Adjust path if needed
 import * as NavigationBar from 'expo-navigation-bar';
 import { colors } from '@/utilities/colors';
+import MQTTService from '@/api/MQTTService';
+import { useAppStore } from '@/stores/useAppStore';
 
 export default function RootLayout() {
 
@@ -23,6 +25,13 @@ export default function RootLayout() {
 	const initialized = useAuthStore((state) => state.initialized); // Use store's initialized flag
 	const setInitialized = useAuthStore((state) => state.setInitialized);
 
+	const {
+		setScannedCard,
+		setScannedCardTopic,
+	} = useAppStore.getState();
+
+    const isConnecting = useRef<boolean>(false); // Prevent duplicate connect calls
+
 	// --- Effect 1: Handle Supabase Auth Listener ---
 	useEffect(() => {
 		// console.log('Setting up Supabase auth listener...');
@@ -32,7 +41,7 @@ export default function RootLayout() {
 				setSession(session); // Update Zustand store with the session
 				if (session?.user) {
 					handleAdmin.getAdminById(session?.user?.id).then(adminResponse => {
-						console.log("🚀 ~ handleAdmin.getAdminById ~ adminResponse:", adminResponse)
+						// console.log("🚀 ~ handleAdmin.getAdminById ~ adminResponse:", adminResponse)
 						if (adminResponse.data) {
 							setUser({...adminResponse.data, isAdmin: true})
 						}
@@ -63,7 +72,7 @@ export default function RootLayout() {
 				setSession(session);
 				if (session?.user) {
 					handleAdmin.getAdminById(session?.user?.id).then(adminResponse => {
-						console.log("🚀 ~ handleAdmin.getAdminById ~ adminResponse:", adminResponse)
+						// console.log("🚀 ~ handleAdmin.getAdminById ~ adminResponse:", adminResponse)
 						if (adminResponse.data) {
 							setUser({...adminResponse.data, isAdmin: true})
 						}
@@ -84,24 +93,6 @@ export default function RootLayout() {
 		// Run only once on mount, depend on functions from store
 	}, []);
 
-	// useEffect(() => {
-	// 	if (!session) return;
-
-	// 	(async () => {
-	// 		// console.log('Session changed:', session);
-	// 		// const { data: { user } } = await supabase.auth.getUser();
-	// 		// setUser(user);
-	// 		try {
-	// 			const adminResponse = await handleAdmin.getAdminById(session.user.id);
-	// 			console.log("🚀 ~ adminResponse:", adminResponse)
-
-	// 		} catch (error: any) {
-	// 			console.log('error', error?.message)
-	// 		}
-	// 	})()
-
-	// }, [session])
-
     // set system navigation bar color
     useEffect(() => {
         (async () => {
@@ -113,7 +104,6 @@ export default function RootLayout() {
                     // set system navigation bar color
                     await NavigationBar.setBackgroundColorAsync(colors.white); 
                 }
-                    console.log("🚀 ~ colors.white:", colors.white)
             } catch (error: any) {
                 console.log('navigation bar error', error?.message)
             } 
@@ -129,6 +119,81 @@ export default function RootLayout() {
 		</View>
 		);
 	}
+
+	// Define the message handler using useCallback to keep its identity stable
+	const handleMqttMessage = useCallback((message: string, topic: string) => {
+		console.log("[App] Received MQTT Message:");
+		console.log("  Topic:", topic);
+		console.log("  Message:", message);
+
+		setScannedCardTopic(topic);
+		// setSc
+		if (message.includes('card_uid')) {
+			// const processedMessage = message.split('/').join('');
+			const payload = JSON.parse(message);
+			const payloadObject = JSON.parse(payload);
+			setScannedCard(payloadObject)
+		}
+
+		setTimeout(() => {
+			setScannedCardTopic(null)
+			setScannedCard(null)
+		}, 6000)
+		// Add your logic to handle the message based on topic/content
+		// handleScannedCard(topic, message); // Your original handler
+	}, []); // Add dependencies if handleScannedCard relies on props/state
+
+	const topicsToSubscribe = useMemo(() => ['attendease/register', 'attendease/session', 'attendease/attendance'], [])
+
+
+	useEffect(() => {
+		let isMounted = true;
+		const connectAndSetupMqtt = async () => {
+			// ... (isConnecting check, etc.) ...
+	
+			try {
+				await MQTTService.connect(topicsToSubscribe);
+	
+				if (!isMounted) {
+					console.log("[App] Component unmounted after MQTT connect resolved, disconnecting.");
+					MQTTService.disconnect();
+					return;
+				}
+	
+				// *** NEW: Subscribe AFTER successful connect await ***
+				if (MQTTService.connected) { // Double-check connection state
+					console.log("[App] MQTT Connected. Setting message callback and subscribing...");
+					MQTTService.setMessageCallback(handleMqttMessage);
+					topicsToSubscribe.forEach(topic => MQTTService.subscribe(topic));
+				} else {
+					 // This case shouldn't happen if connect resolved successfully, but good to log
+					 console.warn("[App] MQTT connect promise resolved, but service is not marked as connected. Cannot subscribe.");
+				}
+	
+			} catch (error) {
+				// ... error handling ...
+			} finally {
+				 if (isMounted) {
+					 isConnecting.current = false;
+				 }
+			}
+		};
+	
+		connectAndSetupMqtt();
+	
+		return () => {
+			console.log("[App] Effect cleanup running.");
+			isMounted = false;
+			isConnecting.current = false;
+			// Consider delaying disconnect slightly ONLY if debugging race conditions,
+			// but generally direct disconnect is correct here.
+			// setTimeout(() => { // TEMPORARY DEBUGGING ONLY
+			console.log("[App] Performing MQTT disconnect in cleanup.");
+			MQTTService.disconnect();
+			// MQTTService.setMessageCallback(null);
+			// }, 0);
+		};
+	}, [handleMqttMessage]); // <-- Use the stable value
 
 
 
@@ -156,6 +221,7 @@ export default function RootLayout() {
 
 	// 2. Not First Launch, No Session? -> Force to Auth Group (login)
 	if (!isFirstLaunch && !session) {
+		// console.log("🚀 ~ RootLayout ~ session:", session)
 		// If we are not already somewhere in the auth group, redirect to login.
 		if (!inAuthGroup) {
 			// return router.replace("/(root)/(auth)/login")

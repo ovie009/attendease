@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { SheetHandler, ToastProps, ToastType } from '@/types/general';
+import { ScannedCard, SheetHandler, ToastProps, ToastType } from '@/types/general';
 
 interface AppState {
     isLoading: boolean;
@@ -9,6 +9,8 @@ interface AppState {
     backGestureEnabled: boolean; // Defaults to true
     hideStatusBar: boolean;
     toast: ToastProps,
+    scannedCardTopic: string | null,
+    scannedCard: ScannedCard | null,
     bottomSheetHandler: SheetHandler,
     stackedBottomSheetHandler: SheetHandler,
     setIsLoading: (value: boolean) => void,
@@ -21,6 +23,8 @@ interface AppState {
     displayToast: (type: ToastType, message: string) => void,
     setBottomSheetHandler: (handler: SheetHandler) => void,
     setStackedBottomSheetHandler: (handler: SheetHandler) => void,
+    setScannedCard: (object: ScannedCard | null) => void,
+    setScannedCardTopic: (topic: string | null) => void,
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -30,6 +34,8 @@ export const useAppStore = create<AppState>((set) => ({
     keyboardHeight: 0,
     backGestureEnabled: true,
     hideStatusBar: false,
+    scannedCard: null,
+    scannedCardTopic: null,
     toast: {
         toastType: 'SUCCESS',
         visible: false,
@@ -50,6 +56,8 @@ export const useAppStore = create<AppState>((set) => ({
     setKeyboardHeight: (height) => set({ keyboardHeight: height }),
     setBackGestureEnabled: (enabled) => set({ backGestureEnabled: enabled }),
     setHideStatusBar: (hide) => set({ hideStatusBar: hide }),
+    setScannedCard: (object: ScannedCard | null) => set({ scannedCard: object }),
+    setScannedCardTopic: (topic: string | null) => set({ scannedCardTopic: topic }),
     
     setToast: (toastData) => set((state) => ({
         toast: { ...state.toast, ...toastData }

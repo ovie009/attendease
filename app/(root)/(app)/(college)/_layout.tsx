@@ -1,11 +1,10 @@
 // ./app/(app)/_layout.tsx
 import React from 'react';
 import { Stack } from 'expo-router';
-import { colors } from '@/utilities/colors';
 import InterText from '@/components/InterText';
 import CollegeIcon from '@/assets/svg/CollegeIcon.svg';
 
-export default function AppLayout() {
+export default function CollegeLayout() {
     // Render the child route within the authenticated group (tabs, settings)
     return (
         <Stack>
@@ -14,6 +13,7 @@ export default function AppLayout() {
                 options={{
                     headerBackVisible: false,
                     headerBackTitle: "",
+                    headerShadowVisible: false,
                     headerTitle: () => <InterText fontSize={32} fontWeight={600} lineHeight={35}>Add College</InterText>,
                     headerLeft: () => <CollegeIcon width={30} height={30} />,
                 }} 
@@ -21,6 +21,7 @@ export default function AppLayout() {
             <Stack.Screen 
                 name="editCollege"
                 options={{
+                    headerShadowVisible: false,
                     headerTitle: () => <InterText fontSize={32} fontWeight={600} lineHeight={35}>Edit College</InterText>,
                 }} 
             />

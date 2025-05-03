@@ -16,16 +16,16 @@ export default function CollegeLayout() {
     const decodedCollegeName = college_name ? decodeURIComponent(college_name) : 'College';
 
     return (
-        <Stack
-        >
+        <Stack>
         <Stack.Screen
             name="[college_name]" // Matches the file name
             options={{
                 title: decodedCollegeName, // Set the title dynamically using the param!
-                headerBackTitle: "",
+                headerLeft: () => <></>,
+                headerShadowVisible: false,
                 headerTitle: () => (
                     <InterText 
-                        numberOfLines={1} 
+                        // numberOfLines={1} 
                         fontSize={32} 
                         fontWeight={600} 
                         lineHeight={35}

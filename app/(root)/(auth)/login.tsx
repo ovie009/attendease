@@ -1,57 +1,69 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Alert } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { View, Text, StyleSheet, Alert, TextInput } from 'react-native';
 import { Link, RelativePathString } from 'expo-router';
 import { supabase } from '@/lib/supabase';
-import { Button, TextInput, Title } from 'react-native-paper';
 import { colors } from '@/utilities/colors';
+import Input, { InputProps } from '@/components/Input';
+import CustomButton from '@/components/CustomButton';
+import InterText from '@/components/InterText';
+import { useAppStore } from '@/stores/useAppStore';
 
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
+	const [email, setEmail] = useState('');
+	const [password, setPassword] = useState('');
+	const [loading, setLoading] = useState(false);
 
-  const handleLogin = async () => {
-    setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
+	const isLoading = useAppStore(state => state.isLoading);
 
-    if (error) {
-      Alert.alert('Login Error', error.message);
-    } else {
-      // Navigation is handled by the root layout's auth state listener
-      // console.log('Login successful');
-    }
-  };
+	const passwordRef = useRef<TextInput>(null);
+
+	const {
+		setIsLoading,
+	} = useAppStore.getState()
+
+	const handleLogin = async (): Promise<void> => {
+		try {
+			setIsLoading(true);
+			const { error } = await supabase.auth.signInWithPassword({ email, password });
+			if (error) throw error;
+		} catch (error: any) {
+			Alert.alert('Login Error', error.message);
+		} finally {
+			setIsLoading(false)
+		}
+	};
 
   return (
     <View style={styles.container}>
 		<View style={styles.form}>
-			<Title>
+			<InterText
+				fontWeight={'semi-bold'}
+				fontSize={20}
+				lineHeight={23}
+			>
 				Login
-			</Title>
-			<TextInput
-				// style={styles.input}
+			</InterText>
+			<Input
 				placeholder="Email"
 				value={email}
 				onChangeText={setEmail}
-				autoCapitalize="none"
 				keyboardType="email-address"
+				returnKeyType='next'
+				onSubmitEditing={() => passwordRef.current?.focus()}
 			/>
-			<TextInput
-				// style={styles.input}
+			<Input
+				ref={passwordRef}
 				placeholder="Password"
 				value={password}
 				onChangeText={setPassword}
 				secureTextEntry
 			/>
-			<Button 
-				onPress={handleLogin} 
-				disabled={loading}
-				buttonColor={colors.primary}
-				textColor={colors.white}
-			>
-				{loading ? "Logging in..." : "Login"}
-			</Button>
+			<CustomButton
+				text={"Login"}
+				onPress={handleLogin}
+				isLoading={true}
+				disabled={isLoading || !email || !password}
+			/>
 		</View>
 		<Link href={"/(root)/(auth)/signup" as RelativePathString} style={styles.link}>Don't have an account? Sign Up</Link>
 		<Link href={"/(root)/(auth)/forgotPassword" as RelativePathString} style={styles.link}>Forgot Password?</Link>

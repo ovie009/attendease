@@ -27,11 +27,34 @@ export default function AppLayout() {
     return (
 		<Stack
 			screenOptions={{
+				headerShadowVisible: false,
 			}}
 		>
 			<Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-			<Stack.Screen name="(college)" options={{ headerShown: false }} />
-			<Stack.Screen name="college" options={{ headerShown: false }} />
+			<Stack.Screen 
+				name="(card)" 
+				options={{ 
+					title: "", 
+					headerShown: true, 
+					headerShadowVisible: false,
+				}}
+			/>
+			<Stack.Screen 
+				name="(college)" 
+				options={{ 
+					title: "", 
+					headerShown: true, 
+					headerShadowVisible: false,
+				}}
+			/>
+			<Stack.Screen 
+				name="college" 
+				options={{ 
+					title: "", 
+					headerShown: true, 
+					headerShadowVisible: false,
+				}}
+			/>
 			<Stack.Screen 
 				name="session" 
 				options={{
