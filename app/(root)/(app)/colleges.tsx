@@ -1,13 +1,10 @@
 // ./app/(app)/colleges.tsx
-import { Platform, StyleSheet, View } from 'react-native'
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Button, Paragraph, TextInput, Title } from 'react-native-paper'
+import { StyleSheet, View } from 'react-native'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { Paragraph, Title } from 'react-native-paper'
 import { FlashList } from '@shopify/flash-list'
 import { College } from '@/types/api'
 import { HEIGHT, WIDTH } from '@/utilities/dimensions'
-import FontAwesome6 from '@expo/vector-icons/FontAwesome6'
-import CustomBottomSheet from '@/components/CustomBottomSheet'
-import { BottomSheetModal } from '@gorhom/bottom-sheet'
 import { useAppStore } from '@/stores/useAppStore'
 import handleColleges from '@/api/handleColleges'
 import { handleDisableDataLoading } from '@/utilities/handleDisableDataLoading'
@@ -16,7 +13,7 @@ import { getLoadingData } from '@/utilities/getLoadingData'
 import Input from '@/components/Input'
 import FixedButton from '@/components/FixedButton'
 import AddCircleIcon from "@/assets/svg/AddCircleIcon.svg"
-import { useRouter } from 'expo-router'
+import { useRouter, useSegments } from 'expo-router'
 import { colors } from '@/utilities/colors'
 import CustomButton from '@/components/CustomButton'
 
@@ -29,8 +26,7 @@ type CollegeListItemProps = College & {
 const Colleges = () => {
 
 	const router = useRouter()
-
-	const keyboardHeight = useAppStore(state => state.keyboardHeight);
+	const segments = useSegments();
 
 	const {
 		displayToast,
@@ -54,12 +50,10 @@ const Colleges = () => {
 				...item,
 				onPress: () => {
 					router.push({
-						pathname: '/(root)/(app)/college/[college_name]',
+						pathname: '/(root)/(app)/college/[_college_name]',
 						params: {
-							college_name: item?.college_name,
-							created_at: item?.created_at,
-							updated_at: item?.updated_at,
-							id: item?.id,
+							_college_name: item?.college_name,
+							_college_id: item?.id
 						}
 					})
 				},
@@ -71,12 +65,10 @@ const Colleges = () => {
 			...item,
 			onPress: () => {
 				router.push({
-					pathname: '/(root)/(app)/college/[college_name]',
+					pathname: '/(root)/(app)/college/[_college_name]',
 					params: {
-						college_name: item?.college_name,
-						created_at: item?.created_at,
-						updated_at: item?.updated_at,
-						id: item?.id
+						_college_name: item?.college_name,
+						_college_id: item?.id
 					}
 				})
 			},
@@ -94,6 +86,7 @@ const Colleges = () => {
 				if (collegesResponse.isSuccessful) {
 					setColleges(collegesResponse.data)
 				}
+				console.log("🚀 ~ fetchColleges ~ collegesResponse.data:", collegesResponse.data)
 			} catch (error: any) {
 				displayToast('ERROR', error?.message)
 			} finally {
@@ -103,7 +96,7 @@ const Colleges = () => {
 
 		fetchColleges();
 			
-	}, [])
+	}, [segments])
 
 	const RenderItem = useCallback(({item, index}: {item: CollegeListItemProps, index: number}) => (
 		<CollegeListItem

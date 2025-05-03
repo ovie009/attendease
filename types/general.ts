@@ -26,7 +26,14 @@ export type AccountType = 'Admin' | UserType;
 
 export type UserType =  'Lecturer' | 'Student';
 
-export type Role = 'Lecturer' | 'Dean' | 'HOD';
+export type Role = 'Dean' | 'HOD' | 'Default';
+
+export type CollegeRouteParams = {
+	_college_id: string,
+	_college_name: string,
+	_dean_id: string | null,
+}
+
 
 // export type CartType = 'Cart sent'| 'Cart approved'| 'Cart edited'| 'Checkout completed';
 

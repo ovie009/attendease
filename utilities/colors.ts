@@ -1,7 +1,8 @@
 export const colors = {
     primary: '#D2544A', // Dark Blue
     primaryDisable: 'rgba(210, 84, 74, 0.5)',
-    secondary: '#D8E4F3', // Light Blue-Grey (derived light version)
+    secondary: '#FADCD9',
+    neutral: '#D8E4F3', // Light Blue-Grey (derived light version)
     subtext: '#585858',
     textSecondary: '#4F5E7B', // Dark text on light background
     black: '#000000', // Dark text on light background

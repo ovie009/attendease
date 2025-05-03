@@ -30,7 +30,10 @@ export default function RootLayout() {
 		setScannedCardTopic,
 	} = useAppStore.getState();
 
-    const isConnecting = useRef<boolean>(false); // Prevent duplicate connect calls
+	// Track if component is currently connecting to MQTT
+	const isConnecting = useRef(false);
+	// Track connection status
+	const isConnected = useRef(false);
 
 	// --- Effect 1: Handle Supabase Auth Listener ---
 	useEffect(() => {
@@ -120,6 +123,13 @@ export default function RootLayout() {
 		);
 	}
 
+	// Define topics to subscribe to
+	const topicsToSubscribe = useMemo(() => [
+		'attendease/register', 
+		'attendease/session', 
+		'attendease/attendance'
+	], []);
+
 	// Define the message handler using useCallback to keep its identity stable
 	const handleMqttMessage = useCallback((message: string, topic: string) => {
 		console.log("[App] Received MQTT Message:");
@@ -127,73 +137,110 @@ export default function RootLayout() {
 		console.log("  Message:", message);
 
 		setScannedCardTopic(topic);
-		// setSc
+		
 		if (message.includes('card_uid')) {
-			// const processedMessage = message.split('/').join('');
+		try {
 			const payload = JSON.parse(message);
 			const payloadObject = JSON.parse(payload);
-			setScannedCard(payloadObject)
+			setScannedCard(payloadObject);
+		} catch (error) {
+			console.error("[App] Error parsing MQTT message:", error);
+		}
 		}
 
+		// Auto-clear scanned card after timeout
 		setTimeout(() => {
-			setScannedCardTopic(null)
-			setScannedCard(null)
-		}, 6000)
-		// Add your logic to handle the message based on topic/content
-		// handleScannedCard(topic, message); // Your original handler
-	}, []); // Add dependencies if handleScannedCard relies on props/state
-
-	const topicsToSubscribe = useMemo(() => ['attendease/register', 'attendease/session', 'attendease/attendance'], [])
-
-
+		setScannedCardTopic(null);
+		setScannedCard(null);
+		}, 6000);
+	}, []);
+	
 	useEffect(() => {
+		// Connection monitor effect - handles initial connection and reconnection
 		let isMounted = true;
-		const connectAndSetupMqtt = async () => {
-			// ... (isConnecting check, etc.) ...
-	
-			try {
-				await MQTTService.connect(topicsToSubscribe);
-	
-				if (!isMounted) {
-					console.log("[App] Component unmounted after MQTT connect resolved, disconnecting.");
-					MQTTService.disconnect();
-					return;
-				}
-	
-				// *** NEW: Subscribe AFTER successful connect await ***
-				if (MQTTService.connected) { // Double-check connection state
-					console.log("[App] MQTT Connected. Setting message callback and subscribing...");
-					MQTTService.setMessageCallback(handleMqttMessage);
-					topicsToSubscribe.forEach(topic => MQTTService.subscribe(topic));
-				} else {
-					 // This case shouldn't happen if connect resolved successfully, but good to log
-					 console.warn("[App] MQTT connect promise resolved, but service is not marked as connected. Cannot subscribe.");
-				}
-	
-			} catch (error) {
-				// ... error handling ...
-			} finally {
-				 if (isMounted) {
-					 isConnecting.current = false;
-				 }
+		
+		// Setup connection health check
+		const checkConnectionInterval = setInterval(() => {
+		if (isMounted && !isConnecting.current) {
+			// If we think we're connected but actually aren't, try to reconnect
+			if (isConnected.current && !MQTTService.isConnected()) {
+			console.log("[App] Connection health check: Detected disconnection, attempting to reconnect");
+			connectMqtt();
 			}
+		}
+		}, 30000); // Check every 30 seconds
+		
+		// Connect to MQTT
+		const connectMqtt = async () => {
+		if (isConnecting.current) {
+			console.log("[App] Already attempting to connect. Skipping request.");
+			return;
+		}
+		
+		isConnecting.current = true;
+		
+		try {
+			console.log("[App] Connecting to MQTT service...");
+			await MQTTService.connect(topicsToSubscribe);
+			
+			if (!isMounted) {
+			console.log("[App] Component unmounted after MQTT connect resolved, disconnecting.");
+			MQTTService.disconnect();
+			return;
+			}
+			
+			isConnected.current = true;
+			console.log("[App] MQTT Connected. Setting message callback...");
+			MQTTService.setMessageCallback(handleMqttMessage);
+		} catch (error) {
+			console.error("[App] Error connecting to MQTT:", error);
+			isConnected.current = false;
+		} finally {
+			if (isMounted) {
+			isConnecting.current = false;
+			}
+		}
 		};
-	
-		connectAndSetupMqtt();
-	
+    
+		// Initial connection
+		connectMqtt();
+
+		// Cleanup function
 		return () => {
 			console.log("[App] Effect cleanup running.");
 			isMounted = false;
 			isConnecting.current = false;
-			// Consider delaying disconnect slightly ONLY if debugging race conditions,
-			// but generally direct disconnect is correct here.
-			// setTimeout(() => { // TEMPORARY DEBUGGING ONLY
+			isConnected.current = false;
+			clearInterval(checkConnectionInterval);
+			
 			console.log("[App] Performing MQTT disconnect in cleanup.");
 			MQTTService.disconnect();
-			// MQTTService.setMessageCallback(null);
-			// }, 0);
 		};
-	}, [handleMqttMessage]); // <-- Use the stable value
+	}, [handleMqttMessage, topicsToSubscribe]);
+  
+	// Add a network connectivity change listener if needed
+	// useEffect(() => {
+	// 	// This is a placeholder for network connectivity monitoring
+	// 	// You could use NetInfo from @react-native-community/netinfo
+		
+	// 	const handleNetworkChange = (state) => {
+	// 		// When network comes back online, attempt to reconnect MQTT if needed
+	// 		if (state.isConnected && !MQTTService.isConnected()) {
+	// 				console.log("[App] Network came back online. Attempting to reconnect MQTT...");
+	// 			MQTTService.reconnect().catch(err => {
+	// 				console.error("[App] Failed to reconnect after network change:", err);
+	// 			});
+	// 		}
+	// 	};
+		
+	// 	// Register for network changes (pseudo-code, actual implementation depends on your library)
+	// 	const unsubscribe = NetInfo.addEventListener(handleNetworkChange);
+		
+	// 	return () => {
+	// 		// Clean up listener
+	// 		unsubscribe();
+	// 	};
+	// }, []);
 
 
 

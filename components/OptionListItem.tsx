@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
         gap: 20,
         paddingVertical: 20,
         borderBottomWidth: 1,
-        borderColor: colors.secondary,
+        borderColor: colors.neutral,
         // marginBottom: 16,
     },
     textWrapper: {

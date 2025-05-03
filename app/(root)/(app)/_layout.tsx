@@ -4,6 +4,9 @@ import { ExternalPathString, Redirect, RelativePathString, Stack } from 'expo-ro
 import { useAuthStore } from '@/stores/useAuthStore';
 import { colors } from '@/utilities/colors';
 import InterText from '@/components/InterText';
+import CardIcon from '@/assets/svg/CardIcon.svg';
+import { View } from 'react-native';
+import CustomButton from '@/components/CustomButton';
 
 export default function AppLayout() {
     const session = useAuthStore((state) => state.session);
@@ -48,6 +51,14 @@ export default function AppLayout() {
 				}}
 			/>
 			<Stack.Screen 
+				name="(departments)" 
+				options={{ 
+					title: "", 
+					headerShown: true, 
+					headerShadowVisible: false,
+				}}
+			/>
+			<Stack.Screen 
 				name="college" 
 				options={{ 
 					title: "", 
@@ -61,6 +72,15 @@ export default function AppLayout() {
 					headerBackVisible: false,
 					headerBackTitle: "",
 					headerTitle: () => <InterText fontSize={32} fontWeight={600} lineHeight={35}>Session</InterText>,
+				}} 
+			/>
+			<Stack.Screen 
+				name="cards" 
+				options={{
+					headerBackVisible: false,
+					headerBackTitle: "",
+					headerLeft: () => <View style={{marginRight: 6}}><CardIcon width={40} height={40}/></View>,
+					headerTitle: () => <InterText fontSize={32} fontWeight={600} lineHeight={35}>Cards</InterText>,
 				}} 
 			/>
 			<Stack.Screen 

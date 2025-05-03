@@ -9,6 +9,7 @@ export interface CustomButtonProps extends InterTextProps {
     disabled?: boolean | undefined,
     isLoading?: boolean | undefined,
     isSecondary?: boolean | undefined,
+    isNeutral?: boolean | undefined,
     buttonStyle?: ViewStyle | undefined,
     width?: number | undefined,
     height?: number | undefined,
@@ -18,12 +19,13 @@ export interface CustomButtonProps extends InterTextProps {
     diabledButtonColor?: string | undefined,
 }
 
-const CustomButton: FC<CustomButtonProps> = ({onPress, disabled, isLoading, isSecondary, buttonStyle, width, height, diabledButtonColor, fontWeight, fontSize, lineHeight, color, text, TextComponent, Icon, ...rest}) => {
+const CustomButton: FC<CustomButtonProps> = ({onPress, disabled, isLoading, isNeutral, isSecondary, buttonStyle, width, height, diabledButtonColor, fontWeight, fontSize, lineHeight, color, text, TextComponent, Icon, ...rest}) => {
 // console.log("🚀 ~ Icon:", Icon)
 
     // handle font color
     const handleFontColor = (): string => {
         if (color) return color;
+        if (isSecondary) return colors.primary;
         return colors.white;
     }
 
@@ -54,7 +56,8 @@ const CustomButton: FC<CustomButtonProps> = ({onPress, disabled, isLoading, isSe
                 height !== undefined && { height },
                 (disabled && !diabledButtonColor && !isSecondary) && {backgroundColor: colors.primaryDisable},
                 diabledButtonColor && {backgroundColor: diabledButtonColor},
-                isSecondary === true && { backgroundColor: colors.grey}, 
+                isNeutral === true && { backgroundColor: colors.grey}, 
+                isSecondary === true && { backgroundColor: colors.secondary}, 
                 (buttonStyle?.height !== undefined || height !== undefined) && { minHeight: undefined },
                 buttonStyle && buttonStyle,
             ]}

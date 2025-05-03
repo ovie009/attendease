@@ -1,5 +1,5 @@
 import { ScrollView, StyleSheet, View } from 'react-native'
-import React, { useCallback, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { colors } from '@/utilities/colors'
 import CustomButton from '@/components/CustomButton'
 import { WIDTH } from '@/utilities/dimensions'
@@ -9,33 +9,39 @@ import SelectInput from '@/components/SelectInput'
 import CustomBottomSheet from '@/components/CustomBottomSheet'
 import { BottomSheetFlashList, BottomSheetModal } from '@gorhom/bottom-sheet'
 import { Lecturer } from '@/types/api'
-import moment from "moment";
 import OptionListItem from '@/components/OptionListItem'
 import { ListRenderItemInfo } from '@shopify/flash-list'
-import { useLocalSearchParams, useRouter } from 'expo-router'
+import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router'
+import { handleDisableDataLoading } from '@/utilities/handleDisableDataLoading'
+import { useAppStore } from '@/stores/useAppStore'
+import handleLecturers from '@/types/handleLecturers'
+import handleDepartments from '@/api/handleDepartments'
+import InterText from '@/components/InterText'
+import handleColleges from '@/api/handleColleges'
 
 // Define the combined type for clarity
 type SelectableLecturer = Lecturer & { is_selected: boolean };
 
-type EditCollegeParams = {
-	_college_id: string,
-	_college_name: string,
-	_dean_id: string,
-}
-
 const EditCollege = () => {
 
 	const router = useRouter();
+	const navigation = useNavigation<any>();
 
-	// get route params
 	const {
 		_college_name,
 		_college_id,
 		_dean_id,
-	} = useLocalSearchParams<EditCollegeParams>()
+	} = useLocalSearchParams();
+		console.log("🚀 ~ EditCollege ~ _dean_id:", _dean_id)
+		console.log("🚀 ~ EditCollege ~ _college_id:", _college_id)
 
-	const [collegeName, setCollegeName] = useState<string>('');
-	const [dean, setDean] = useState<string>('')
+	const [collegeName, setCollegeName] = useState<string>(_college_name as string || '');
+	const [dean, setDean] = useState<string>('');
+	const [deanId, setDeanId] = useState<string | undefined>(_dean_id as string || undefined)
+
+	const {
+		displayToast,
+	} = useAppStore.getState();
 
 	const sheetRef = useRef<BottomSheetModal>(null);
 
@@ -47,87 +53,61 @@ const EditCollege = () => {
 		sheetRef?.current?.close();
 	}
 
-	const [lecturers, setLecturers] = useState<Array<SelectableLecturer>>([
-		{
-			id: '1',
-			full_name: "John Doe",
-			department_id: '1',
-			course_ids: null,
-			role: 'Lecturer',
-			is_selected: false,
-			created_at: moment().toISOString(),
-			updated_at: moment().toISOString(),
-		},
-		{
-			id: '2',
-			full_name: "Janes Mark",
-			department_id: '1',
-			course_ids: null,
-			role: 'Lecturer',
-			is_selected: false,
-			created_at: moment().toISOString(),
-			updated_at: moment().toISOString(),
-		},
-		{
-			id: '3',
-			full_name: "Junior Matthew",
-			department_id: '1',
-			course_ids: null,
-			role: 'Lecturer',
-			is_selected: false,
-			created_at: moment().toISOString(),
-			updated_at: moment().toISOString(),
-		},
-		{
-			id: '4',
-			full_name: "Sandra Johnes",
-			department_id: '1',
-			course_ids: null,
-			role: 'Lecturer',
-			is_selected: false,
-			created_at: moment().toISOString(),
-			updated_at: moment().toISOString(),
-		},
-		{
-			id: '5',
-			full_name: "Mark Kent",
-			department_id: '1',
-			course_ids: null,
-			role: 'Lecturer',
-			is_selected: false,
-			created_at: moment().toISOString(),
-			updated_at: moment().toISOString(),
-		},
-	]);
+	const [dataLoading, setDataLoading] = useState<{lecturers: boolean}>({
+		lecturers: false
+	})
 
-const handleSelectedDean = useCallback((id: string): void => {
-    // This check ensures that 'find' below will succeed.
-	if (lecturers.some(item => item.id === id)) {
-        // Add '!' after find(...) to assert it's not null/undefined
-		const foundLecturer = lecturers.find((item) => item.id === id)!;
-        setDean(foundLecturer.full_name); // Now TypeScript knows foundLecturer is Lecturer, not Lecturer | undefined
+	useEffect(() => {
+		const fetchCollegeLecturers = async () => {
+			try {
+				const departmentsResponse = await handleDepartments.getByCollegeId(_college_id as string);
 
-		// update lecturer list
-		setLecturers(prevState => {
-			return prevState.map(item => {
-				if (item.id === id) {
+				const departmentIds = departmentsResponse.data.map(item => item.id);
+				const lecturersResponse = await handleLecturers.getByDepartmentIds(departmentIds)
+
+				if (lecturersResponse.data.length !== 0) {
+					setLecturers(lecturersResponse.data.map(item => ({...item, is_selected: false})))
+				}
+				
+				handleDisableDataLoading('lecturers', setDataLoading);
+			} catch (error: any) {
+				displayToast('ERROR', error?.message)
+			}
+		}
+		
+		fetchCollegeLecturers()
+	}, [])
+
+	const [lecturers, setLecturers] = useState<Array<SelectableLecturer>>([]);
+
+	const handleSelectedDean = useCallback((id: string): void => {
+		// This check ensures that 'find' below will succeed.
+		if (lecturers.some(item => item.id === id)) {
+			// Add '!' after find(...) to assert it's not null/undefined
+			const foundLecturer = lecturers.find((item) => item.id === id)!;
+			setDean(foundLecturer.full_name); // Now TypeScript knows foundLecturer is Lecturer, not Lecturer | undefined
+
+			// update lecturer list
+			setLecturers(prevState => {
+				return prevState.map(item => {
+					if (item.id === id) {
+						return {
+							...item,
+							is_selected: true,
+						}
+					}
 					return {
 						...item,
-						is_selected: true,
+						is_selected: false,
 					}
-				}
-				return {
-					...item,
-					is_selected: false,
-				}
+				})
 			})
-		})
 
-		closeBottomSheet()
-	}
-    // Optional: Handle the else case if needed, though 'some' prevents it here.
-    // else { console.warn(`Lecturer with id ${id} not found unexpectedly.`); }
-}, [lecturers, setDean]); // <-- Add setDean to dependencies
+			closeBottomSheet()
+		}
+		// Optional: Handle the else case if needed, though 'some' prevents it here.
+		// else { console.warn(`Lecturer with id ${id} not found unexpectedly.`); }
+	}, [lecturers, setDean]); // <-- Add setDean to dependencies
 
 	const renderItem = useCallback(({item}: ListRenderItemInfo<SelectableLecturer>) => (
 		<OptionListItem
@@ -137,7 +117,23 @@ const handleSelectedDean = useCallback((id: string): void => {
 			subtext={'Department: Computer Science'}
 			onPress={handleSelectedDean}
 		/>
-	), [])
+	), []);
+
+	const handleEditCollege = async () => {
+		try {
+			const collegeResponse = await handleColleges.update({
+				college_name: collegeName,
+				id: _college_id as string,
+			});
+
+			if (collegeResponse.isSuccessful) {
+				navigation.pop(2)
+			}
+		} catch (error: any) {
+			displayToast('ERROR', error?.message)
+		}
+	}
+	
 
 	return (<>
 		<ScrollView
@@ -167,13 +163,14 @@ const handleSelectedDean = useCallback((id: string): void => {
 					router.back();
 				}}
 				width={(WIDTH - 60)/2}
-				isSecondary={true}
+				isNeutral={true}
 				text='Cancel'
 			/>
 			<CustomButton
-				onPress={() => {}}
+				onPress={handleEditCollege}
 				width={(WIDTH - 60)/2}
 				text='Save'
+				disabled={collegeName === _college_name && deanId === _dean_id}
 			/>
 		</FixedWrapper>
 		<CustomBottomSheet
@@ -188,6 +185,19 @@ const handleSelectedDean = useCallback((id: string): void => {
 				contentContainerStyle={{paddingBottom: 30}}
                 estimatedItemSize={81}
 				renderItem={renderItem}
+				ListEmptyComponent={!dataLoading.lecturers ? (
+					<View
+						style={styles.lecturersEmptyCompoennt}
+					>
+						<InterText
+							fontWeight={600}
+							fontSize={16}
+							lineHeight={19}
+						>
+							No lectureres added to this college
+						</InterText>
+					</View>
+				) : undefined}
 			/>
 		</CustomBottomSheet>
     </>)
@@ -212,5 +222,12 @@ const styles = StyleSheet.create({
 		justifyContent: 'space-between',
 		alignItems: 'flex-start',
 		flexDirection: 'row',
+	},
+	lecturersEmptyCompoennt: {
+		width: '100%',
+		paddingHorizontal: 20,
+		display: 'flex',
+		justifyContent: 'center',
+		alignItems: 'center',
 	}
 })

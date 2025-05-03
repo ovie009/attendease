@@ -1,14 +1,15 @@
 import { supabase } from "@/lib/supabase"
-import { College, Response } from "@/types/api";
+import { Department, Response } from "@/types/api";
 
-const tableName = "colleges"
+const tableName = "departments"
 
-const create = async (college_name: string): Promise<Response<College>> => {
+const create = async ({department_name, college_id}: {department_name: string, college_id: string}): Promise<Response<Department>> => {
     try {
         const { data, error, status } = await supabase
             .from(tableName)
             .insert({ 
-                college_name 
+                department_name,
+                college_id, 
             })
             .select('*')
             .single();
@@ -19,7 +20,7 @@ const create = async (college_name: string): Promise<Response<College>> => {
 
         return {
             isSuccessful: true,
-            message: "Location created successfully",
+            message: "Department created successfully",
             data: data
         }
     } catch (error) {
@@ -27,16 +28,12 @@ const create = async (college_name: string): Promise<Response<College>> => {
     }
 }
 
-const update = async ({college_name, id}: {college_name: string, id: string}): Promise<Response<College>> => {
+const getAll = async (): Promise<Response<Department[] | []>> => {
     try {
         const { data, error, status } = await supabase
             .from(tableName)
-            .update({ 
-                college_name 
-            })
-            .eq("id", id)
             .select('*')
-            .single();
+            .order('department_name', {ascending: true});
 
         if (error && status !== 406) {
             throw error;
@@ -44,28 +41,7 @@ const update = async ({college_name, id}: {college_name: string, id: string}): P
 
         return {
             isSuccessful: true,
-            message: "Location created successfully",
-            data: data
-        }
-    } catch (error) {
-        throw error;
-    }
-}
-
-const getAll = async (): Promise<Response<College[] | []>> => {
-    try {
-        const { data, error, status } = await supabase
-            .from(tableName)
-            .select('*')
-            .order('college_name', {ascending: true});
-
-        if (error && status !== 406) {
-            throw error;
-        }
-
-        return {
-            isSuccessful: true,
-            message: "Location created successfully",
+            message: "Departemnts selected successfully",
             data: data || [],
         } 
     } catch (error) {
@@ -73,10 +49,30 @@ const getAll = async (): Promise<Response<College[] | []>> => {
     }
 }
 
+const getByCollegeId = async (college_id: string): Promise<Response<Department[] | []>> => {
+    try {
+        const { data, error, status } = await supabase
+            .from(tableName)
+            .select('*')
+            .eq('college_id', college_id)
+            .order('department_name', {ascending: true});
 
+        if (error && status !== 406) {
+            throw error;
+        }
+
+        return {
+            isSuccessful: true,
+            message: "Departemnts selected successfully",
+            data: data || [],
+        } 
+    } catch (error) {
+        throw error;
+    }
+}
 
 export default {
     create,
     getAll,
-    update,
+    getByCollegeId,
 }

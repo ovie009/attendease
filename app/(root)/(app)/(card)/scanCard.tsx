@@ -129,6 +129,8 @@ const ScanCard = () => {
                 assigned_for: assignedFor
             });
             console.log("🚀 ~ handleCreateRfidCard ~ createRfidCardResponse:", createRfidCardResponse)
+
+            router.push('/(root)/(app)/cards');
         } catch (error: any) {
             displayToast(TOAST_TYPE.ERROR, error?.message)
         } finally {
@@ -165,7 +167,7 @@ const ScanCard = () => {
                     router.back();
                 }}
                 width={(WIDTH - 60)/2}
-                isSecondary={true}
+                isNeutral={true}
                 text='Cancel'
             />
             <CustomButton

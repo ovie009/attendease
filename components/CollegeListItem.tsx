@@ -17,6 +17,7 @@ const CollegeListItem: FC<CollegeCardProps> = ({index, collegeName, nameOfDean, 
     return (
         <TouchableOpacity 
             style={styles.container}
+            disabled={isLoading}
             onPress={onPress}
         >
             {isLoading ? (

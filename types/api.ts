@@ -7,12 +7,22 @@ export type College = {
     updated_at: string;
 };
 
+export type Department = {
+    id: string;
+    department_name: string;
+    college_id: string;
+    created_at: string;
+    updated_at: string;
+};
+
 export type Lecturer = {
     id: string;
     full_name: string;
     department_id: string,
-    course_ids?: [string] | null,
+    course_ids?: string[] | null,
     role: Role,
+    pin: string,
+    rfid: string,
     created_at: string;
     updated_at: string;
 };

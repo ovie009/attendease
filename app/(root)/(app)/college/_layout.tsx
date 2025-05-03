@@ -5,20 +5,20 @@ import InterText from '@/components/InterText';
 
 // Optional: Define the type for parameters expected in this segment
 type CollegeLayoutParams = {
-    college_name: string; // This MUST match the dynamic segment filename '[college_name].tsx'
+    _college_name: string; // This MUST match the dynamic segment filename '[_college_name].tsx'
 };
 
 export default function CollegeLayout() {
     // Get the parameters for the currently active screen *within* this layout
-    const { college_name } = useLocalSearchParams<CollegeLayoutParams>();
+    const { _college_name } = useLocalSearchParams<CollegeLayoutParams>();
 
     // Decode the name if it might be URL-encoded (e.g., spaces become %20)
-    const decodedCollegeName = college_name ? decodeURIComponent(college_name) : 'College';
+    const decodedCollegeName = _college_name ? decodeURIComponent(_college_name) : 'College';
 
     return (
         <Stack>
         <Stack.Screen
-            name="[college_name]" // Matches the file name
+            name="[_college_name]" // Matches the file name
             options={{
                 title: decodedCollegeName, // Set the title dynamically using the param!
                 headerLeft: () => <></>,

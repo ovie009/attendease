@@ -67,7 +67,7 @@ const CollegeCard: FC<CollegeCardProps> = ({id, collegeName, numberOfDepartments
                 ) : (
                     <Button
                         mode={'contained-tonal'}
-                        buttonColor={colors.secondary}
+                        buttonColor={colors.neutral}
                         textColor={colors.primary}
                         onPress={() => {
                             if (!onPressEdit) return; 

@@ -1,9 +1,9 @@
 // ./app/(app)/colleges.tsx
-import { Platform, StyleSheet, View } from 'react-native'
+import { Button, Platform, StyleSheet, View } from 'react-native'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { Paragraph, Title } from 'react-native-paper'
 import { FlashList } from '@shopify/flash-list'
-import { College } from '@/types/api'
+import { College, Department } from '@/types/api'
 import { HEIGHT, WIDTH } from '@/utilities/dimensions'
 import { useAppStore } from '@/stores/useAppStore'
 import handleColleges from '@/api/handleColleges'
@@ -13,9 +13,11 @@ import { getLoadingData } from '@/utilities/getLoadingData'
 import Input from '@/components/Input'
 import FixedButton from '@/components/FixedButton'
 import AddCircleIcon from "@/assets/svg/AddCircleIcon.svg"
-import { useRouter } from 'expo-router'
+import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router'
 import { colors } from '@/utilities/colors'
 import CustomButton from '@/components/CustomButton'
+import handleDepartments from '@/api/handleDepartments'
+import InterText from '@/components/InterText'
 
 // Let's stick with 'is_loading' as used in useMemo annotation.
 type CollegeListItemProps = College & {
@@ -26,24 +28,54 @@ type CollegeListItemProps = College & {
 const CollegeDetails = () => {
 
 	const router = useRouter()
+	const navigation = useNavigation();
 
-	const keyboardHeight = useAppStore(state => state.keyboardHeight);
+	// get route params
+	const {
+		_college_name,
+		_college_id,
+		_dean_id,
+	} = useLocalSearchParams();
+		console.log("🚀 ~ CollegeDetails ~ _dean_id:", _dean_id)
+		console.log("🚀 ~ CollegeDetails ~ _college_id:", _college_id)
+		// console.log("🚀 ~ CollegeDetails ~ useLocalSearchParams():", useLocalSearchParams())
 
 	const {
 		displayToast,
 	} = useAppStore.getState()
 	// console.log("🚀 ~ Colleges ~ keyboardHeight:", keyboardHeight)
 
-	const [dataLoading, setDataloading] = useState<{colleges: boolean}>({
-		colleges: true,
+	const [dataLoading, setDataloading] = useState<{departments: boolean}>({
+		departments: true,
 	});
 
 	// list of collegs
 	const [colleges, setColleges] = useState<College[]>([]);
+	const [departments, setDepartments] = useState<Department[]>([]);
 	const [searchInput, setSearchInput] = useState<string>("");
 
+	useEffect(() => {
+		// (async () => )
+		const fetchDepartments = async () => {
+			try {
+				const departmentsResponse = await handleDepartments.getByCollegeId(_college_id as string);
+
+				if (departmentsResponse.isSuccessful) {
+					setDepartments(departmentsResponse.data)
+				}
+			} catch (error: any) {
+				displayToast('ERROR', error?.message)
+			} finally {
+				handleDisableDataLoading('departments', setDataloading)
+			}
+		}
+
+		fetchDepartments();
+			
+	}, [])
+
 	const data = useMemo<any>(() => {
-		if (dataLoading.colleges) {
+		if (dataLoading.departments) {
 			return getLoadingData(['college_name'], ['loading...']);
 		}
 
@@ -51,15 +83,6 @@ const CollegeDetails = () => {
 			return colleges.filter(item => item.college_name.toLowerCase().includes(searchInput.toLowerCase())).map(item => ({
 				...item,
 				onPress: () => {
-					router.push({
-						pathname: '/(root)/(app)/college/[college_name]',
-						params: {
-							college_name: item?.college_name,
-							created_at: item?.created_at,
-							updated_at: item?.updated_at,
-							id: item?.id,
-						}
-					})
 				},
 				is_loading: false
 			}));
@@ -68,40 +91,38 @@ const CollegeDetails = () => {
 		return colleges.map(item => ({
 			...item,
 			onPress: () => {
-				router.push({
-					pathname: '/(root)/(app)/college/[college_name]',
-					params: {
-						college_name: item?.college_name,
-						created_at: item?.created_at,
-						updated_at: item?.updated_at,
-						id: item?.id
-					}
-				})
 			},
 			is_loading: false
 		}));
-	}, [colleges, dataLoading.colleges, searchInput]);
+	}, [colleges, dataLoading.departments, searchInput]);
 
+	const handleEditCollege = () => {
+		router.push({
+			pathname: '/(root)/(app)/(college)/editCollege',
+			params: {
+				_college_name,
+				_college_id,
+				_dean_id,
+			}
+		})
+	}
 
 	useEffect(() => {
-		// (async () => )
-		const fetchColleges = async () => {
-			try {
-				const collegesResponse = await handleColleges.getAll();
-
-				if (collegesResponse.isSuccessful) {
-					setColleges(collegesResponse.data)
-				}
-			} catch (error: any) {
-				displayToast('ERROR', error?.message)
-			} finally {
-				handleDisableDataLoading('colleges', setDataloading)
-			}
-		}
-
-		fetchColleges();
-			
-	}, [])
+		navigation.setOptions({
+			headerRight: () => (
+				<CustomButton
+					onPress={handleEditCollege}
+					text='Edit'
+					buttonStyle={{
+						width: 'auto', 
+						borderRadius: 14,
+						minHeight: 30,
+					}}
+					isSecondary={true}
+				/>
+			)
+		});
+	}, []);
 
 	const RenderItem = useCallback(({item, index}: {item: CollegeListItemProps, index: number}) => (
 		<CollegeListItem
@@ -116,7 +137,7 @@ const CollegeDetails = () => {
 		<View style={styles.contentContainerStyle}>
 			<FlashList
 				keyExtractor={(item) => item.id}
-				ListHeaderComponent={
+				ListHeaderComponent={!(!dataLoading.departments && departments.length === 0) ? (
 					<View style={styles.header}>
 						<Input
 							value={searchInput}
@@ -124,23 +145,29 @@ const CollegeDetails = () => {
 							placeholder='Search Departments'
 						/>
 					</View>
-				}
+				) : undefined}
 				data={data}
 				renderItem={RenderItem}
 				estimatedItemSize={100}
 				ListEmptyComponent={(
 					<View style={styles.listEmptyComponent}>
 						<View style={styles.text}>
-							<Title>
-								No college added
-							</Title>
-							<Paragraph>
-								Add colleges to your instituition
-							</Paragraph>
+							<InterText
+								fontWeight={600}
+								fontSize={16}
+								lineHeight={19}
+							>
+								No departments found
+							</InterText>
+							<InterText
+								color={colors.subtext}
+							>
+								Add departments to {_college_name}
+							</InterText>
 						</View>
 						<CustomButton
 							onPress={() => {
-								router.push('/(root)/(app)/(college)/addCollege')				
+								router.push('/(root)/(app)/(department)/addDepartment')				
 							}}
 							text={"Add Department"}
 							Icon={<AddCircleIcon />}
@@ -149,13 +176,15 @@ const CollegeDetails = () => {
 				)}
 			/> 
 		</View>
-		<FixedButton
-			onPress={() => {
-				router.push('/(root)/(app)/(college)/addCollege')				
-			}}
-			text={"Add Department"}
-			Icon={<AddCircleIcon />}
-		/>
+		{!(!dataLoading.departments && departments.length === 0) && (
+			<FixedButton
+				onPress={() => {
+					router.push('/(root)/(app)/(department)/addDepartment')				
+				}}
+				text={"Add Department"}
+				Icon={<AddCircleIcon />}
+			/>
+		)}
 	</>)
 }
 
@@ -182,6 +211,7 @@ const styles = StyleSheet.create({
 		display: 'flex',
 		justifyContent: 'center',
 		alignItems: 'center',
+		gap: 10,
 	},
 	listEmptyComponent: {
 		display: 'flex',
