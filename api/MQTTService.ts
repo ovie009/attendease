@@ -2,12 +2,16 @@ import * as Paho from 'paho-mqtt';
 import * as Device from 'expo-device';
 
 // Generate a unique client ID
-const clientId = `${Device.brand || 'unknown'}_${Device.modelName || 'model'}_${Device.osBuildId || 'build'}_${Date.now()}`;
+// Generate a unique client ID with a random component to avoid duplicates
+const uniqueRandomId = Math.random().toString(36).substring(2, 10);
+const clientId = `${Device.brand || 'unknown'}_${Device.modelName || 'model'}_${uniqueRandomId}`;
 
 // --- Configuration ---
 const MQTT_HOST = '61b1e2e8dfea48c4a578d2b9e73006d3.s1.eu.hivemq.cloud';
 const MQTT_PORT = 8884; // WSS port
 const MQTT_USERNAME = 'attendease';
+const CONNECT_TIMEOUT = 30; // 30 seconds
+const KEEP_ALIVE_INTERVAL = 30; // 30 seconds (reduced from 60)
 // --- End Configuration ---
 
 // --- Reconnection Configuration ---
@@ -88,8 +92,8 @@ class MQTTService {
                 const connectOptions: Paho.ConnectionOptions = {
                     userName: MQTT_USERNAME,
                     password: mqttPassword,
-                    timeout: 30, // 30 seconds
-                    keepAliveInterval: 60, // Standard keep-alive
+                    timeout: CONNECT_TIMEOUT,
+                    keepAliveInterval: KEEP_ALIVE_INTERVAL, // Reduced keep-alive interval
                     cleanSession: true,
                     useSSL: true, // Required for WSS
                     reconnect: false, // Handle reconnection manually
@@ -100,9 +104,16 @@ class MQTTService {
                         this.reconnectCount = 0;
                         this.reconnectDelay = INITIAL_RECONNECT_DELAY;
                         
-                        // Subscribe to initial topics
-                        console.log('[MQTT] Subscribing to initial topics:', topics);
-                        topics.forEach(topic => this.subscribe(topic));
+                        // IMPORTANT: Delay subscriptions slightly to ensure connection is fully established
+                        setTimeout(() => {
+                            if (this.client && this.connected) {
+                                console.log('[MQTT] Subscribing to initial topics:', topics);
+                                topics.forEach(topic => this.subscribe(topic));
+                            } else {
+                                console.warn('[MQTT] Cannot subscribe: connection lost during subscription delay');
+                            }
+                        }, 500); // 500ms delay before subscribing
+                        
                         resolve(); // Resolve the promise on success
                     },
                     onFailure: (error: { errorCode: number; errorMessage: string }) => {
@@ -144,9 +155,17 @@ class MQTTService {
         if (responseObject.errorCode !== 0) {
             console.error(`[MQTT] Connection lost: ${responseObject.errorMessage} (Code: ${responseObject.errorCode})`);
             
+            // Check for specific error conditions
+            if (responseObject.errorMessage.includes('Socket closed') || 
+                responseObject.errorCode === 8) {
+                console.log('[MQTT] Socket closed. This could be due to network issues or duplicate client IDs');
+            }
+            
             // Only attempt to reconnect if this wasn't a manual disconnect
             if (!this.manualDisconnect) {
-                this.scheduleReconnect();
+                // Add a small random delay to avoid thundering herd problem with multiple clients
+                const jitter = Math.floor(Math.random() * 1000); // 0-1000ms random jitter
+                setTimeout(() => this.scheduleReconnect(), jitter);
             } else {
                 console.log('[MQTT] Not reconnecting due to manual disconnect request');
             }
@@ -154,9 +173,23 @@ class MQTTService {
             console.log('[MQTT] Connection closed gracefully.');
         }
         
-        // Clean up resources
+        // Clean up resources but retain the client reference until we're sure it's fully cleaned up
+        // This prevents race conditions where onConnectionLost fires but connect callbacks are still pending
+        const oldClient = this.client;
         this.client = null;
         this.ackCallbacks = {};
+        
+        // Give any in-flight operations a chance to complete
+        setTimeout(() => {
+            try {
+                if (oldClient) {
+                    // Attempt to force-close any lingering connection
+                    oldClient.disconnect();
+                }
+            } catch (e) {
+                // Ignore errors during cleanup
+            }
+        }, 100);
     };
 
     private scheduleReconnect(): void {
@@ -226,19 +259,30 @@ class MQTTService {
     };
 
     public subscribe(topic: string, qos: Paho.Qos = 0): void {
-        if (this.client && this.connected) {
-            try {
-                console.log(`[MQTT] Subscribing to topic: ${topic} with QoS: ${qos}`);
-                this.client.subscribe(topic, {
-                    qos,
-                    onSuccess: () => console.log(`[MQTT] Successfully subscribed to ${topic}`),
-                    onFailure: (err) => console.error(`[MQTT] Failed to subscribe to ${topic}:`, err)
-                 });
-            } catch (error) {
-                console.error(`[MQTT] Error calling subscribe for topic ${topic}:`, error);
-            }
-        } else {
+        if (!this.client) {
+            console.warn(`[MQTT] Cannot subscribe: Client is null. Topic: ${topic}`);
+            return;
+        }
+        
+        if (!this.connected || !this.client.isConnected()) {
             console.warn(`[MQTT] Cannot subscribe: Client not connected. Topic: ${topic}`);
+            // Store topic for later subscription once connected
+            if (!this.initialTopics.includes(topic)) {
+                this.initialTopics.push(topic);
+                console.log(`[MQTT] Added ${topic} to pending subscriptions`);
+            }
+            return;
+        }
+        
+        try {
+            console.log(`[MQTT] Subscribing to topic: ${topic} with QoS: ${qos}`);
+            this.client.subscribe(topic, {
+                qos,
+                onSuccess: () => console.log(`[MQTT] Successfully subscribed to ${topic}`),
+                onFailure: (err) => console.error(`[MQTT] Failed to subscribe to ${topic}:`, err)
+             });
+        } catch (error) {
+            console.error(`[MQTT] Error calling subscribe for topic ${topic}:`, error);
         }
     }
 

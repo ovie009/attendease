@@ -50,7 +50,7 @@ const CollegeDetails = () => {
 
 	const [departments, setDepartments] = useState<Department[]>([]);
 	const [searchInput, setSearchInput] = useState<string>("");
-	const [hod, setHod] = useState<Lecturer | undefined>(undefined) 
+	const [hods, setHods] = useState<Lecturer[] | undefined>(undefined) 
 
 	useEffect(() => {
 		// (async () => )

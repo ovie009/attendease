@@ -42,7 +42,7 @@ const getAll = async (): Promise<Response<Department[] | []>> => {
 
         return {
             isSuccessful: true,
-            message: "Departemnts selected successfully",
+            message: "Departments selected successfully",
             data: data || [],
         } 
     } catch (error) {
@@ -64,7 +64,37 @@ const getByCollegeId = async (college_id: string): Promise<Response<Department[]
 
         return {
             isSuccessful: true,
-            message: "Departemnts selected successfully",
+            message: "Departments selected successfully",
+            data: data || [],
+        } 
+    } catch (error) {
+        throw error;
+    }
+}
+
+const getByIds = async (ids: string[]): Promise<Response<Department[] | []>> => {
+    try {
+        if (ids.length === 0) {
+            return {
+                isSuccessful: true,
+                message: "Departments selected successfully",
+                data: [],
+            }
+        }
+
+        const { data, error, status } = await supabase
+            .from(tableName)
+            .select('*')
+            .in('id', ids)
+            .order('department_name', {ascending: true});
+
+        if (error && status !== 406) {
+            throw error;
+        }
+
+        return {
+            isSuccessful: true,
+            message: "Departments selected successfully",
             data: data || [],
         } 
     } catch (error) {
@@ -75,5 +105,6 @@ const getByCollegeId = async (college_id: string): Promise<Response<Department[]
 export default {
     create,
     getAll,
+    getByIds,
     getByCollegeId,
 }

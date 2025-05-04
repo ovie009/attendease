@@ -158,7 +158,7 @@ const Departments = () => {
 						</View>
 						<CustomButton
 							onPress={() => {
-								router.push('/(root)/(app)/(college)/addCollege')				
+								router.push('/(root)/(app)/(department)/addDepartment')				
 							}}
 							text={"Add College"}
 							Icon={<AddCircleIcon />}

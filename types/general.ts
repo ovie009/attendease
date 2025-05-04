@@ -26,7 +26,7 @@ export type AccountType = 'Admin' | UserType;
 
 export type UserType =  'Lecturer' | 'Student';
 
-export type Role = 'Dean' | 'HOD' | 'Default';
+export type Role = 'Dean' | 'HOD' | 'Academic';
 
 export type CollegeRouteParams = {
 	_college_id: string,
