@@ -3,13 +3,14 @@ import { Department, Response } from "@/types/api";
 
 const tableName = "departments"
 
-const create = async ({department_name, college_id}: {department_name: string, college_id: string}): Promise<Response<Department>> => {
+const create = async ({department_name, college_id, course_duration}: {department_name: string, college_id: string, course_duration: number}): Promise<Response<Department>> => {
     try {
         const { data, error, status } = await supabase
             .from(tableName)
             .insert({ 
                 department_name,
-                college_id, 
+                course_duration,
+                college_id,
             })
             .select('*')
             .single();

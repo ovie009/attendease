@@ -5,7 +5,7 @@ import InterText from './InterText';
 import RightArrowIcon from '../assets/svg/RIghtArrowIcon.svg';
 
 interface InputProps extends TouchableOpacityProps {
-	value?: string | undefined;
+	value?: string | number | undefined;
 	placeholder?: string | undefined;
 	label?: string | undefined,
 }
@@ -35,7 +35,7 @@ const SelectInput: FC<InputProps> = ({
 					<InterText
 						fontSize={12.5}
 						lineHeight={15}
-						color={(value !== undefined && value !== '') ? colors.black : colors.label}
+						color={(value !== undefined && value !== '') ? colors.black : colors.placeholder}
 						numberOfLines={1}
 					>
 						{(value === undefined || value === '') && placeholder !== undefined && placeholder}

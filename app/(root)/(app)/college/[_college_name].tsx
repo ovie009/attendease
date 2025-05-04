@@ -1,33 +1,32 @@
 // ./app/(app)/colleges.tsx
-import { Button, Platform, StyleSheet, View } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { Paragraph, Title } from 'react-native-paper'
 import { FlashList } from '@shopify/flash-list'
-import { College, Department } from '@/types/api'
+import { Department, Lecturer } from '@/types/api'
 import { HEIGHT, WIDTH } from '@/utilities/dimensions'
 import { useAppStore } from '@/stores/useAppStore'
-import handleColleges from '@/api/handleColleges'
 import { handleDisableDataLoading } from '@/utilities/handleDisableDataLoading'
-import CollegeListItem from '@/components/CollegeListItem'
 import { getLoadingData } from '@/utilities/getLoadingData'
 import Input from '@/components/Input'
 import FixedButton from '@/components/FixedButton'
 import AddCircleIcon from "@/assets/svg/AddCircleIcon.svg"
-import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router'
+import { useLocalSearchParams, useNavigation, useRouter, useSegments } from 'expo-router'
 import { colors } from '@/utilities/colors'
 import CustomButton from '@/components/CustomButton'
 import handleDepartments from '@/api/handleDepartments'
 import InterText from '@/components/InterText'
+import DepartmentListItem from '@/components/DepartmentListItem'
 
 // Let's stick with 'is_loading' as used in useMemo annotation.
-type CollegeListItemProps = College & {
+type DepartmentListItemProps = Department & {
     is_loading?: boolean | undefined;
-	onPress?: () => void | undefined;
+	hod?: string | undefined;
 };
 
 const CollegeDetails = () => {
 
-	const router = useRouter()
+	const router = useRouter();
+	const segments = useSegments();
 	const navigation = useNavigation();
 
 	// get route params
@@ -49,10 +48,9 @@ const CollegeDetails = () => {
 		departments: true,
 	});
 
-	// list of collegs
-	const [colleges, setColleges] = useState<College[]>([]);
 	const [departments, setDepartments] = useState<Department[]>([]);
 	const [searchInput, setSearchInput] = useState<string>("");
+	const [hod, setHod] = useState<Lecturer | undefined>(undefined) 
 
 	useEffect(() => {
 		// (async () => )
@@ -71,30 +69,29 @@ const CollegeDetails = () => {
 		}
 
 		fetchDepartments();
-			
-	}, [])
+	}, [segments])
 
 	const data = useMemo<any>(() => {
 		if (dataLoading.departments) {
-			return getLoadingData(['college_name'], ['loading...']);
+			return getLoadingData(['department_name'], ['loading...']);
 		}
 
 		if (searchInput) {
-			return colleges.filter(item => item.college_name.toLowerCase().includes(searchInput.toLowerCase())).map(item => ({
+			return departments.filter(item => item.department_name.toLowerCase().includes(searchInput.toLowerCase())).map(item => ({
 				...item,
+				hod: undefined,
 				onPress: () => {
 				},
-				is_loading: false
 			}));
 		}
 
-		return colleges.map(item => ({
+		return departments.map(item => ({
 			...item,
+			hod: undefined,
 			onPress: () => {
 			},
-			is_loading: false
 		}));
-	}, [colleges, dataLoading.departments, searchInput]);
+	}, [departments, dataLoading.departments, searchInput]);
 
 	const handleEditCollege = () => {
 		router.push({
@@ -124,12 +121,16 @@ const CollegeDetails = () => {
 		});
 	}, []);
 
-	const RenderItem = useCallback(({item, index}: {item: CollegeListItemProps, index: number}) => (
-		<CollegeListItem
+	const RenderItem = useCallback(({item, index}: {item: DepartmentListItemProps, index: number}) => (
+		<DepartmentListItem
 			index={index}
 			isLoading={item?.is_loading}
-			onPress={item?.onPress}
-			collegeName={item.college_name}
+			departmentName={item.department_name}
+			collegeName={_college_name as string}
+			hod={item?.hod}
+			onPress={() => {
+
+			}}
 		/>
 	), []);
 
@@ -167,7 +168,13 @@ const CollegeDetails = () => {
 						</View>
 						<CustomButton
 							onPress={() => {
-								router.push('/(root)/(app)/(department)/addDepartment')				
+								router.push({
+									pathname: '/(root)/(app)/(department)/addDepartment',
+									params: {
+										_college_name,
+										_college_id,
+									}
+								})		
 							}}
 							text={"Add Department"}
 							Icon={<AddCircleIcon />}
@@ -179,7 +186,13 @@ const CollegeDetails = () => {
 		{!(!dataLoading.departments && departments.length === 0) && (
 			<FixedButton
 				onPress={() => {
-					router.push('/(root)/(app)/(department)/addDepartment')				
+					router.push({
+						pathname: '/(root)/(app)/(department)/addDepartment',
+						params: {
+							_college_name,
+							_college_id,
+						}
+					})			
 				}}
 				text={"Add Department"}
 				Icon={<AddCircleIcon />}

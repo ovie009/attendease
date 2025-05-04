@@ -19,7 +19,7 @@ const create = async (college_name: string): Promise<Response<College>> => {
 
         return {
             isSuccessful: true,
-            message: "Location created successfully",
+            message: "College created successfully",
             data: data
         }
     } catch (error) {
@@ -44,7 +44,7 @@ const update = async ({college_name, id}: {college_name: string, id: string}): P
 
         return {
             isSuccessful: true,
-            message: "Location created successfully",
+            message: "College created successfully",
             data: data
         }
     } catch (error) {
@@ -65,7 +65,39 @@ const getAll = async (): Promise<Response<College[] | []>> => {
 
         return {
             isSuccessful: true,
-            message: "Location created successfully",
+            message: "College created successfully",
+            data: data || [],
+        } 
+    } catch (error) {
+        throw error;
+    }
+}
+
+const getByIds = async (ids: string[]): Promise<Response<College[] | []>> => {
+    try {
+        if (ids.length === 0) {
+            return {
+                isSuccessful: true,
+                message: "College created successfully",
+                data: [],
+            } 
+        }
+        // console.log("🚀 ~ getByIds ~ ids:", ids)
+
+        const { data, error, status } = await supabase
+            .from(tableName)
+            .select('*')
+            .in('id', ids)
+            .order('college_name', {ascending: true});
+        console.log("🚀 ~ getByIds ~ data:", data)
+            
+        if (error && status !== 406) {
+            throw error;
+        }
+
+        return {
+            isSuccessful: true,
+            message: "College created successfully",
             data: data || [],
         } 
     } catch (error) {
@@ -79,4 +111,5 @@ export default {
     create,
     getAll,
     update,
+    getByIds,
 }

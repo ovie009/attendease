@@ -5,6 +5,7 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import { colors } from '@/utilities/colors';
 import InterText from '@/components/InterText';
 import CardIcon from '@/assets/svg/CardIcon.svg';
+import DepartmentIcon from '@/assets/svg/DepartmentIcon.svg';
 import { View } from 'react-native';
 import CustomButton from '@/components/CustomButton';
 
@@ -51,9 +52,9 @@ export default function AppLayout() {
 				}}
 			/>
 			<Stack.Screen 
-				name="(departments)" 
+				name="(department)" 
 				options={{ 
-					title: "", 
+					title: '',
 					headerShown: true, 
 					headerShadowVisible: false,
 				}}
@@ -100,7 +101,10 @@ export default function AppLayout() {
 			<Stack.Screen 
 				name="departments"
 				options={{
-					headerBackTitle: ""
+					headerTintColor: colors.black,
+					headerBackTitle: "",
+					headerLeft: () => <View style={{marginRight: 6}}><DepartmentIcon width={40} height={40}/></View>,
+					headerTitle: () => <InterText fontSize={32} fontWeight={600} lineHeight={35}>Departments</InterText>,
 				}} 
 			/>
 		</Stack>

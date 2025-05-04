@@ -61,7 +61,7 @@ const Login = () => {
 			<CustomButton
 				text={"Login"}
 				onPress={handleLogin}
-				isLoading={true}
+				isLoading={isLoading}
 				disabled={isLoading || !email || !password}
 			/>
 		</View>

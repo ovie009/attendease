@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
         justifyContent: "flex-start",
         alignItems: "center",
         paddingHorizontal: 20,
-        marginTop: 9,
+        marginTop: 10,
         marginBottom: 10, // Added margin for spacing below header
         position: 'relative',
     },

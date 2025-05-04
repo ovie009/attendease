@@ -76,7 +76,7 @@ const Input = forwardRef<TextInput, InputProps>(({
 				onSubmitEditing={onSubmitEditing}
 				editable={editable}
 				returnKeyType={returnKeyType}
-				// placeholderTextColor={colors?.placeholder} // Example: Add placeholder color
+				placeholderTextColor={colors.placeholder} // Example: Add placeholder color
 			/>
 			{/* Optionally display the error message */}
 			{/* {error && (
@@ -107,5 +107,6 @@ const styles = StyleSheet.create({
 		borderWidth: 1,
 		borderColor: colors.inputBorder,
 		borderRadius: 9,
+		color: colors.black
 	}
 });
