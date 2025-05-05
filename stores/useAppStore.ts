@@ -5,6 +5,7 @@ interface AppState {
     isLoading: boolean;
     isLoadingSecondary: boolean;
     pageLoading: boolean;
+    loadingPages: string[],
     keyboardHeight: number;
     backGestureEnabled: boolean; // Defaults to true
     hideStatusBar: boolean;
@@ -25,12 +26,14 @@ interface AppState {
     setStackedBottomSheetHandler: (handler: SheetHandler) => void,
     setScannedCard: (object: ScannedCard | null) => void,
     setScannedCardTopic: (topic: string | null) => void,
+    setLoadingPages: (array: string[]) => void,
 }
 
 export const useAppStore = create<AppState>((set) => ({
     isLoading: false,
     isLoadingSecondary: false,
     pageLoading: false,
+    loadingPages: [],
     keyboardHeight: 0,
     backGestureEnabled: true,
     hideStatusBar: false,
@@ -58,6 +61,7 @@ export const useAppStore = create<AppState>((set) => ({
     setHideStatusBar: (hide) => set({ hideStatusBar: hide }),
     setScannedCard: (object: ScannedCard | null) => set({ scannedCard: object }),
     setScannedCardTopic: (topic: string | null) => set({ scannedCardTopic: topic }),
+    setLoadingPages: (array: string[]) => set({ loadingPages: array }),
     
     setToast: (toastData) => set((state) => ({
         toast: { ...state.toast, ...toastData }

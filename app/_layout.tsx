@@ -1,6 +1,6 @@
 // ./app/_layout.tsx
 import React, { useEffect } from 'react';
-import { Slot } from 'expo-router';
+import { Slot, usePathname } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { MD3LightTheme as DefaultTheme, PaperProvider } from 'react-native-paper';
 import { Colors } from '@/constants/Colors';
@@ -12,6 +12,7 @@ import { useAppStore } from '@/stores/useAppStore';
 import Toast from '@/components/Toast';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
+import PageLoader from '@/components/PageLoader';
 
 const theme = {
 	...DefaultTheme,
@@ -26,6 +27,10 @@ SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
 
 	const toast = useAppStore(state => state.toast);
+	const loadingPages = useAppStore(state => state.loadingPages);
+
+	const pathname = usePathname()
+	console.log("🚀 ~ RootLayout ~ pathname:", pathname)
 
 	const [loaded, error] = useFonts({
 		'inter-bold': require('../assets/fonts/Inter_18pt-Bold.ttf'),
@@ -54,6 +59,9 @@ export default function RootLayout() {
 					</BottomSheetModalProvider>
 					<Toast
 						{...toast}
+					/>
+					<PageLoader 
+						isLoading={loadingPages.length !== 0 && (loadingPages[loadingPages.length - 1] === pathname)} 
 					/>
 				</GestureHandlerRootView>
 			</SafeAreaProvider>

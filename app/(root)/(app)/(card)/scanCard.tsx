@@ -119,11 +119,16 @@ const ScanCard = () => {
             isSelected={item?.is_selected}
             onPress={handleSelectedDean}
         />
-    ), []);
+    ), [handleSelectedDean]);
 
     const handleCreateRfidCard = async () => {
         try {
             setIsLoading(true);
+
+            if (!assignedFor) {
+                throw new Error('Selectd a user type for the card')
+            }
+
             const createRfidCardResponse = await handleRfidCards.create({
                 card_uid: cardId,
                 assigned_for: assignedFor

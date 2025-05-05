@@ -18,5 +18,6 @@ export const colors = {
     label: "#585858",
     accentLight: '#FCF5F4',
     lightGrey: '#F3F3F3',
-    placeholder: '#B1B2B2'
+    placeholder: '#B1B2B2',
+    overlay: "#0000004D",
 };

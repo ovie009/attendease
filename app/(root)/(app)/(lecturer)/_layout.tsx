@@ -3,6 +3,7 @@ import React from 'react';
 import { Stack } from 'expo-router';
 import InterText from '@/components/InterText';
 import LecturerIcon from '@/assets/svg/LecturerIcon.svg';
+import { View } from 'react-native';
 
 export default function LecturerLayout() {
     // Render the child route within the authenticated group (tabs, settings)
@@ -15,7 +16,7 @@ export default function LecturerLayout() {
                     headerBackTitle: "",
                     headerShadowVisible: false,
                     headerTitle: () => <InterText fontSize={32} fontWeight={600} lineHeight={35}>Add Lecturer</InterText>,
-                    headerLeft: () => <LecturerIcon width={30} height={30} />,
+                    headerLeft: () => <View style={{marginRight: 5}}><LecturerIcon width={30} height={30} /></View>,
                 }} 
             />
             <Stack.Screen 
@@ -24,7 +25,7 @@ export default function LecturerLayout() {
                     headerBackVisible: false,
                     headerShadowVisible: false,
                     headerTitle: () => <InterText fontSize={32} fontWeight={600} lineHeight={35}>Edit Lecturer</InterText>,
-                    headerLeft: () => <LecturerIcon width={30} height={30} />,
+                    headerLeft: () => <View style={{marginRight: 5}}><LecturerIcon width={30} height={30} /></View>,
                 }} 
             />
         </Stack>

@@ -12,12 +12,12 @@ import { getLoadingData } from '@/utilities/getLoadingData'
 import Input from '@/components/Input'
 import FixedButton from '@/components/FixedButton'
 import AddCircleIcon from "@/assets/svg/AddCircleIcon.svg"
-import { useRouter, useSegments } from 'expo-router'
+import { usePathname, useRouter, useSegments } from 'expo-router'
 import { colors } from '@/utilities/colors'
 import CustomButton from '@/components/CustomButton'
 import handleDepartments from '@/api/handleDepartments'
 import DepartmentListItem from '@/components/DepartmentListItem'
-import handleLecturers from '@/types/handleLecturers'
+import handleLecturers from '@/api/handleLecturers'
 import LecturerListItem from '@/components/LecturerListItem'
 
 // Let's stick with 'is_loading' as used in useMemo annotation.
@@ -34,14 +34,18 @@ const Lecturers = () => {
 
 	const {
 		displayToast,
-	} = useAppStore.getState()
+	} = useAppStore.getState();
 	
 	const [dataLoading, setDataloading] = useState<{colleges: boolean, departments: boolean, lecturers: boolean}>({
 		colleges: true,
 		departments: true,
 		lecturers: true,
 	});
-	console.log("🚀 ~ Lecturers ~ dataLoading:", dataLoading)
+	// console.log("🚀 ~ Lecturers ~ dataLoading:", dataLoading)
+
+	useEffect(() => {
+
+	})
 
 	// list of collegs
 	const [colleges, setColleges] = useState<College[]>([]);
@@ -91,6 +95,7 @@ const Lecturers = () => {
 				}
 			});
 	}, [colleges, dataLoading.colleges, dataLoading.departments, searchInput, lecturers, dataLoading.lecturers]);
+	console.log("🚀 ~ Lecturers ~ data:", data)
 
 
 	useEffect(() => {
@@ -126,7 +131,7 @@ const Lecturers = () => {
 			} catch (error: any) {
 				displayToast('ERROR', error?.message)
 			} finally {
-				handleDisableDataLoading('departments', setDataloading)
+				handleDisableDataLoading('departments', setDataloading);
 			}
 		}
 
@@ -137,6 +142,7 @@ const Lecturers = () => {
 		const fetchLecturers = async () => {
 			try {
 				const lecturersResponse = await handleLecturers.getAll();
+				console.log("🚀 ~ fetchLecturers ~ lecturersResponse:", lecturersResponse)
 
 				if (lecturersResponse.isSuccessful) {
 					setLecturers(lecturersResponse.data)
@@ -166,6 +172,7 @@ const Lecturers = () => {
 			collegeName={item?.college_name}
 			departmentName={item?.department_name}
 			courseIds={item?.course_ids}
+			role={item?.role}
 			onPress={() => {
 
 			}}

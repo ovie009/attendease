@@ -203,7 +203,7 @@ const AddDepartment = () => {
 				handleSelectCollege(item.id)
 			}}
 		/>
-	), []);
+	), [handleSelectCollege]);
 
 	const renderDurationItem = useCallback(({item}: ListRenderItemInfo<SelectableDuration>) => (
 		<OptionListItem
@@ -214,7 +214,7 @@ const AddDepartment = () => {
 				handleSelectDuration(item.id)
 			}}
 		/>
-	), []);
+	), [handleSelectDuration]);
 
 	const handleCreateDepartment = async () => {
 		try {
