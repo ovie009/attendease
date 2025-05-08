@@ -37,12 +37,15 @@ export default function TabLayout() {
 			<Tabs.Screen
 				name="home" // This corresponds to home.tsx
 				options={{
-					headerTitle: () => <InterText fontSize={32} fontWeight={600} lineHeight={35}>Welcome,{`\n`}{user?.full_name}</InterText>,
+					headerTitle: () => <InterText fontSize={32} fontWeight={600} lineHeight={35} numberOfLines={2}>Welcome,{`\n`}{user?.full_name}</InterText>,
 					tabBarLabel: ({focused}) => <InterText color={focused ? colors.primary : colors.grey}>Home</InterText>,
 					tabBarIcon: ({focused}) => <Entypo name="home" size={20} color={focused ? colors.primary : colors.grey} />,
 					headerRight: () => <TouchableOpacity style={styles.notificationButton}>
 						<Ionicons name="notifications" size={20} color={colors.primary} />
 					</TouchableOpacity>,
+					headerStyle: {
+						height: 120,
+					}
 				}}
 			/>
 			<Tabs.Screen
@@ -51,6 +54,9 @@ export default function TabLayout() {
 					headerTitle: () => <InterText fontSize={32} fontWeight={600} lineHeight={35}>Settings</InterText>,
 					tabBarLabel: ({focused}) => <InterText color={focused ? colors.primary : colors.grey}>Settings</InterText>,
 					tabBarIcon: ({focused}) => <Entypo name="sound-mix" size={20} color={focused ? colors.primary : colors.grey} />,
+					headerStyle: {
+						paddingBottom: 10,
+					},
 					headerLeft: () => <View style={{paddingLeft: 20}}>
 						<Entypo name="sound-mix" size={40} color={colors.primary} />
 					</View>,
@@ -62,6 +68,9 @@ export default function TabLayout() {
 					headerTitle: () => <InterText fontSize={32} fontWeight={600} lineHeight={35}>Profile</InterText>,
 					tabBarLabel: ({focused}) => <InterText color={focused ? colors.primary : colors.grey}>Profile</InterText>,
 					tabBarIcon: ({ focused }) => <FontAwesome5 name="user-circle" size={20} color={focused ? colors.primary : colors.grey} />,
+					headerStyle: {
+						paddingBottom: 10,
+					},
 					headerLeft: () => <View style={{paddingLeft: 20}}>
 						<FontAwesome5 name="user-circle" size={40} color={colors.primary} />
 					</View>,

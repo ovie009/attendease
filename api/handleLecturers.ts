@@ -65,6 +65,28 @@ const getAll = async (): Promise<Response<Lecturer[] | []>> => {
     }
 }
 
+const getById = async (id: string): Promise<Response<Lecturer | null>> => {
+    try {
+        const { data, error, status } = await supabase
+            .from(tableName)
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        if (error && status !== 406) {
+            throw error;
+        }
+
+        return {
+            isSuccessful: true,
+            message: "Lecturers selected successfully",
+            data,
+        } 
+    } catch (error) {
+        throw error;
+    }
+}
+
 const getByDepartmentId = async (department_id: string): Promise<Response<Lecturer[] | []>> => {
     try {
         const { data, error, status } = await supabase
@@ -163,6 +185,7 @@ const addLecturer = async ({ email, full_name, department_id, role, rfid }: AddL
 export default {
     create,
     getAll,
+    getById,
     addLecturer,
     getByDepartmentId,
     getByDepartmentIds,

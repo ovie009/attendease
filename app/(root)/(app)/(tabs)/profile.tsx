@@ -1,10 +1,33 @@
 // ./app/(app)/(tabs)/profile.tsx
-import { StyleSheet, Text, View, Button } from 'react-native'
-import React from 'react'
+import { StyleSheet, TouchableOpacity, View } from 'react-native'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAuthStore } from '@/stores/useAuthStore';
 import { supabase } from '@/lib/supabase';
+import { colors } from '@/utilities/colors';
+import { FlashList } from '@shopify/flash-list';
+import InterText from '@/components/InterText';
+import CustomButton from '@/components/CustomButton';
+import LinkText from '@/components/LinkText';
+import Avatar from '@/components/Avatar';
+import { Admin } from '@/types/api';
+import handleAdmin from '@/api/handleAdmin';
+import { getLoadingData } from '@/utilities/getLoadingData';
+import { handleDisableDataLoading } from '@/utilities/handleDisableDataLoading';
+import { HEIGHT } from '@/utilities/dimensions';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import AdminListItem from '@/components/AdminListItem';
+import { useAppStore } from '@/stores/useAppStore';
+
+type AdminListItemProps = Admin & {
+    is_loading?: boolean | undefined;
+};
 
 const Profile = () => {
+
+    const {
+        displayToast,
+    } = useAppStore.getState()
+
     const user = useAuthStore((state) => state.user);
 
     const handleLogout = async () => {
@@ -16,13 +39,141 @@ const Profile = () => {
          // Auth listener in root layout will handle redirect
     };
 
+    const [admins, setAdmins] = useState<Admin[]>([]);
+
+    const [dataLoading, setDataLoading] = useState<{admins: boolean}>({
+        admins: true,
+    }); 
+    console.log("🚀 ~ Profile ~ dataLoading:", dataLoading)
+
+    useEffect(() => {
+        const fetchAdmins = async () => {
+            if (!user?.is_admin) return;
+            try {
+                const adminsResponse = await handleAdmin.getAll();
+                console.log("🚀 ~ fetchAdmins ~ adminsResponse:", adminsResponse)
+                // remove logged in user form list
+                setAdmins(adminsResponse.data.filter(item => item.id !== user?.id));
+            } catch (error: any) {
+                displayToast('ERROR', error?.message)
+                // console.error('Error fetching admins:', error);
+            } finally {
+                handleDisableDataLoading('admins', setDataLoading)
+            }
+        };
+        fetchAdmins();
+    }, [])
+
+    const adminsData = useMemo<any[]>(() => {
+        if (dataLoading.admins) {
+            return getLoadingData(['email', 'full_name', 'is_active', 'created_at', 'updated_at'], ['', '', '', '', '']);
+        }
+
+        return admins;
+    }, [admins, dataLoading.admins]);
+
+    const renderItem = useCallback(({item}: {item: AdminListItemProps}) => (
+        <AdminListItem
+            isLoading={item?.is_loading}
+            fullName={item?.full_name}
+            email={item?.email}
+            profilePicture={item?.profile_picture}
+            onPress={() => {
+
+            }}
+        />
+    ), [])
+
     return (
         <View style={styles.container}>
-        	<Text style={styles.title}>{user?.email ?? 'User'}!</Text>
-			{/* Example Logout Button - Often placed in Settings or Profile */}
-			<View style={{ marginTop: 20 }}>
-				<Button title="Logout" onPress={handleLogout} color="red" />
-			</View>
+            <FlashList
+                data={adminsData}
+                keyExtractor={item => item.id}
+                estimatedItemSize={101}
+                contentContainerStyle={{
+                    paddingTop: 30,
+                    paddingBottom: 120,
+                    paddingHorizontal: 20,
+                }}
+                ListHeaderComponent={(
+                    <View style={styles.listHeader}>
+                        <View style={styles.userContainer}>
+                            {user && (
+                                <Avatar
+                                    name={user?.full_name}
+                                    diameter={64}
+                                />
+                            )}
+                            <View style={styles.userDetails}>
+                                <InterText
+                                    color={colors.black}
+                                    fontSize={15}
+                                    lineHeight={18}
+                                    fontWeight={'medium'}
+                                >
+                                    {user?.full_name}
+                                </InterText>
+                                <InterText
+                                    color={colors.subtext}
+                                    fontSize={12}
+                                    lineHeight={14}
+                                >
+                                    {user?.email}
+                                </InterText>
+                            </View>
+                        </View>
+                        {/* <CustomButton
+                            text='logout'
+                            onPress={handleLogout}
+                            width={100}
+                            isSecondary={true}
+                            color='white'
+                            buttonStyle={{
+                                backgroundColor: 'red'
+                            }}
+                        /> */}
+                        <View style={styles.adminHeaderBar}>
+                            <InterText
+                                fontWeight={500}
+                            >
+                                Other Admins:
+                            </InterText>
+                            <LinkText
+                                onPress={() => {}}
+                            >
+                                Add admin
+                            </LinkText>
+                        </View>
+                    </View>
+                )}
+                renderItem={renderItem}
+                ListEmptyComponent={(!dataLoading.admins && adminsData.length === 0) ? (
+                    <View style={styles.noData}>
+                        <InterText
+                            fontWeight={'600'}
+                            fontSize={17}
+                            lineHeight={19}
+                        >
+                            No admins found
+                        </InterText>
+                    </View>
+                ) : <></>}
+                ListFooterComponent={(
+                    <View style={styles.footer}>
+                        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+                            <Ionicons name="exit-outline" size={24} color={colors.error} />
+                            <InterText
+                                fontSize={16}
+                                lineHeight={19}
+                                color={colors.error}
+                                fontWeight={'500'}
+                            >
+                                Logout
+                            </InterText>
+                        </TouchableOpacity>
+                    </View>
+                )}
+            />
         </View>
     );
 }
@@ -30,6 +181,52 @@ const Profile = () => {
 export default Profile;
 
 const styles = StyleSheet.create({
-    container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    title: { fontSize: 20, marginBottom: 10 },
+    container: {
+        flex: 1,
+        backgroundColor: colors.white,
+    },
+    listHeader: {
+        marginBottom: 24,
+        display: 'flex',
+        gap: 20,
+    },
+    userContainer: {
+        display: 'flex',
+        justifyContent: 'flex-start',
+        alignItems: 'center',
+        gap: 18,
+        flexDirection: 'row',
+    },
+    userDetails: {
+        display: 'flex',
+        gap: 8,
+        justifyContent: 'center',
+    },
+    adminHeaderBar: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexDirection: 'row',
+    },
+    noData: {
+        width: '100%',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: HEIGHT/4
+    },
+    footer: {
+        width: '100%',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        // height: HEIGHT/4
+    },
+    logoutButton: {
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 10,
+        flexDirection: 'row',
+    }
 });

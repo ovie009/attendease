@@ -54,7 +54,7 @@ const getAll = async (): Promise<Response<Admin[] | []>> => {
         const { data, error, status } = await supabase
             .from(tableName)
             .select('*')
-            .order('name', {ascending: true});
+            .order('full_name', {ascending: true});
 
         if (error && status !== 406) {
             throw error;

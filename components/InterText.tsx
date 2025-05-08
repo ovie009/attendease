@@ -1,10 +1,11 @@
 import { StyleSheet, Text, TextProps, TextStyle } from 'react-native'
 import React, { FC, ReactNode } from 'react'
 import { colors } from '../utilities/colors'
+import { FontWeight } from '@/types/general'
 
 
 export interface InterTextProps extends TextProps {
-    fontWeight?: string | number | undefined,
+    fontWeight?: FontWeight | undefined,
     fontSize?: number | undefined,
     lineHeight?: number | undefined,
     color?: string | undefined,

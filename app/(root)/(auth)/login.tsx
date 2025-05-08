@@ -1,9 +1,9 @@
 import React, { useRef, useState } from 'react';
-import { View, Text, StyleSheet, Alert, TextInput } from 'react-native';
+import { View, StyleSheet, TextInput } from 'react-native';
 import { Link, RelativePathString } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { colors } from '@/utilities/colors';
-import Input, { InputProps } from '@/components/Input';
+import Input from '@/components/Input';
 import CustomButton from '@/components/CustomButton';
 import InterText from '@/components/InterText';
 import { useAppStore } from '@/stores/useAppStore';
@@ -11,12 +11,14 @@ import { useAppStore } from '@/stores/useAppStore';
 const Login = () => {
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
-	const [loading, setLoading] = useState(false);
 
-	const isLoading = useAppStore(state => state.isLoading);
+	const {
+		displayToast
+	} = useAppStore.getState()
 
 	const passwordRef = useRef<TextInput>(null);
-
+	
+	const isLoading = useAppStore(state => state.isLoading)
 	const {
 		setIsLoading,
 	} = useAppStore.getState()
@@ -27,7 +29,8 @@ const Login = () => {
 			const { error } = await supabase.auth.signInWithPassword({ email, password });
 			if (error) throw error;
 		} catch (error: any) {
-			Alert.alert('Login Error', error.message);
+			// Alert.alert('Login Error', error.message);
+			displayToast('ERROR', error?.message)
 		} finally {
 			setIsLoading(false)
 		}

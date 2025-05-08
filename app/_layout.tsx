@@ -13,6 +13,7 @@ import Toast from '@/components/Toast';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import PageLoader from '@/components/PageLoader';
+import { StatusBar } from 'expo-status-bar';
 
 const theme = {
 	...DefaultTheme,
@@ -52,6 +53,8 @@ export default function RootLayout() {
 	return (
 		<PaperProvider theme={theme}>
 			<SafeAreaProvider>
+				{/* <StatusB */}
+				<StatusBar backgroundColor='white' />
 				<GestureHandlerRootView style={{ flex: 1 }}>
 					<BottomSheetModalProvider>
 						<Slot />

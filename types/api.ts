@@ -17,6 +17,7 @@ export type Department = {
 
 export type Lecturer = {
     id: string;
+    email: string;
     full_name: string;
     department_id: string,
     course_ids?: string[] | null,
@@ -30,8 +31,9 @@ export type Lecturer = {
 export type Admin = {
     id: string;
     email: string;
-    is_active: boolean;
+    profile_picture: string | null;
     full_name: string;
+    is_active: boolean;
     created_at: string;
     updated_at: string;
 }
@@ -46,9 +48,17 @@ export type RfidCard = {
     updated_at: string;
 }
 
-export type User = Admin & {
-    isAdmin: boolean;
-    role?: string;
+export type User = {
+    id: string;
+    email: string;
+    full_name: string;
+    is_active?: boolean | undefined;
+    is_admin: boolean;
+    rfid?: string | undefined;
+    pin?: string | null | undefined;
+    role?: Role | undefined;
+    created_at: string;
+    updated_at: string;
 }
 
 export type Response<T> = {

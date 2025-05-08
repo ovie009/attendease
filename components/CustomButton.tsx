@@ -3,6 +3,7 @@ import React, { FC, ReactNode } from 'react';
 // text
 import { colors } from '../utilities/colors';
 import InterText, { InterTextProps } from './InterText';
+import { FontWeight } from '@/types/general';
 
 export interface CustomButtonProps extends InterTextProps {
     onPress: () => any,
@@ -42,7 +43,7 @@ const CustomButton: FC<CustomButtonProps> = ({onPress, disabled, isLoading, isNe
     }
 
     // handle font weight
-    const handleFontWeight = (): number | string  => {
+    const handleFontWeight = (): FontWeight  => {
         if (fontWeight) return fontWeight;
         return "semibold";
     }

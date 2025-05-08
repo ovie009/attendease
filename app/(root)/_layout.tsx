@@ -11,6 +11,7 @@ import * as NavigationBar from 'expo-navigation-bar';
 import { colors } from '@/utilities/colors';
 import MQTTService from '@/api/MQTTService';
 import { useAppStore } from '@/stores/useAppStore';
+import handleLecturers from '@/api/handleLecturers';
 
 export default function RootLayout() {
 
@@ -46,7 +47,13 @@ export default function RootLayout() {
 					handleAdmin.getAdminById(session?.user?.id).then(adminResponse => {
 						// console.log("🚀 ~ handleAdmin.getAdminById ~ adminResponse:", adminResponse)
 						if (adminResponse.data) {
-							setUser({...adminResponse.data, isAdmin: true})
+							setUser({...adminResponse.data, is_admin: true})
+						}
+					})
+					handleLecturers.getById(session?.user?.id).then(lecturerResponse => {
+						// console.log("🚀 ~ handleAdmin.getAdminById ~ lecturerResponse:", lecturerResponse)
+						if (lecturerResponse.data) {
+							setUser({...lecturerResponse.data, is_admin: false})
 						}
 					})
 				} else {
@@ -77,7 +84,13 @@ export default function RootLayout() {
 					handleAdmin.getAdminById(session?.user?.id).then(adminResponse => {
 						// console.log("🚀 ~ handleAdmin.getAdminById ~ adminResponse:", adminResponse)
 						if (adminResponse.data) {
-							setUser({...adminResponse.data, isAdmin: true})
+							setUser({...adminResponse.data, is_admin: true})
+						}
+					})
+					handleLecturers.getById(session?.user?.id).then(lecturerResponse => {
+						// console.log("🚀 ~ handleAdmin.getAdminById ~ lecturerResponse:", lecturerResponse)
+						if (lecturerResponse.data) {
+							setUser({...lecturerResponse.data, is_admin: false})
 						}
 					})
 				} else {
@@ -112,6 +125,8 @@ export default function RootLayout() {
             } 
         })();
     }, []);
+
+
 
 	// Render loading indicator until initialization is complete
 	if (!initialized) {
@@ -301,6 +316,6 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-		backgroundColor: 'white',
+		backgroundColor: '#6F8197',
     }
 })
