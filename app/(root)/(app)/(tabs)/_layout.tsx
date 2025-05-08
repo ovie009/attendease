@@ -8,13 +8,32 @@ import InterText from '@/components/InterText';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons'
+import { supabase } from '@/lib/supabase';
+import { useAppStore } from '@/stores/useAppStore';
 // You might want to import icons
 // import { Ionicons } from '@expo/vector-icons';
 
 export default function TabLayout() {
 
+	const {
+		displayToast,
+	} = useAppStore.getState()
+
 	const user = useAuthStore((state) => state.user);
-	// console.log("🚀 ~ TabLayout ~ user:", user)
+
+	const handleLogout = async () => {
+		try {
+			// Optional: Show loading state
+			const { error } = await supabase.auth.signOut();
+			if (error) {
+				console.error('Error logging out:', error);
+			}
+			
+			// Auth listener in root layout will handle redirect
+		} catch (error: any) {
+			displayToast('ERROR', error?.message)
+		}	
+	};
 
 	return (
 		<Tabs
@@ -74,6 +93,19 @@ export default function TabLayout() {
 					headerLeft: () => <View style={{paddingLeft: 20}}>
 						<FontAwesome5 name="user-circle" size={40} color={colors.primary} />
 					</View>,
+					headerRight: () => (
+						<TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+                            <Ionicons name="exit-outline" size={24} color={colors.error} />
+                            <InterText
+                                fontSize={16}
+                                lineHeight={19}
+                                color={colors.error}
+                                fontWeight={'500'}
+                            >
+                                Logout
+                            </InterText>
+                        </TouchableOpacity>
+					)
 				}}
 			/>
 		</Tabs>
@@ -84,4 +116,12 @@ const styles = StyleSheet.create({
 	notificationButton: {
 		marginRight: 20,
 	},
+	logoutButton: {
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 5,
+        flexDirection: 'row',
+		marginRight: 20,
+    }
 });

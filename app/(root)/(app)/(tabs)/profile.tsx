@@ -13,10 +13,13 @@ import { Admin } from '@/types/api';
 import handleAdmin from '@/api/handleAdmin';
 import { getLoadingData } from '@/utilities/getLoadingData';
 import { handleDisableDataLoading } from '@/utilities/handleDisableDataLoading';
-import { HEIGHT } from '@/utilities/dimensions';
+import { HEIGHT, WIDTH } from '@/utilities/dimensions';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import AdminListItem from '@/components/AdminListItem';
 import { useAppStore } from '@/stores/useAppStore';
+import { useRouter, useSegments } from 'expo-router';
+import Skeleton from '@/components/Skeleton';
+import AddCircleIcon from "@/assets/svg/AddCircleIcon.svg"
 
 type AdminListItemProps = Admin & {
     is_loading?: boolean | undefined;
@@ -26,7 +29,10 @@ const Profile = () => {
 
     const {
         displayToast,
-    } = useAppStore.getState()
+    } = useAppStore.getState();
+
+    const router = useRouter();
+    const segments = useSegments();
 
     const user = useAuthStore((state) => state.user);
 
@@ -62,7 +68,7 @@ const Profile = () => {
             }
         };
         fetchAdmins();
-    }, [])
+    }, [segments])
 
     const adminsData = useMemo<any[]>(() => {
         if (dataLoading.admins) {
@@ -122,57 +128,49 @@ const Profile = () => {
                                 </InterText>
                             </View>
                         </View>
-                        {/* <CustomButton
-                            text='logout'
-                            onPress={handleLogout}
-                            width={100}
-                            isSecondary={true}
-                            color='white'
-                            buttonStyle={{
-                                backgroundColor: 'red'
-                            }}
-                        /> */}
-                        <View style={styles.adminHeaderBar}>
-                            <InterText
-                                fontWeight={500}
-                            >
-                                Other Admins:
-                            </InterText>
+                        {(dataLoading.admins) && (
+                            <View style={styles.adminHeaderBar}>
+                                <Skeleton
+                                    height={19}
+                                    borderRadius={2.5}
+                                    width={75}
+                                />
+                                <Skeleton
+                                    height={19}
+                                    borderRadius={2.5}
+                                    width={100}
+                                />
+                            </View>
+                        )}
+                        {(!dataLoading.admins && adminsData.length !== 0) ? (
+                            <View style={styles.adminHeaderBar}>
+                                <InterText
+                                    fontWeight={500}
+                                >
+                                    Other Admins:
+                                </InterText>
+                                <LinkText
+                                    onPress={() => {
+                                        router.push('/(root)/(app)/(admin)/AddAdmin')
+                                    }}
+                                >
+                                    Add admin
+                                </LinkText>
+                            </View>
+                        ) : (
                             <LinkText
-                                onPress={() => {}}
+                                fontSize={16}
+                                lineHeight={19}
+                                onPress={() => {
+                                    router.push('/(root)/(app)/(admin)/AddAdmin')
+                                }}
                             >
-                                Add admin
+                                + Add admin
                             </LinkText>
-                        </View>
+                        )}
                     </View>
                 )}
                 renderItem={renderItem}
-                ListEmptyComponent={(!dataLoading.admins && adminsData.length === 0) ? (
-                    <View style={styles.noData}>
-                        <InterText
-                            fontWeight={'600'}
-                            fontSize={17}
-                            lineHeight={19}
-                        >
-                            No admins found
-                        </InterText>
-                    </View>
-                ) : <></>}
-                ListFooterComponent={(
-                    <View style={styles.footer}>
-                        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-                            <Ionicons name="exit-outline" size={24} color={colors.error} />
-                            <InterText
-                                fontSize={16}
-                                lineHeight={19}
-                                color={colors.error}
-                                fontWeight={'500'}
-                            >
-                                Logout
-                            </InterText>
-                        </TouchableOpacity>
-                    </View>
-                )}
             />
         </View>
     );
@@ -220,6 +218,7 @@ const styles = StyleSheet.create({
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
+        height: 100,
         // height: HEIGHT/4
     },
     logoutButton: {

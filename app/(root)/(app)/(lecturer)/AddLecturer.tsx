@@ -330,6 +330,7 @@ const AddLecturer = () => {
 					onChangeText={setEmail}
 					label='Lecturer email address'
 					placeholder='Ofulagabe@fupre.com'
+					keyboardType='email-address'
 				/>
 				<SelectInput
 					label='Select Department'

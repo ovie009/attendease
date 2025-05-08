@@ -68,6 +68,14 @@ export default function AppLayout() {
 				}}
 			/>
 			<Stack.Screen 
+				name="(admin)" 
+				options={{ 
+					title: '',
+					headerShown: true, 
+					headerShadowVisible: false,
+				}}
+			/>
+			<Stack.Screen 
 				name="college" 
 				options={{ 
 					title: "", 
