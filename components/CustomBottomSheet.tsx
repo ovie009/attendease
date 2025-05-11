@@ -113,7 +113,7 @@ const CustomBottomSheet = React.forwardRef<BottomSheetModal, CustomBottomSheetPr
                         >
                             <AntDesign name="close" size={20} color={colors.black} />
                         </TouchableOpacity>
-                        {sheetTitle && (
+                        {sheetTitle !== undefined && (
                             <BottomSheetView style={styles.sheetTitle}>
                                 {/* <Text variant={'titleLarge'}>{sheetTitle}</Text> */}
                                 <InterText

@@ -1,62 +1,123 @@
 // ./app/(app)/courses.tsx
-import { StyleSheet, View } from 'react-native'
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { StyleSheet, TouchableOpacity, View } from 'react-native'
+import React, { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Paragraph, Title } from 'react-native-paper'
 import { FlashList } from '@shopify/flash-list'
-import { College } from '@/types/api'
+import { Course } from '@/types/api'
 import { HEIGHT, WIDTH } from '@/utilities/dimensions'
 import { useAppStore } from '@/stores/useAppStore'
-import handleColleges from '@/api/handleColleges'
 import { handleDisableDataLoading } from '@/utilities/handleDisableDataLoading'
-import CollegeListItem from '@/components/CollegeListItem'
 import { getLoadingData } from '@/utilities/getLoadingData'
 import Input from '@/components/Input'
 import AddCircleIcon from "@/assets/svg/AddCircleIcon.svg"
-import { useRouter, useSegments } from 'expo-router'
+import { useNavigation, useRouter, useSegments } from 'expo-router'
 import { colors } from '@/utilities/colors'
 import CustomButton from '@/components/CustomButton'
-import FixedWrapper from '@/components/FixedWrapper'
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
+import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
+import handleCourses from '@/api/handleCourses'
+import CourseListItem from '@/components/CourseListItem'
+import { BottomSheetModal } from '@gorhom/bottom-sheet'
+import CustomBottomSheet from '@/components/CustomBottomSheet'
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import Flex from '@/components/Flex'
+import InterText from '@/components/InterText'
 
 // Let's stick with 'is_loading' as used in useMemo annotation.
-type CollegeListItemProps = College & {
+type CourseListItemProps = Course & {
     is_loading?: boolean | undefined;
 	onPress?: () => void | undefined;
 };
+
+type AddButtonOption = {
+	id: string;
+	title: string;
+	Icon: ReactNode,
+	onPress: () => void,
+}
 
 const Courses = () => {
 
 	const router = useRouter()
 	const segments = useSegments();
+	const navigation = useNavigation();
 
 	const {
 		displayToast,
 	} = useAppStore.getState()
 	
+	const sheetRef = useRef<BottomSheetModal>(null);
+
+	const openBottomSheet = () => {
+		sheetRef?.current?.present();
+	}
+
+	const closeBottomSheet = () => {
+		sheetRef?.current?.close();
+	}
+
+	const addOptionsButtons = useMemo((): Array<AddButtonOption> => {
+		return [
+			{
+				id: '1',
+				title: 'Add with AI',
+				Icon: <FontAwesome5 name="magic" size={12} color={colors.black} />,
+				onPress: () => {
+					closeBottomSheet()
+					router.push({
+						pathname: '/(root)/(app)/(course)/AddCourse',
+						params: {
+							_add_with_ai: 1
+						}
+					})				
+				},
+			},
+			{
+				id: '2',
+				title: 'Add course manually',
+				Icon: <FontAwesome6 name="add" size={12} color="black" />,
+				onPress: () => {
+					closeBottomSheet()
+					router.push({
+						pathname: '/(root)/(app)/(course)/AddCourse',
+						params: {
+							_add_with_ai: 1
+						}
+					})				
+				},
+			},
+		]
+	}, [])
+
 	const [dataLoading, setDataloading] = useState<{courses: boolean}>({
 		courses: true,
 	});
 
 	// list of collegs
-	const [courses, setCourses] = useState<College[]>([]);
+	const [courses, setCourses] = useState<Course[]>([]);
 	const [searchInput, setSearchInput] = useState<string>("");
 
-	const data = useMemo((): Array<CollegeListItemProps> => {
+	const data = useMemo((): Array<CourseListItemProps> => {
 		if (dataLoading.courses) {
 			return getLoadingData(['college_name'], ['loading...']);
 		}
 
+		if (courses.length === 0) {
+			return []
+		}
+
 		if (searchInput) {
-			return courses.filter(item => item.college_name.toLowerCase().includes(searchInput.toLowerCase())).map(item => ({
+			return courses.filter(item => item.course_code.toLowerCase().includes(searchInput.toLowerCase()) || item.course_title.toLowerCase().includes(searchInput.toLowerCase()))
+			.map(item => ({
 				...item,
 				onPress: () => {
-					router.push({
-						pathname: '/(root)/(app)/college/[_college_name]',
-						params: {
-							_college_name: item?.college_name,
-							_college_id: item?.id
-						}
-					})
+					// router.push({
+					// 	pathname: '/(root)/(app)/college/[_college_name]',
+					// 	params: {
+					// 		_college_name: item?.college_name,
+					// 		_college_id: item?.id
+					// 	}
+					// })
 				},
 				is_loading: false
 			}));
@@ -65,13 +126,13 @@ const Courses = () => {
 		return courses.map(item => ({
 			...item,
 			onPress: () => {
-				router.push({
-					pathname: '/(root)/(app)/college/[_college_name]',
-					params: {
-						_college_name: item?.college_name,
-						_college_id: item?.id
-					}
-				})
+				// router.push({
+				// 	pathname: '/(root)/(app)/college/[_college_name]',
+				// 	params: {
+				// 		_college_name: item?.college_name,
+				// 		_college_id: item?.id
+				// 	}
+				// })
 			},
 			is_loading: false
 		}));
@@ -82,12 +143,11 @@ const Courses = () => {
 		// (async () => )
 		const fetchCourses = async () => {
 			try {
-				const courseResponse = await handleColleges.getAll();
+				const courseResponse = await handleCourses.getAll();
 
 				if (courseResponse.isSuccessful) {
-					// setCourses(courseResponse.data)
+					setCourses(courseResponse.data)
 				}
-				// console.log("🚀 ~ fetchCourses ~ courseResponse.data:", courseResponse.data)
 			} catch (error: any) {
 				displayToast('ERROR', error?.message)
 			} finally {
@@ -99,12 +159,34 @@ const Courses = () => {
 			
 	}, [segments])
 
-	const RenderItem = useCallback(({item, index}: {item: CollegeListItemProps, index: number}) => (
-		<CollegeListItem
-			index={index}
+	useEffect(() => {
+		if (!dataLoading.courses && courses.length === 0) {
+			navigation.setOptions({
+				headerRight: () => <></>
+			});
+		} 
+		navigation.setOptions({
+			headerRight: () => (
+				<CustomButton
+					text='Add'
+					width={70}
+					buttonStyle={{minHeight: 30, borderRadius: 14}}
+					onPress={openBottomSheet}
+				/>
+			)
+		});
+	}, [dataLoading.courses, courses]);
+
+	const RenderItem = useCallback(({item}: {item: CourseListItemProps}) => (
+		<CourseListItem
 			isLoading={item?.is_loading}
-			onPress={item?.onPress}
-			collegeName={item.college_name}
+			courseCode={item.course_code}
+			courseTitle={item.course_title}
+			level={item.level}
+			semester={item.semester}
+			onPress={() => {
+
+			}}
 		/>
 	), []);
 
@@ -112,7 +194,7 @@ const Courses = () => {
 		<View style={styles.contentContainerStyle}>
 			<FlashList
 				keyExtractor={(item) => item.id}
-				ListHeaderComponent={(!dataLoading.courses && courses.length !== 0) ? (
+				ListHeaderComponent={(data.length !== 0) ? (
 					<View style={styles.header}>
 						<Input
 							defaultValue={searchInput}
@@ -122,6 +204,7 @@ const Courses = () => {
 					</View>
 				) : <></>}
 				data={data}
+				showsVerticalScrollIndicator={false}
 				renderItem={RenderItem}
 				estimatedItemSize={100}
 				ListEmptyComponent={(courses.length === 0 && data.length === 0) ? (
@@ -160,7 +243,47 @@ const Courses = () => {
 				) : <></>}
 			/> 
 		</View>
-		{(!dataLoading.courses && data.length !== 0) && (
+		<CustomBottomSheet
+			ref={sheetRef}
+			snapPoints={[200]}
+			sheetTitle=''
+			hideSheetHeader={true}
+			closeBottomSheet={closeBottomSheet}
+			contentContainerStyle={{paddingTop: 30}}
+		>
+			{addOptionsButtons.map(item => (
+				<TouchableOpacity 
+					key={item.id}
+					onPress={item.onPress}
+				>
+					<Flex
+						flexDirection='row'
+						justifyContent='space-between'
+						alignItems='center'
+						gap={10}
+						style={styles.optionButton}
+					>
+						{item.Icon}
+						<Flex
+							flex={1}
+							alignItems='flex-start'
+							justifyContent='center'
+							height={30}
+						>
+							<InterText
+								fontWeight={500}
+								fontSize={17}
+								lineHeight={20}
+							>
+								{item.title}
+							</InterText>
+						</Flex>
+						<MaterialCommunityIcons name="chevron-right" size={20} color="black" />
+					</Flex>
+				</TouchableOpacity>
+			))}
+		</CustomBottomSheet>
+		{/* {(!dataLoading.courses && data.length !== 0) && (
 			<FixedWrapper
 				contentContainerStyle={styles.fixedWrapper}
 			>
@@ -187,7 +310,7 @@ const Courses = () => {
 					Icon={<AddCircleIcon width={22.5} height={22.5} />}
 				/>
 			</FixedWrapper>
-		)}
+		)} */}
 	</>)
 }
 
@@ -208,7 +331,7 @@ const styles = StyleSheet.create({
 		position: 'relative',
 	},
 	header: {
-		marginBottom: 40,
+		marginBottom: 20,
 	},
 	text: {
 		display: 'flex',
@@ -272,5 +395,11 @@ const styles = StyleSheet.create({
 		height: 'auto',
 		display: 'flex',
 		gap: 16,
+	},
+	optionButton: {
+		paddingBottom: 10,
+		marginBottom: 20,
+		borderBottomWidth: 1,
+		borderColor: colors.inputBorder,
 	}
 })

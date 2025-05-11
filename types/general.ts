@@ -36,7 +36,7 @@ export type Bucket = 'profiles' | 'groq';
 
 export type Role = 'Dean' | 'HOD' | 'Academic';
 
-export type Semeter = 1 | 2;
+export type Semester = 1 | 2;
 
 export type Level = 100 | 200 | 300 | 400 | 500;
 

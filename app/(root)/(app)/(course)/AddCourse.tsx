@@ -15,7 +15,7 @@ import { useLocalSearchParams, usePathname, useRouter } from 'expo-router'
 import { handleDisableDataLoading } from '@/utilities/handleDisableDataLoading'
 import { useAppStore } from '@/stores/useAppStore'
 import handleDepartments from '@/api/handleDepartments'
-import { Level, MenuButton, Role, Semeter } from '@/types/general'
+import { Level, MenuButton, Semester } from '@/types/general'
 import moment from 'moment'
 import { ImagePickerAsset } from 'expo-image-picker'
 import SelectImage from '@/components/SelectImage'
@@ -34,15 +34,10 @@ import handleCourses from '@/api/handleCourses'
 
 // Define the combined type for clarity
 type SelectableDepartment = Department & { is_selected: boolean };
-type SelectableRole = {
-	id: string,
-	title: Role,
-	is_selected: boolean
-}
 
 type SelectableSemester = {
 	id: string,
-	value: Semeter,
+	value: Semester,
 	is_selected: boolean
 }
 
@@ -100,7 +95,7 @@ const AddCourse = () => {
 	const [departmentId, setDepartmentId] = useState<string>('');
 	const [courses, setCourses] = useState<Course[]>([]);
 
-	const [semester, setSemeter] = useState<Semeter | null>(null);
+	const [semester, setSemeter] = useState<Semester | null>(null);
 	const [level, setLevel] = useState<Level | null>(null);
 
 	const [image, setImage] = useState<ImagePickerAsset | null>(null);
