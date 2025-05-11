@@ -47,3 +47,7 @@ npm i react-native-shimmer-placeholder --save
 npx expo install expo-navigation-bar
 
 npm install moment
+
+npx expo install expo-image-picker
+
+npm install --save groq-sdk

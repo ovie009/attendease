@@ -6,6 +6,8 @@ import { colors } from '@/utilities/colors';
 import InterText from '@/components/InterText';
 import CardIcon from '@/assets/svg/CardIcon.svg';
 import DepartmentIcon from '@/assets/svg/DepartmentIcon.svg';
+import CourseIcon from '@/assets/svg/CourseIcon.svg';
+import CollegeIcon from '@/assets/svg/CollegeIcon.svg';
 import LecturerIcon from '@/assets/svg/LecturerIcon.svg';
 import { View } from 'react-native';
 
@@ -60,6 +62,14 @@ export default function AppLayout() {
 				}}
 			/>
 			<Stack.Screen 
+				name="(course)" 
+				options={{ 
+					title: '',
+					headerShown: true, 
+					headerShadowVisible: false,
+				}}
+			/>
+			<Stack.Screen 
 				name="(lecturer)" 
 				options={{ 
 					title: '',
@@ -105,20 +115,24 @@ export default function AppLayout() {
 				options={{
 					headerTintColor: colors.black,
 					headerBackTitle: "",
+					headerLeft: () => <View style={{marginRight: 6}}><CollegeIcon width={40} height={40}/></View>,
 					headerTitle: () => <InterText fontSize={32} fontWeight={600} lineHeight={35}>Colleges</InterText>,
 				}} 
 			/>
 			<Stack.Screen 
 				name="courses"
 				options={{
-					headerBackTitle: ""
+					headerBackTitle: "",
+					headerTintColor: colors.black,
+					headerLeft: () => <View style={{marginRight: 6}}><CourseIcon width={40} height={40}/></View>,
+					headerTitle: () => <InterText fontSize={32} fontWeight={600} lineHeight={35}>Courses</InterText>,
 				}} 
 			/>
 			<Stack.Screen 
 				name="departments"
 				options={{
-					headerTintColor: colors.black,
 					headerBackTitle: "",
+					headerTintColor: colors.black,
 					headerLeft: () => <View style={{marginRight: 6}}><DepartmentIcon width={40} height={40}/></View>,
 					headerTitle: () => <InterText fontSize={32} fontWeight={600} lineHeight={35}>Departments</InterText>,
 				}} 

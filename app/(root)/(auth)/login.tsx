@@ -40,7 +40,7 @@ const Login = () => {
     <View style={styles.container}>
 		<View style={styles.form}>
 			<InterText
-				fontWeight={'semi-bold'}
+				fontWeight={'semibold'}
 				fontSize={20}
 				lineHeight={23}
 			>
@@ -48,7 +48,7 @@ const Login = () => {
 			</InterText>
 			<Input
 				placeholder="Email"
-				value={email}
+				defaultValue={email}
 				onChangeText={setEmail}
 				keyboardType="email-address"
 				returnKeyType='next'
@@ -57,7 +57,7 @@ const Login = () => {
 			<Input
 				ref={passwordRef}
 				placeholder="Password"
-				value={password}
+				defaultValue={password}
 				onChangeText={setPassword}
 				secureTextEntry
 			/>

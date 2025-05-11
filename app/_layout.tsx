@@ -31,7 +31,7 @@ export default function RootLayout() {
 	const loadingPages = useAppStore(state => state.loadingPages);
 
 	const pathname = usePathname()
-	console.log("🚀 ~ RootLayout ~ pathname:", pathname)
+	// console.log("🚀 ~ RootLayout ~ pathname:", pathname)
 
 	const [loaded, error] = useFonts({
 		'inter-bold': require('../assets/fonts/Inter_18pt-Bold.ttf'),

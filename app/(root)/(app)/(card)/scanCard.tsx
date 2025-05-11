@@ -150,7 +150,7 @@ const ScanCard = () => {
         >
             <View style={styles.main}>
                 <Input
-                    value={cardId}
+                    defaultValue={cardId}
                     onChangeText={setCardId}
                     label='Card ID'
                     placeholder='Card id'

@@ -141,7 +141,7 @@ const CollegeDetails = () => {
 				ListHeaderComponent={!(!dataLoading.departments && departments.length === 0) ? (
 					<View style={styles.header}>
 						<Input
-							value={searchInput}
+							defaultValue={searchInput}
 							onChangeText={setSearchInput}
 							placeholder='Search Departments'
 						/>
@@ -177,7 +177,7 @@ const CollegeDetails = () => {
 								})		
 							}}
 							text={"Add Department"}
-							Icon={<AddCircleIcon />}
+							Icon={<AddCircleIcon width={22.5} height={22.5} />}
 						/>
 					</View>
 				)}
@@ -195,7 +195,7 @@ const CollegeDetails = () => {
 					})			
 				}}
 				text={"Add Department"}
-				Icon={<AddCircleIcon />}
+				Icon={<AddCircleIcon width={22.5} height={22.5} />}
 			/>
 		)}
 	</>)

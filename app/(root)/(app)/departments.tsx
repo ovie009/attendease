@@ -137,7 +137,7 @@ const Departments = () => {
 				ListHeaderComponent={(!dataLoading.colleges && colleges.length !== 0) ? (
 					<View style={styles.header}>
 						<Input
-							value={searchInput}
+							defaultValue={searchInput}
 							onChangeText={setSearchInput}
 							placeholder='Search Department'
 						/>
@@ -161,7 +161,7 @@ const Departments = () => {
 								router.push('/(root)/(app)/(department)/addDepartment')				
 							}}
 							text={"Add College"}
-							Icon={<AddCircleIcon />}
+							Icon={<AddCircleIcon width={22.5} height={22.5} />}
 						/>
 					</View>
 				) : <></>}
@@ -173,7 +173,7 @@ const Departments = () => {
 					router.push('/(root)/(app)/(department)/addDepartment')				
 				}}
 				text={"Add Department"}
-				Icon={<AddCircleIcon />}
+				Icon={<AddCircleIcon width={22.5} height={22.5} />}
 			/>
 		)}
 	</>)

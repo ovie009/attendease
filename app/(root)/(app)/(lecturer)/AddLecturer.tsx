@@ -318,7 +318,7 @@ const AddLecturer = () => {
 		>
 			<View style={styles.main}>
 				<Input
-					value={fullName}
+					defaultValue={fullName}
 					onChangeText={setFullName}
 					label='Lecturer Full Name'
 					placeholder='Lecturer Full Name'
@@ -326,7 +326,7 @@ const AddLecturer = () => {
 				/>
 				<Input
                     ref={emailRef}
-					value={email}
+					defaultValue={email}
 					onChangeText={setEmail}
 					label='Lecturer email address'
 					placeholder='Ofulagabe@fupre.com'

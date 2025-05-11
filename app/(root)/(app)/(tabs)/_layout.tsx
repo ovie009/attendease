@@ -73,9 +73,6 @@ export default function TabLayout() {
 					headerTitle: () => <InterText fontSize={32} fontWeight={600} lineHeight={35}>Settings</InterText>,
 					tabBarLabel: ({focused}) => <InterText color={focused ? colors.primary : colors.grey}>Settings</InterText>,
 					tabBarIcon: ({focused}) => <Entypo name="sound-mix" size={20} color={focused ? colors.primary : colors.grey} />,
-					headerStyle: {
-						paddingBottom: 10,
-					},
 					headerLeft: () => <View style={{paddingLeft: 20}}>
 						<Entypo name="sound-mix" size={40} color={colors.primary} />
 					</View>,
@@ -87,9 +84,6 @@ export default function TabLayout() {
 					headerTitle: () => <InterText fontSize={32} fontWeight={600} lineHeight={35}>Profile</InterText>,
 					tabBarLabel: ({focused}) => <InterText color={focused ? colors.primary : colors.grey}>Profile</InterText>,
 					tabBarIcon: ({ focused }) => <FontAwesome5 name="user-circle" size={20} color={focused ? colors.primary : colors.grey} />,
-					headerStyle: {
-						paddingBottom: 10,
-					},
 					headerLeft: () => <View style={{paddingLeft: 20}}>
 						<FontAwesome5 name="user-circle" size={40} color={colors.primary} />
 					</View>,

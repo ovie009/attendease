@@ -1,25 +1,22 @@
 // ./app/(app)/(tabs)/profile.tsx
-import { StyleSheet, TouchableOpacity, View } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAuthStore } from '@/stores/useAuthStore';
 import { supabase } from '@/lib/supabase';
 import { colors } from '@/utilities/colors';
 import { FlashList } from '@shopify/flash-list';
 import InterText from '@/components/InterText';
-import CustomButton from '@/components/CustomButton';
 import LinkText from '@/components/LinkText';
 import Avatar from '@/components/Avatar';
 import { Admin } from '@/types/api';
 import handleAdmin from '@/api/handleAdmin';
 import { getLoadingData } from '@/utilities/getLoadingData';
 import { handleDisableDataLoading } from '@/utilities/handleDisableDataLoading';
-import { HEIGHT, WIDTH } from '@/utilities/dimensions';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { HEIGHT } from '@/utilities/dimensions';
 import AdminListItem from '@/components/AdminListItem';
 import { useAppStore } from '@/stores/useAppStore';
 import { useRouter, useSegments } from 'expo-router';
 import Skeleton from '@/components/Skeleton';
-import AddCircleIcon from "@/assets/svg/AddCircleIcon.svg"
 
 type AdminListItemProps = Admin & {
     is_loading?: boolean | undefined;

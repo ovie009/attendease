@@ -73,7 +73,7 @@ const Cards = () => {
 					<View style={styles.headerComponent}>
 						<Input
 							placeholder='Search card id'
-							value={searchQuery}
+							defaultValue={searchQuery}
 							onChangeText={setSearchQuery}
 							returnKeyType='search'
 						/>

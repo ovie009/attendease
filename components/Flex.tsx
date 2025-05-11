@@ -11,6 +11,11 @@ export interface FlexProps extends ViewProps {
     flexDirection?: 'row' | 'column' | undefined,
     style?: ViewStyle | undefined,
     gap?: number | undefined,
+    width?: number | undefined,
+    flex?: number | undefined,
+    height?: number | undefined,
+    borderRadius?: number | undefined,
+    backgroundColor?: string | undefined,
 }
 
 const Flex: FC<FlexProps> = ({
@@ -19,6 +24,11 @@ const Flex: FC<FlexProps> = ({
     alignSelf = 'auto',
     flexDirection = 'column',
     gap,
+    width,
+    flex,
+    height,
+    backgroundColor,
+    borderRadius,
     children,
     style,
     ...rest
@@ -28,12 +38,16 @@ const Flex: FC<FlexProps> = ({
         <View 
             style={[
                 style !== undefined && style,
-                // {justifyContent},
                 {justifyContent},
                 {alignItems},
                 {alignSelf},
                 {flexDirection},
-                gap !== undefined && {gap}
+                gap !== undefined && {gap},
+                flex !== undefined && {flex},
+                width !== undefined && {width},
+                height !== undefined && {height},
+                backgroundColor !== undefined && {backgroundColor},
+                borderRadius !== undefined && {borderRadius},
             ]}
             {...rest}
         >

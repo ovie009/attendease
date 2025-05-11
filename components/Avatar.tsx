@@ -4,7 +4,7 @@ import { Image, ImageStyle } from 'expo-image';
 // components
 import SvgInterText from './SvgInterText';
 import { colors } from '../utilities/colors';
-import handleUpload from '../api/handleUpload';
+import handleUpload from '../api/handleStorage';
 import { FC, ReactNode, useEffect, useState } from 'react';
 import Skeleton from './Skeleton';
 import { FontWeight } from '@/types/general';
@@ -65,7 +65,7 @@ const Avatar: FC<AvatarProps> = ({imageUri, imageUriLocal, name, diameter, width
                     base64: true,
                 });
                 
-                setUri(response);
+                setUri(response.uri);
 
             } catch (error: any) {
                 console.log('Error in image download:', error.message);

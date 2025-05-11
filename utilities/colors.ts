@@ -20,4 +20,5 @@ export const colors = {
     lightGrey: '#F3F3F3',
     placeholder: '#B1B2B2',
     overlay: "#0000004D",
+    lightBackground: '#F8F8F8'
 };

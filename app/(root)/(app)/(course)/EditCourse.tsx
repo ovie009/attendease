@@ -22,7 +22,7 @@ import handleColleges from '@/api/handleColleges'
 // Define the combined type for clarity
 type SelectableLecturer = Lecturer & { is_selected: boolean };
 
-const EditCollege = () => {
+const EditCourse = () => {
 
 	const router = useRouter();
 	const navigation = useNavigation<any>();
@@ -32,8 +32,8 @@ const EditCollege = () => {
 		_college_id,
 		_dean_id,
 	} = useLocalSearchParams();
-		console.log("🚀 ~ EditCollege ~ _dean_id:", _dean_id)
-		console.log("🚀 ~ EditCollege ~ _college_id:", _college_id)
+		console.log("🚀 ~ EditCourse ~ _dean_id:", _dean_id)
+		console.log("🚀 ~ EditCourse ~ _college_id:", _college_id)
 
 	const [collegeName, setCollegeName] = useState<string>(_college_name as string || '');
 	const [dean, setDean] = useState<string>('');
@@ -203,7 +203,7 @@ const EditCollege = () => {
     </>)
 }
 
-export default EditCollege
+export default EditCourse
 
 const styles = StyleSheet.create({
 	contentContainer: {

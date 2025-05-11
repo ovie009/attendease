@@ -15,7 +15,7 @@ export const getLoadingData = (
     fieldNames: string[],
     values: (string | number)[],
     length: number = 4 // Added length parameter with default value 4
-): Array<ResultItem> => { // Function returns an array of these ResultItems
+): Array<any> => { // Function returns an array of these ResultItems
 
     // Validate input arrays (optional but recommended)
     if (fieldNames.length !== values.length) {

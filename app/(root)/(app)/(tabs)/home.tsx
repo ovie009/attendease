@@ -1,6 +1,6 @@
 // ./app/(app)/(tabs)/home.tsx
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React, { ReactNode, useState } from 'react'
+import React, { ReactNode, useEffect, useMemo, useState } from 'react'
 import { colors } from '@/utilities/colors'
 import InterText from '@/components/InterText'
 import CollegeIcon from '@/assets/svg/CollegeIcon.svg';
@@ -13,23 +13,19 @@ import moment from 'moment';
 import TicketListItem from '@/components/TicketLIstItem';
 import Flex from '@/components/Flex';
 import { useRouter } from 'expo-router';
+import handleColleges from '@/api/handleColleges';
+import { useAppStore } from '@/stores/useAppStore';
+import { handleDisableDataLoading } from '@/utilities/handleDisableDataLoading';
+import Skeleton from '@/components/Skeleton';
+import handleDepartments from '@/api/handleDepartments';
 
 const Home = () => {
 
 	const router = useRouter();
 
-	const [stats, setStats] = useState<Array<{stat_name: string, value: number, Icon: ReactNode}>>([
-		{
-			stat_name: 'Colleges',
-			value: 4,
-			Icon: <CollegeIcon width={20} height={20} />
-		},
-		{
-			stat_name: 'Departments',
-			value: 23,
-			Icon: <DepartmentIcon width={20} height={20} />
-		},
-	])
+	const {
+		displayToast
+	} = useAppStore.getState()
 
 	const [tickets, setTickets] = useState([
 		{
@@ -44,7 +40,66 @@ const Home = () => {
 			ticket_id: 1234,
 			created_at: moment().subtract(270, 'minutes').toISOString(),
 		},
-	]) 
+	]);
+
+	const [dataLoading, setDataLoading] = useState<{colleges: boolean, departments: boolean}>({
+		colleges: true,
+		departments: true,
+	})
+
+	const [numberOfColleges, setNumberOfColleges] = useState<number | null>(null)
+	const [numberOfDepartments, setNumberOfDepartments] = useState<number | null>(null)
+
+	// get colleges
+	useEffect(() => {
+		const fetchColleges = async (): Promise<void> => {
+			try {
+				const collegesResponse = await handleColleges.getAll();
+				
+				setNumberOfColleges(collegesResponse.data.length);
+			
+				handleDisableDataLoading('colleges', setDataLoading)
+			} catch (error: any) {
+				displayToast('ERROR', error?.message)
+			}
+		}
+		
+		fetchColleges()
+	}, []);
+
+	// get departments
+	useEffect(() => {
+		const fetchDepartments = async (): Promise<void> => {
+			try {
+				const departmentsResponse = await handleDepartments.getAll();
+				
+				setNumberOfDepartments(departmentsResponse.data.length);
+			
+				handleDisableDataLoading('departments', setDataLoading)
+			} catch (error: any) {
+				displayToast('ERROR', error?.message)
+			}
+		}
+		
+		fetchDepartments()
+	}, []);
+
+	const stats = useMemo((): Array<{stat_name: string, value: number | null, is_loading: boolean, Icon: ReactNode}> => {
+		return [
+			{
+				stat_name: 'Colleges',
+				value: numberOfColleges,
+				is_loading: dataLoading.colleges,
+				Icon: <CollegeIcon width={20} height={20} />
+			},
+			{
+				stat_name: 'Departments',
+				value: numberOfDepartments,
+				is_loading: dataLoading.departments,
+				Icon: <DepartmentIcon width={20} height={20} />
+			},
+		]
+	}, [dataLoading, numberOfColleges, numberOfDepartments]);
 
 	return (
 		<ScrollView
@@ -61,13 +116,21 @@ const Home = () => {
 					<View style={styles.statsContainer}>
 						{stats.map(item => (
 							<View key={item?.stat_name} style={styles.stat}>
-								<InterText
-									fontSize={24}
-									lineHeight={29}
-									fontWeight={600}
-								>
-									{item.value}
-								</InterText>
+								{item.is_loading ? (
+									<Skeleton
+										width={35}
+										height={29}
+										borderRadius={2.5}
+									/>
+								) : (
+									<InterText
+										fontSize={24}
+										lineHeight={29}
+										fontWeight={600}
+									>
+										{item.value}
+									</InterText>
+								)}
 								<View style={styles.statDescription}>
 									{item.Icon}
 									<View style={styles.statName}>

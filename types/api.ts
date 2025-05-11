@@ -1,4 +1,4 @@
-import { Role, UserType } from "./general";
+import { Level, Role, Semeter, UserType } from "./general";
 
 export type College = {
     id: string;
@@ -10,7 +10,19 @@ export type College = {
 export type Department = {
     id: string;
     department_name: string;
+    course_duration: number;
     college_id: string;
+    created_at: string;
+    updated_at: string;
+};
+
+export type Course = {
+    id: string;
+    department_id: string;
+    level: Level;
+    semster: Semeter;
+    course_code: number;
+    course_title: string;
     created_at: string;
     updated_at: string;
 };

@@ -5,12 +5,14 @@ import { colors } from '@/utilities/colors';
 import InterText from './InterText';
 
 export interface InputProps extends TextInputProps {
-	value: string;
+	defaultValue: string;
 	onChangeText: (text: string) => void;
 	error?: string;
 	onInputEmpty?: (message: string) => void;
 	isPasswordInput?: boolean;
 	label?: string | undefined;
+	width?: number | undefined;
+	height?: number | undefined;
 	// Note: 'ref' should NOT be part of InputProps when using forwardRef
 }
 
@@ -19,7 +21,7 @@ export interface InputProps extends TextInputProps {
 // 1. TextInput: The type of the element the ref will point to
 // 2. InputProps: The type of the props your component accepts
 const Input = forwardRef<TextInput, InputProps>(({
-    value,
+    defaultValue,
     onChangeText,
     error, // Note: The error prop is defined but not visually used yet
     onInputEmpty,
@@ -28,6 +30,8 @@ const Input = forwardRef<TextInput, InputProps>(({
     onSubmitEditing,
     returnKeyType = 'next',
 	editable = true,
+	width,
+	height,
 	label,
 	...rest
 }, ref) => { // Receive 'ref' as the second argument
@@ -44,7 +48,7 @@ const Input = forwardRef<TextInput, InputProps>(({
 		onChangeText(text); // Call the passed handler first
 
 		// Simpler check for becoming empty
-		if (value.length > 0 && text.length === 0) {
+		if (defaultValue.length > 0 && text.length === 0) {
 			onInputEmpty?.("empty fields"); // Use optional chaining
 		}
 	};
@@ -65,9 +69,11 @@ const Input = forwardRef<TextInput, InputProps>(({
 				{...rest}
 				style={[
 					styles.input,
+					width !== undefined && {width},
+					height !== undefined && {height},
 					!editable && {backgroundColor: colors.lightGrey}
 				]} // Use combined style
-				value={value}
+				defaultValue={defaultValue}
 				onChangeText={handleChangeText}
 				onBlur={handleBlur}
 				onFocus={handleFocus}

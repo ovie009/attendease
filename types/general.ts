@@ -1,4 +1,5 @@
 // ./type/general.ts
+import { ReactNode } from "react";
 import { TextStyle } from "react-native";
 
 export type ToastType = 'SUCCESS' | 'ERROR';
@@ -22,11 +23,22 @@ export type ScannedCard = {
     pin: string | null;
 }
 
+export type MenuButton = {
+    title: string;
+    Icon?: ReactNode | undefined;
+}
+
 export type AccountType = 'Admin' | UserType;
 
 export type UserType =  'Lecturer' | 'Student';
 
+export type Bucket = 'profiles' | 'groq';
+
 export type Role = 'Dean' | 'HOD' | 'Academic';
+
+export type Semeter = 1 | 2;
+
+export type Level = 100 | 200 | 300 | 400 | 500;
 
 export type CollegeRouteParams = {
 	_college_id: string,

@@ -58,13 +58,13 @@ const AddDepartment = () => {
 
 	const [courseDurationOptions, setCourseDurationOptions] = useState<SelectableDuration[]>([
 		{
-			id: '1',
+			id: '5',
 			value: 5,
 			title: '5 years',
 			is_selected: false,
 		},
 		{
-			id: '2',
+			id: '4',
 			value: 4,
 			title: '4 years',
 			is_selected: false,
@@ -76,9 +76,15 @@ const AddDepartment = () => {
 			is_selected: false,
 		},
 		{
-			id: '4',
+			id: '2',
 			value: 2,
-			title: '4 years',
+			title: '2 years',
+			is_selected: false,
+		},
+		{
+			id: '1',
+			value: 1,
+			title: '1 years',
 			is_selected: false,
 		},
 	])
@@ -248,7 +254,7 @@ const AddDepartment = () => {
 		>
 			<View style={styles.main}>
 				<Input
-					value={departmentName}
+					defaultValue={departmentName}
 					onChangeText={setDepartmentName}
 					label='Department Name'
 					placeholder='Department Name'

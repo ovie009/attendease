@@ -123,9 +123,9 @@ class MQTTService {
                         this.client = null;
                         
                         // Schedule reconnection unless it was a manual disconnect
-                        if (!this.manualDisconnect) {
-                            this.scheduleReconnect();
-                        }
+                        // if (!this.manualDisconnect) {
+                        //     this.scheduleReconnect();
+                        // }
                         
                         reject(new Error(errorMsg));
                     },

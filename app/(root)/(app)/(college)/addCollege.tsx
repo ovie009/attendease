@@ -45,7 +45,7 @@ const AddCollege = () => {
 		>
 			<View style={styles.main}>
 				<Input
-					value={collegeName}
+					defaultValue={collegeName}
 					onChangeText={setCollegeName}
 					label='College Name'
 					placeholder='College Name'

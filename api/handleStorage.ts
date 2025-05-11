@@ -1,23 +1,24 @@
 import moment from "moment";
 import { supabase } from "../lib/supabase";
 import getMimeFromFileType from "../utilities/getMimeFromFileType";
+import { Bucket } from "@/types/general";
 
 type UploadFilePayload = {
     id: string;
     uri: string;
     mimeType?: string | undefined;
-    bucketName: string;
+    bucketName: Bucket;
     fileName: string;
     fileExtension: string;
 }
 
-type UploadFileResponse = {
+type FileResponse = {
     uri: string;
     isSuccessful: boolean;
     message: string;
 }
 
-const uploadFile = async ({id, uri, mimeType, bucketName, fileName, fileExtension}: UploadFilePayload): Promise<UploadFileResponse> => {
+const uploadFile = async ({id, uri, mimeType, bucketName, fileName, fileExtension}: UploadFilePayload): Promise<FileResponse> => {
     try {
         const arraybuffer = await fetch(uri).then((res) => res.arrayBuffer())
 
@@ -46,7 +47,7 @@ const uploadFile = async ({id, uri, mimeType, bucketName, fileName, fileExtensio
 
 
 
-const deleteFile = async ({bucketName, uri}: {bucketName: string, uri: string}): Promise<void> => {
+const deleteFile = async ({bucketName, uri}: {bucketName: Bucket, uri: string}): Promise<void> => {
     try {
         console.log('deleting file', uri);
         const { error } = await supabase.storage.from(bucketName).remove([uri]);
@@ -69,10 +70,10 @@ const isPDF = (uri: string, mimeType: string): boolean => {
 type DownloadFilePayload = {
     bucketName: string;
     uri: string;
-    base64?: boolean;
+    base64?: boolean | undefined;
 }
 
-const downloadFile = async ({bucketName, uri, base64}: DownloadFilePayload): Promise<string> => {
+const downloadFile = async ({bucketName, uri, base64}: DownloadFilePayload): Promise<FileResponse> => {
     try {
         if (!base64) {
             const { data, error } = await supabase
@@ -84,8 +85,11 @@ const downloadFile = async ({bucketName, uri, base64}: DownloadFilePayload): Pro
                 throw error;
             }
     
-            // console.log('data', data)
-            return data?.signedUrl;
+            return {
+                uri: data?.signedUrl,
+                isSuccessful: true,
+                message: "upload successful",
+            }
         }
 
         const { data, error } = await supabase.storage.from(bucketName).download(uri);
@@ -102,7 +106,11 @@ const downloadFile = async ({bucketName, uri, base64}: DownloadFilePayload): Pro
             fr.onerror = () => reject(new Error('Error reading the Blob data'));
         });
 
-        return base64Uri; // Return Base64 string (can be used in <Image />)
+        return {
+            uri: base64Uri,
+            isSuccessful: true,
+            message: "upload successful",
+        }
     } catch (error: any) {
         console.log('Error downloading file:', error.message);
         throw error;

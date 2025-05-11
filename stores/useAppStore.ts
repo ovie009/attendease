@@ -9,6 +9,7 @@ interface AppState {
     keyboardHeight: number;
     backGestureEnabled: boolean; // Defaults to true
     hideStatusBar: boolean;
+    isMenuOpened: boolean,
     toast: ToastProps,
     scannedCardTopic: string | null,
     scannedCard: ScannedCard | null,
@@ -27,6 +28,8 @@ interface AppState {
     setScannedCard: (object: ScannedCard | null) => void,
     setScannedCardTopic: (topic: string | null) => void,
     setLoadingPages: (array: string[]) => void,
+    closeMenu: () => void,
+    openMenu: () => void,
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -36,6 +39,7 @@ export const useAppStore = create<AppState>((set) => ({
     loadingPages: [],
     keyboardHeight: 0,
     backGestureEnabled: true,
+    isMenuOpened: false,
     hideStatusBar: false,
     scannedCard: null,
     scannedCardTopic: null,
@@ -53,6 +57,7 @@ export const useAppStore = create<AppState>((set) => ({
         opened: false,
         close: () => {},
     },
+
     setIsLoading: (loading) => set({ isLoading: loading }),
     setIsLoadingSecondary: (loading) => set({ isLoadingSecondary: loading }),
     setPageLoading: (loading) => set({ pageLoading: loading }),
@@ -62,6 +67,9 @@ export const useAppStore = create<AppState>((set) => ({
     setScannedCard: (object: ScannedCard | null) => set({ scannedCard: object }),
     setScannedCardTopic: (topic: string | null) => set({ scannedCardTopic: topic }),
     setLoadingPages: (array: string[]) => set({ loadingPages: array }),
+
+    closeMenu: () => set({ isMenuOpened: false }),
+    openMenu: () => set({ isMenuOpened: true }),
     
     setToast: (toastData) => set((state) => ({
         toast: { ...state.toast, ...toastData }

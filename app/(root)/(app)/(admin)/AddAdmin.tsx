@@ -55,7 +55,7 @@ const AddAdmin = () => {
 		>
 			<View style={styles.main}>
 				<Input
-					value={fullName}
+					defaultValue={fullName}
 					onChangeText={setFullName}
 					label='Full Name'
 					placeholder='Full Name'
@@ -63,7 +63,7 @@ const AddAdmin = () => {
 				/>
 				<Input
                     ref={emailRef}
-					value={email}
+					defaultValue={email}
 					onChangeText={setEmail}
 					label='email address'
 					keyboardType='email-address'
