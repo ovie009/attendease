@@ -8,6 +8,7 @@ import CardIcon from '@/assets/svg/CardIcon.svg';
 import DepartmentIcon from '@/assets/svg/DepartmentIcon.svg';
 import CourseIcon from '@/assets/svg/CourseIcon.svg';
 import CollegeIcon from '@/assets/svg/CollegeIcon.svg';
+import SessionIcon from '@/assets/svg/SessionIcon.svg';
 import LecturerIcon from '@/assets/svg/LecturerIcon.svg';
 import { View } from 'react-native';
 
@@ -99,6 +100,7 @@ export default function AppLayout() {
 					headerBackVisible: false,
 					headerBackTitle: "",
 					headerTitle: () => <InterText fontSize={32} fontWeight={600} lineHeight={35}>Session</InterText>,
+					headerLeft: () => <View style={{marginRight: 6}}><SessionIcon width={40} height={40}/></View>,
 				}} 
 			/>
 			<Stack.Screen 

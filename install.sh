@@ -4,6 +4,9 @@ npx create-expo-app@latest
 # dev client
 npx expo install expo-dev-client
 
+# bototm sheet
+npm install @gorhom/bottom-sheet@^5
+
 # mqtt
 npm install --save paho-mqtt
 
@@ -13,17 +16,15 @@ npx expo install expo-camera
 # supabase
 npx expo install @supabase/supabase-js @react-native-async-storage/async-storage
 
-# qrok
+# to generate uuid locally in app
 npm i uuid
 npm install react-native-get-random-values
 
+# for ai integration
 npm install --save groq-sdk
 
 # state management solution
 npm install zustand
-
-# react native svg
-npm install react-native-svg
 
 # svg react
 npm install react-native-svg
@@ -50,4 +51,4 @@ npm install moment
 
 npx expo install expo-image-picker
 
-npm install --save groq-sdk
+npm install --save react-native-calendars

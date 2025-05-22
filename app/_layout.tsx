@@ -1,4 +1,5 @@
-// ./app/_layout.tsx
+// ./app/_layout.tsx 
+import 'react-native-get-random-values';      // you already have this
 import React, { useEffect } from 'react';
 import { Slot, usePathname } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';

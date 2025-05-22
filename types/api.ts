@@ -1,4 +1,4 @@
-import { Level, Role, Semester, UserType } from "./general";
+import { Key, KeyValueType, Level, Role, Semester, UserType } from "./general";
 
 export type College = {
     id: string;
@@ -46,6 +46,15 @@ export type Admin = {
     profile_picture: string | null;
     full_name: string;
     is_active: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export type Setting = {
+    id: string;
+    key: Key;
+    value: string;
+    type: KeyValueType;
     created_at: string;
     updated_at: string;
 }

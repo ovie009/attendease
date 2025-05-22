@@ -9,7 +9,7 @@ import handleAdmin from '@/api/handleAdmin';
 // import { useAuthStore } from '../lib/useAuthStore'; // Adjust path if needed
 import * as NavigationBar from 'expo-navigation-bar';
 import { colors } from '@/utilities/colors';
-import MQTTService from '@/api/MQTTService';
+// import MQTTService from '@/api/MQTTService';
 import { useAppStore } from '@/stores/useAppStore';
 import handleLecturers from '@/api/handleLecturers';
 
@@ -110,21 +110,21 @@ export default function RootLayout() {
 	}, []);
 
     // set system navigation bar color
-    useEffect(() => {
-        (async () => {
-            try {
-                if (Platform.OS === 'android') {
-                    // position navigation bar
-                    await NavigationBar.setPositionAsync('relative');
+    // useEffect(() => {
+    //     (async () => {
+    //         try {
+    //             if (Platform.OS === 'android') {
+    //                 // position navigation bar
+    //                 await NavigationBar.setPositionAsync('relative');
 
-                    // set system navigation bar color
-                    await NavigationBar.setBackgroundColorAsync(colors.white); 
-                }
-            } catch (error: any) {
-                console.log('navigation bar error', error?.message)
-            } 
-        })();
-    }, []);
+    //                 // set system navigation bar color
+    //                 await NavigationBar.setBackgroundColorAsync(colors.white); 
+    //             }
+    //         } catch (error: any) {
+    //             console.log('navigation bar error', error?.message)
+    //         } 
+    //     })();
+    // }, []);
 
 
 
@@ -170,93 +170,68 @@ export default function RootLayout() {
 		}, 6000);
 	}, []);
 	
-	useEffect(() => {
-		// Connection monitor effect - handles initial connection and reconnection
-		let isMounted = true;
-		
-		// Setup connection health check
-		const checkConnectionInterval = setInterval(() => {
-		if (isMounted && !isConnecting.current) {
-			// If we think we're connected but actually aren't, try to reconnect
-			if (isConnected.current && !MQTTService.isConnected()) {
-			console.log("[App] Connection health check: Detected disconnection, attempting to reconnect");
-			connectMqtt();
-			}
-		}
-		}, 30000); // Check every 30 seconds
-		
-		// Connect to MQTT
-		const connectMqtt = async () => {
-		if (isConnecting.current) {
-			console.log("[App] Already attempting to connect. Skipping request.");
-			return;
-		}
-		
-		isConnecting.current = true;
-		
-		try {
-			console.log("[App] Connecting to MQTT service...");
-			await MQTTService.connect(topicsToSubscribe);
-			
-			if (!isMounted) {
-			console.log("[App] Component unmounted after MQTT connect resolved, disconnecting.");
-			MQTTService.disconnect();
-			return;
-			}
-			
-			isConnected.current = true;
-			console.log("[App] MQTT Connected. Setting message callback...");
-			MQTTService.setMessageCallback(handleMqttMessage);
-		} catch (error) {
-			console.error("[App] Error connecting to MQTT:", error);
-			isConnected.current = false;
-		} finally {
-			if (isMounted) {
-			isConnecting.current = false;
-			}
-		}
-		};
-    
-		// Initial connection
-		connectMqtt();
-
-		// Cleanup function
-		return () => {
-			console.log("[App] Effect cleanup running.");
-			isMounted = false;
-			isConnecting.current = false;
-			isConnected.current = false;
-			clearInterval(checkConnectionInterval);
-			
-			console.log("[App] Performing MQTT disconnect in cleanup.");
-			MQTTService.disconnect();
-		};
-	}, [handleMqttMessage, topicsToSubscribe]);
-  
-	// Add a network connectivity change listener if needed
 	// useEffect(() => {
-	// 	// This is a placeholder for network connectivity monitoring
-	// 	// You could use NetInfo from @react-native-community/netinfo
+	// 	// Connection monitor effect - handles initial connection and reconnection
+	// 	let isMounted = true;
 		
-	// 	const handleNetworkChange = (state) => {
-	// 		// When network comes back online, attempt to reconnect MQTT if needed
-	// 		if (state.isConnected && !MQTTService.isConnected()) {
-	// 				console.log("[App] Network came back online. Attempting to reconnect MQTT...");
-	// 			MQTTService.reconnect().catch(err => {
-	// 				console.error("[App] Failed to reconnect after network change:", err);
-	// 			});
+	// 	// Setup connection health check
+	// 	const checkConnectionInterval = setInterval(() => {
+	// 	if (isMounted && !isConnecting.current) {
+	// 		// If we think we're connected but actually aren't, try to reconnect
+	// 		if (isConnected.current && !MQTTService.isConnected()) {
+	// 		console.log("[App] Connection health check: Detected disconnection, attempting to reconnect");
+	// 		connectMqtt();
 	// 		}
-	// 	};
+	// 	}
+	// 	}, 30000); // Check every 30 seconds
 		
-	// 	// Register for network changes (pseudo-code, actual implementation depends on your library)
-	// 	const unsubscribe = NetInfo.addEventListener(handleNetworkChange);
+	// 	// Connect to MQTT
+	// 	const connectMqtt = async () => {
+	// 	if (isConnecting.current) {
+	// 		console.log("[App] Already attempting to connect. Skipping request.");
+	// 		return;
+	// 	}
 		
-	// 	return () => {
-	// 		// Clean up listener
-	// 		unsubscribe();
+	// 	isConnecting.current = true;
+		
+	// 	try {
+	// 		console.log("[App] Connecting to MQTT service...");
+	// 		await MQTTService.connect(topicsToSubscribe);
+			
+	// 		if (!isMounted) {
+	// 		console.log("[App] Component unmounted after MQTT connect resolved, disconnecting.");
+	// 		MQTTService.disconnect();
+	// 		return;
+	// 		}
+			
+	// 		isConnected.current = true;
+	// 		console.log("[App] MQTT Connected. Setting message callback...");
+	// 		MQTTService.setMessageCallback(handleMqttMessage);
+	// 	} catch (error) {
+	// 		console.error("[App] Error connecting to MQTT:", error);
+	// 		isConnected.current = false;
+	// 	} finally {
+	// 		if (isMounted) {
+	// 		isConnecting.current = false;
+	// 		}
+	// 	}
 	// 	};
-	// }, []);
+    
+	// 	// Initial connection
+	// 	connectMqtt();
 
+	// 	// Cleanup function
+	// 	return () => {
+	// 		console.log("[App] Effect cleanup running.");
+	// 		isMounted = false;
+	// 		isConnecting.current = false;
+	// 		isConnected.current = false;
+	// 		clearInterval(checkConnectionInterval);
+			
+	// 		console.log("[App] Performing MQTT disconnect in cleanup.");
+	// 		MQTTService.disconnect();
+	// 	};
+	// }, [handleMqttMessage, topicsToSubscribe]);
 
 
 	// Hide splash screen now that we're initialized

@@ -46,6 +46,10 @@ export type CollegeRouteParams = {
 	_dean_id: string | null,
 }
 
+export type Key = 'academic_session' | 'semester' | 'start_of_semester' | 'end_of_semester';
+
+export type KeyValueType = 'number' | 'string'; 
+
 export type FontWeight = "medium" | "Medium" | 500 | "500" | "semibold" | "Semibold" | 600 | "600" | "bold" | "bold" | 700 | "700" | "extrabold" | "Extrabold" | 800 | "800";
 
 // export type CartType = 'Cart sent'| 'Cart approved'| 'Cart edited'| 'Checkout completed';

@@ -1,3 +1,4 @@
+
 // metro.config.js
 const { getDefaultConfig } = require("@expo/metro-config");
 const { wrapWithReanimatedMetroConfig } = require("react-native-reanimated/metro-config");
@@ -19,6 +20,9 @@ module.exports = (() => {
     assetExts: resolver.assetExts.filter((ext) => ext !== "svg"),
     sourceExts: [...resolver.sourceExts, "svg", "cjs"], // Include `cjs` extension
   };
+
+  config.resolver.unstable_enablePackageExports = false;
+
 
   // Wrap with Reanimated Metro Config
   return wrapWithReanimatedMetroConfig(config);
