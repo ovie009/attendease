@@ -1,4 +1,4 @@
-import { View, ViewStyle } from 'react-native'
+import { DimensionValue, View, ViewStyle } from 'react-native'
 import { FC, ReactNode } from 'react'
 import { ViewProps } from 'react-native'
 
@@ -11,9 +11,9 @@ export interface FlexProps extends ViewProps {
     flexDirection?: 'row' | 'column' | undefined,
     style?: ViewStyle | undefined,
     gap?: number | undefined,
-    width?: number | undefined,
+    width?: DimensionValue,
     flex?: number | undefined,
-    height?: number | undefined,
+    height?: DimensionValue,
     borderRadius?: number | undefined,
     backgroundColor?: string | undefined,
 }

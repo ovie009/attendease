@@ -10,6 +10,7 @@ import CourseIcon from '@/assets/svg/CourseIcon.svg';
 import CollegeIcon from '@/assets/svg/CollegeIcon.svg';
 import SessionIcon from '@/assets/svg/SessionIcon.svg';
 import LecturerIcon from '@/assets/svg/LecturerIcon.svg';
+import ScheduleIcon from '@/assets/svg/ScheduleIcon.svg';
 import { View } from 'react-native';
 
 export default function AppLayout() {
@@ -153,6 +154,16 @@ export default function AppLayout() {
 					headerBackTitle: "",
 					headerLeft: () => <View style={{marginRight: 6}}><LecturerIcon width={40} height={40}/></View>,
 					headerTitle: () => <InterText fontSize={32} fontWeight={600} lineHeight={35}>Lecturers</InterText>,
+				}} 
+			/>
+
+			<Stack.Screen 
+				name="schedules"
+				options={{
+					headerTintColor: colors.black,
+					headerBackTitle: "",
+					headerLeft: () => <View style={{marginRight: 6}}><ScheduleIcon width={40} height={40}/></View>,
+					headerTitle: () => <InterText fontSize={32} fontWeight={600} lineHeight={35}>Schedules</InterText>,
 				}} 
 			/>
 		</Stack>

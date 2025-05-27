@@ -18,6 +18,26 @@ export default function SessionLayout() {
                     headerLeft: () => <SessionIcon width={40} height={40}/>,
                 }} 
             />
+            <Stack.Screen 
+                name="StartNewSemester" 
+                options={{
+                    headerBackVisible: false,
+                    headerBackTitle: "",
+                    headerShadowVisible: false,
+                    headerTitle: () => <InterText fontSize={32} fontWeight={600} lineHeight={35}>Next Semester</InterText>,
+                    headerLeft: () => <SessionIcon width={40} height={40}/>,
+                }} 
+            />
+            <Stack.Screen 
+                name="StartNewSession" 
+                options={{
+                    headerBackVisible: false,
+                    headerBackTitle: "",
+                    headerShadowVisible: false,
+                    headerTitle: () => <InterText fontSize={32} fontWeight={600} lineHeight={35}>Next Session</InterText>,
+                    headerLeft: () => <SessionIcon width={40} height={40}/>,
+                }} 
+            />
         </Stack>
     );
 }

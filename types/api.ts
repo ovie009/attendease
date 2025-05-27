@@ -27,6 +27,19 @@ export type Course = {
     updated_at: string;
 };
 
+export type Schedule = {
+    id: string;
+    session: string;
+    days_of_the_week: number[]; 
+    lecturer_hours: number[]; 
+    course_id: string | null;
+    course_code: string;
+    level: Level; 
+    semester: Semester;
+    created_at: string;
+    updated_at: string;
+};
+
 export type Lecturer = {
     id: string;
     email: string;
