@@ -11,12 +11,11 @@ import ModalHandle from "./ModalHandle";
 import AntDesign from '@expo/vector-icons/AntDesign'
 import { colors } from "../utilities/colors";
 import { HEIGHT } from "../utilities/dimensions";
-import { Text, Title } from "react-native-paper";
 import { BottomSheetDefaultBackdropProps } from "@gorhom/bottom-sheet/lib/typescript/components/bottomSheetBackdrop/types";
 import InterText from "./InterText";
 
 // Interface for props remains mostly the same
-interface CustomBottomSheetProps extends Omit<BottomSheetModalProps, 'children' | 'snapPoints'> { // Omit props handled explicitly
+export interface CustomBottomSheetProps extends Omit<BottomSheetModalProps, 'children' | 'snapPoints'> { // Omit props handled explicitly
     closeBottomSheet: () => void | undefined;
     snapPoints: Array<string | number>;
     children?: React.ReactNode | undefined;

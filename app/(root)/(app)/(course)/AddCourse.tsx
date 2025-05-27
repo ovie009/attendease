@@ -95,7 +95,7 @@ const AddCourse = () => {
 	const [departmentId, setDepartmentId] = useState<string>('');
 	const [courses, setCourses] = useState<Course[]>([]);
 
-	const [semester, setSemeter] = useState<Semester | null>(null);
+	const [semester, setSemester] = useState<Semester | null>(null);
 	const [level, setLevel] = useState<Level | null>(null);
 
 	const [image, setImage] = useState<ImagePickerAsset | null>(null);
@@ -284,7 +284,7 @@ const AddCourse = () => {
 		if (semesterOptions.some(item => item.id === id)) {
 			// Add '!' after find(...) to assert it's not null/undefined
 			const foundValue = semesterOptions.find((item) => item.id === id)!;
-			setSemeter(foundValue.value); // Now TypeScript knows foundLecturer is Lecturer, not Lecturer | undefined
+			setSemester(foundValue.value); // Now TypeScript knows foundLecturer is Lecturer, not Lecturer | undefined
 
 			// update lecturer list
 			setSemesterOptions(prevState => {

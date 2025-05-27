@@ -51,6 +51,13 @@ export default function AppLayout() {
 				options={{ 
 					title: "", 
 					headerShown: true, 
+					headerShadowVisible: false,				}}
+			/>
+			<Stack.Screen 
+				name="(session)" 
+				options={{ 
+					title: "", 
+					headerShown: false,
 					headerShadowVisible: false,
 				}}
 			/>

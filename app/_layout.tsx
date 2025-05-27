@@ -55,7 +55,7 @@ export default function RootLayout() {
 		<PaperProvider theme={theme}>
 			<SafeAreaProvider>
 				{/* <StatusB */}
-				<StatusBar backgroundColor='white' />
+				{/* <StatusBar backgroundColor='white' /> */}
 				<GestureHandlerRootView style={{ flex: 1 }}>
 					<BottomSheetModalProvider>
 						<Slot />

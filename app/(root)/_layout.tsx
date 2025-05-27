@@ -1,15 +1,12 @@
 // ./app/_layout.tsx
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { Slot, useSegments, Redirect } from 'expo-router';
-import { View, ActivityIndicator, StyleSheet, Platform } from 'react-native';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { supabase } from '@/lib/supabase';
 import handleAdmin from '@/api/handleAdmin';
-// import { useAuthStore } from '../lib/useAuthStore'; // Adjust path if needed
-import * as NavigationBar from 'expo-navigation-bar';
-import { colors } from '@/utilities/colors';
-// import MQTTService from '@/api/MQTTService';
+import MQTTService from '@/api/MQTTService';
 import { useAppStore } from '@/stores/useAppStore';
 import handleLecturers from '@/api/handleLecturers';
 
@@ -109,25 +106,6 @@ export default function RootLayout() {
 		// Run only once on mount, depend on functions from store
 	}, []);
 
-    // set system navigation bar color
-    // useEffect(() => {
-    //     (async () => {
-    //         try {
-    //             if (Platform.OS === 'android') {
-    //                 // position navigation bar
-    //                 await NavigationBar.setPositionAsync('relative');
-
-    //                 // set system navigation bar color
-    //                 await NavigationBar.setBackgroundColorAsync(colors.white); 
-    //             }
-    //         } catch (error: any) {
-    //             console.log('navigation bar error', error?.message)
-    //         } 
-    //     })();
-    // }, []);
-
-
-
 	// Render loading indicator until initialization is complete
 	if (!initialized) {
 		// console.log('Rendering loading indicator...');
@@ -170,68 +148,68 @@ export default function RootLayout() {
 		}, 6000);
 	}, []);
 	
-	// useEffect(() => {
-	// 	// Connection monitor effect - handles initial connection and reconnection
-	// 	let isMounted = true;
+	useEffect(() => {
+		// Connection monitor effect - handles initial connection and reconnection
+		let isMounted = true;
 		
-	// 	// Setup connection health check
-	// 	const checkConnectionInterval = setInterval(() => {
-	// 	if (isMounted && !isConnecting.current) {
-	// 		// If we think we're connected but actually aren't, try to reconnect
-	// 		if (isConnected.current && !MQTTService.isConnected()) {
-	// 		console.log("[App] Connection health check: Detected disconnection, attempting to reconnect");
-	// 		connectMqtt();
-	// 		}
-	// 	}
-	// 	}, 30000); // Check every 30 seconds
+		// Setup connection health check
+		const checkConnectionInterval = setInterval(() => {
+		if (isMounted && !isConnecting.current) {
+			// If we think we're connected but actually aren't, try to reconnect
+			if (isConnected.current && !MQTTService.isConnected()) {
+			console.log("[App] Connection health check: Detected disconnection, attempting to reconnect");
+			connectMqtt();
+			}
+		}
+		}, 30000); // Check every 30 seconds
 		
-	// 	// Connect to MQTT
-	// 	const connectMqtt = async () => {
-	// 	if (isConnecting.current) {
-	// 		console.log("[App] Already attempting to connect. Skipping request.");
-	// 		return;
-	// 	}
+		// Connect to MQTT
+		const connectMqtt = async () => {
+		if (isConnecting.current) {
+			console.log("[App] Already attempting to connect. Skipping request.");
+			return;
+		}
 		
-	// 	isConnecting.current = true;
+		isConnecting.current = true;
 		
-	// 	try {
-	// 		console.log("[App] Connecting to MQTT service...");
-	// 		await MQTTService.connect(topicsToSubscribe);
+		try {
+			console.log("[App] Connecting to MQTT service...");
+			await MQTTService.connect(topicsToSubscribe);
 			
-	// 		if (!isMounted) {
-	// 		console.log("[App] Component unmounted after MQTT connect resolved, disconnecting.");
-	// 		MQTTService.disconnect();
-	// 		return;
-	// 		}
+			if (!isMounted) {
+			console.log("[App] Component unmounted after MQTT connect resolved, disconnecting.");
+			MQTTService.disconnect();
+			return;
+			}
 			
-	// 		isConnected.current = true;
-	// 		console.log("[App] MQTT Connected. Setting message callback...");
-	// 		MQTTService.setMessageCallback(handleMqttMessage);
-	// 	} catch (error) {
-	// 		console.error("[App] Error connecting to MQTT:", error);
-	// 		isConnected.current = false;
-	// 	} finally {
-	// 		if (isMounted) {
-	// 		isConnecting.current = false;
-	// 		}
-	// 	}
-	// 	};
+			isConnected.current = true;
+			console.log("[App] MQTT Connected. Setting message callback...");
+			MQTTService.setMessageCallback(handleMqttMessage);
+		} catch (error) {
+			console.error("[App] Error connecting to MQTT:", error);
+			isConnected.current = false;
+		} finally {
+			if (isMounted) {
+			isConnecting.current = false;
+			}
+		}
+		};
     
-	// 	// Initial connection
-	// 	connectMqtt();
+		// Initial connection
+		connectMqtt();
 
-	// 	// Cleanup function
-	// 	return () => {
-	// 		console.log("[App] Effect cleanup running.");
-	// 		isMounted = false;
-	// 		isConnecting.current = false;
-	// 		isConnected.current = false;
-	// 		clearInterval(checkConnectionInterval);
+		// Cleanup function
+		return () => {
+			console.log("[App] Effect cleanup running.");
+			isMounted = false;
+			isConnecting.current = false;
+			isConnected.current = false;
+			clearInterval(checkConnectionInterval);
 			
-	// 		console.log("[App] Performing MQTT disconnect in cleanup.");
-	// 		MQTTService.disconnect();
-	// 	};
-	// }, [handleMqttMessage, topicsToSubscribe]);
+			console.log("[App] Performing MQTT disconnect in cleanup.");
+			MQTTService.disconnect();
+		};
+	}, [handleMqttMessage, topicsToSubscribe]);
 
 
 	// Hide splash screen now that we're initialized

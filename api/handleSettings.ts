@@ -1,10 +1,10 @@
 import { supabase } from "@/lib/supabase"
-import { College, Response, Setting } from "@/types/api";
+import { Response, Setting } from "@/types/api";
 import { Key, KeyValueType } from "@/types/general";
 
 const tableName = "settings"
 
-type SettingPayload = {
+export type SettingPayload = {
     key: Key,
     value: string,
     type: KeyValueType,

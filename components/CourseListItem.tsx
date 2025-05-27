@@ -1,4 +1,4 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { StyleSheet, TouchableOpacity, View } from 'react-native'
 import React, { FC } from 'react'
 import { Level, Semester } from '@/types/general'
 import Flex from './Flex'
@@ -32,7 +32,7 @@ const CourseListItem:  FC<CourseListItemProps> = ({courseTitle, courseCode, leve
                 borderRadius={14}
             >
                 <View 
-                    style={styles.verticalStrip}
+                    style={[styles.verticalStrip, isLoading && {backgroundColor: colors.white}]}
                 />
                 <Flex
                     style={{padding: 10}}

@@ -52,3 +52,5 @@ npm install moment
 npx expo install expo-image-picker
 
 npm install --save react-native-calendars
+
+npm i react-native-calendars
