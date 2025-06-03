@@ -6,7 +6,9 @@ import FixedWrapper, { FixedWrapperProps } from './FixedWrapper'
 const FixedButton: FC<CustomButtonProps & FixedWrapperProps> = ({text, onPress, disabled, contentContainerStyle, backgroundColor, isLoading, ...rest}) => {
 
     return (
-        <FixedWrapper>
+        <FixedWrapper
+            {...rest}
+        >
             <CustomButton
                 {...rest}
                 text={text}

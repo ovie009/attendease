@@ -9,6 +9,16 @@ import handleAdmin from '@/api/handleAdmin';
 import MQTTService from '@/api/MQTTService';
 import { useAppStore } from '@/stores/useAppStore';
 import handleLecturers from '@/api/handleLecturers';
+import {
+	configureReanimatedLogger,
+	ReanimatedLogLevel,
+} from 'react-native-reanimated';
+
+configureReanimatedLogger({
+    level: ReanimatedLogLevel.warn,
+    strict: false, // Reanimated runs in strict mode by default
+});
+
 
 export default function RootLayout() {
 

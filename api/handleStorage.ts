@@ -49,7 +49,7 @@ const uploadFile = async ({id, uri, mimeType, bucketName, fileName, fileExtensio
 
 const deleteFile = async ({bucketName, uri}: {bucketName: Bucket, uri: string}): Promise<void> => {
     try {
-        console.log('deleting file', uri);
+        // console.log('deleting file', uri);
         const { error } = await supabase.storage.from(bucketName).remove([uri]);
         if (error) {
             throw error;

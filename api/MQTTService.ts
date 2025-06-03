@@ -53,7 +53,7 @@ class MQTTService {
         return new Promise((resolve, reject) => {
             const mqttPassword = process.env.EXPO_PUBLIC_MQTT;
 
-            console.log(`[MQTT] Attempting connect. Password loaded: ${mqttPassword ? 'Yes' : 'NO (undefined/empty!)'}`);
+            // console.log(`[MQTT] Attempting connect. Password loaded: ${mqttPassword ? 'Yes' : 'NO (undefined/empty!)'}`);
 
             if (!mqttPassword) {
                 const errorMsg = "[MQTT] Connection Failed: MQTT Password (EXPO_PUBLIC_MQTT) is not set in environment variables.";
@@ -71,7 +71,7 @@ class MQTTService {
 
             // Disconnect previous instance if exists but not connected
             if (this.client && !this.connected) {
-                console.log('[MQTT] Cleaning up previous non-connected client instance before new connection attempt.');
+                // console.log('[MQTT] Cleaning up previous non-connected client instance before new connection attempt.');
                 try {
                     this.client.disconnect();
                 } catch (e) {
@@ -82,7 +82,7 @@ class MQTTService {
             }
 
             try {
-                console.log(`[MQTT] Creating Paho client for ${MQTT_HOST}:${MQTT_PORT} with ClientID: ${clientId}`);
+                // console.log(`[MQTT] Creating Paho client for ${MQTT_HOST}:${MQTT_PORT} with ClientID: ${clientId}`);
                 this.client = new Paho.Client(MQTT_HOST, Number(MQTT_PORT), clientId);
 
                 // Assign handlers BEFORE connecting
@@ -98,7 +98,7 @@ class MQTTService {
                     useSSL: true, // Required for WSS
                     reconnect: false, // Handle reconnection manually
                     onSuccess: () => {
-                        console.log('[MQTT] Connection successful!');
+                        // console.log('[MQTT] Connection successful!');
                         this.connected = true;
                         // Reset reconnect counter on successful connection
                         this.reconnectCount = 0;
@@ -107,7 +107,7 @@ class MQTTService {
                         // IMPORTANT: Delay subscriptions slightly to ensure connection is fully established
                         setTimeout(() => {
                             if (this.client && this.connected) {
-                                console.log('[MQTT] Subscribing to initial topics:', topics);
+                                // console.log('[MQTT] Subscribing to initial topics:', topics);
                                 topics.forEach(topic => this.subscribe(topic));
                             } else {
                                 console.warn('[MQTT] Cannot subscribe: connection lost during subscription delay');
@@ -131,7 +131,7 @@ class MQTTService {
                     },
                 };
 
-                console.log('[MQTT] Calling client.connect()...');
+                // console.log('[MQTT] Calling client.connect()...');
                 this.client.connect(connectOptions);
 
             } catch (error: any) {
@@ -158,7 +158,7 @@ class MQTTService {
             // Check for specific error conditions
             if (responseObject.errorMessage.includes('Socket closed') || 
                 responseObject.errorCode === 8) {
-                console.log('[MQTT] Socket closed. This could be due to network issues or duplicate client IDs');
+                // console.log('[MQTT] Socket closed. This could be due to network issues or duplicate client IDs');
             }
             
             // Only attempt to reconnect if this wasn't a manual disconnect
@@ -167,10 +167,10 @@ class MQTTService {
                 const jitter = Math.floor(Math.random() * 1000); // 0-1000ms random jitter
                 setTimeout(() => this.scheduleReconnect(), jitter);
             } else {
-                console.log('[MQTT] Not reconnecting due to manual disconnect request');
+                // console.log('[MQTT] Not reconnecting due to manual disconnect request');
             }
         } else {
-            console.log('[MQTT] Connection closed gracefully.');
+            // console.log('[MQTT] Connection closed gracefully.');
         }
         
         // Clean up resources but retain the client reference until we're sure it's fully cleaned up
@@ -196,17 +196,17 @@ class MQTTService {
         // Clear any existing reconnect timer
         this.clearReconnectTimer();
         
-        console.log(`[MQTT] Scheduling reconnection in ${this.reconnectDelay}ms (attempt #${this.reconnectCount + 1})`);
+        // console.log(`[MQTT] Scheduling reconnection in ${this.reconnectDelay}ms (attempt #${this.reconnectCount + 1})`);
         
         this.reconnectTimer = setTimeout(() => {
-            console.log(`[MQTT] Attempting reconnection (#${this.reconnectCount + 1})...`);
+            // console.log(`[MQTT] Attempting reconnection (#${this.reconnectCount + 1})...`);
             
             this.reconnectCount++;
             
             // Attempt to reconnect with the initial topics
             this.connect(this.initialTopics)
                 .then(() => {
-                    console.log('[MQTT] Reconnection successful');
+                    // console.log('[MQTT] Reconnection successful');
                     
                     // If a message callback was set before, re-apply it
                     if (this.messageCallback) {
@@ -269,16 +269,16 @@ class MQTTService {
             // Store topic for later subscription once connected
             if (!this.initialTopics.includes(topic)) {
                 this.initialTopics.push(topic);
-                console.log(`[MQTT] Added ${topic} to pending subscriptions`);
+                // console.log(`[MQTT] Added ${topic} to pending subscriptions`);
             }
             return;
         }
         
         try {
-            console.log(`[MQTT] Subscribing to topic: ${topic} with QoS: ${qos}`);
+            // console.log(`[MQTT] Subscribing to topic: ${topic} with QoS: ${qos}`);
             this.client.subscribe(topic, {
                 qos,
-                onSuccess: () => console.log(`[MQTT] Successfully subscribed to ${topic}`),
+                // onSuccess: () => console.log(`[MQTT] Successfully subscribed to ${topic}`),
                 onFailure: (err) => console.error(`[MQTT] Failed to subscribe to ${topic}:`, err)
              });
         } catch (error) {
@@ -289,9 +289,9 @@ class MQTTService {
     public unsubscribe(topic: string): void {
         if (this.client && this.connected) {
             try {
-                console.log(`[MQTT] Unsubscribing from topic: ${topic}`);
+                // console.log(`[MQTT] Unsubscribing from topic: ${topic}`);
                 this.client.unsubscribe(topic, {
-                     onSuccess: () => console.log(`[MQTT] Successfully unsubscribed from ${topic}`),
+                    //  onSuccess: () => console.log(`[MQTT] Successfully unsubscribed from ${topic}`),
                      onFailure: (err) => console.error(`[MQTT] Failed to unsubscribe from ${topic}:`, err)
                 });
             } catch (error) {
@@ -303,7 +303,7 @@ class MQTTService {
     }
 
     public setMessageCallback(callback: ((message: string, topic: string) => void) | undefined | null): void {
-        console.log(`[MQTT] Setting message callback: ${callback ? 'Function' : 'None'}`);
+        // console.log(`[MQTT] Setting message callback: ${callback ? 'Function' : 'None'}`);
         this.messageCallback = callback || undefined;
     }
 
@@ -339,7 +339,7 @@ class MQTTService {
     }
 
     public disconnect(): void {
-        console.log('[MQTT] Disconnect requested.');
+        // console.log('[MQTT] Disconnect requested.');
         
         // Set flag to prevent auto-reconnection
         this.manualDisconnect = true;
@@ -350,7 +350,7 @@ class MQTTService {
         if (this.client) {
             if (this.connected) {
                 try {
-                    console.log('[MQTT] Calling client.disconnect()...');
+                    // console.log('[MQTT] Calling client.disconnect()...');
                     this.client.disconnect();
                     // onConnectionLost will handle state update
                 } catch (error) {
@@ -368,7 +368,7 @@ class MQTTService {
                 this.ackCallbacks = {};
             }
         } else {
-            console.log('[MQTT] Disconnect requested but client was not initialized.');
+            // console.log('[MQTT] Disconnect requested but client was not initialized.');
             this.connected = false;
         }
     }
@@ -387,7 +387,7 @@ class MQTTService {
      */
     public reconnect(): Promise<void> {
         if (this.isConnected()) {
-            console.log('[MQTT] Reconnect called but already connected');
+            // console.log('[MQTT] Reconnect called but already connected');
             return Promise.resolve();
         }
         
@@ -397,7 +397,7 @@ class MQTTService {
         // Reset manual disconnect flag
         this.manualDisconnect = false;
         
-        console.log('[MQTT] Forcing immediate reconnection...');
+        // console.log('[MQTT] Forcing immediate reconnection...');
         return this.connect(this.initialTopics);
     }
 }

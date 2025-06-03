@@ -52,25 +52,16 @@ export type KeyValueType = 'number' | 'string' | 'date';
 
 export type FontWeight = "medium" | "Medium" | 500 | "500" | "semibold" | "Semibold" | 600 | "600" | "bold" | "bold" | 700 | "700" | "extrabold" | "Extrabold" | 800 | "800";
 
-// export type CartType = 'Cart sent'| 'Cart approved'| 'Cart edited'| 'Checkout completed';
-
-// export type sharedProfiles = {
-//     id: number,
-//     isConsultant: boolean | undefined,
-// } 
-
-// export type extraData = {
-//     chatId: string,
-//     messageId: string, // uuid v$
-//     cartType: CartType | undefined,
-//     servcieProviderId: number | undefined,
-//     productId: Array<number> | undefined,
-//     orderId: number | undefined,
-//     consultantId: number | undefined,
-//     serviceId: number | undefined,
-//     // sharedServiceProviderIds: Array<number> | undefined,
-//     sharedIds: Array<sharedProfiles> | undefined,
-//     cartId: number | undefined,
-// }
+export type FlatTab<T> = {
+    id: string;
+    name: T;
+    active: boolean;
+    IconRight?: ReactNode | undefined;
+    IconLeft?: ReactNode | undefined;
+    ActiveIconRight?: ReactNode | undefined;
+    ActiveIconLeft?: ReactNode | undefined;
+    width?: number | undefined;
+    translateX?: number | undefined;
+}
 
 

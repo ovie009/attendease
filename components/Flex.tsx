@@ -1,19 +1,25 @@
-import { DimensionValue, View, ViewStyle } from 'react-native'
-import { FC, ReactNode } from 'react'
-import { ViewProps } from 'react-native'
+import { FC, ReactNode } from 'react';
+import { DimensionValue, StyleProp, View, ViewProps, ViewStyle } from 'react-native';
 
 
 export interface FlexProps extends ViewProps {
     children?: ReactNode | undefined,
-    justifyContent?: 'center' | 'space-between' |'space-evenly' | 'space-around' | 'flex-start' | 'flex-end' | undefined,
+    justifyContent?: 'center' | 'space-between' | 'space-evenly' | 'space-around' | 'flex-start' | 'flex-end' | undefined,
     alignItems?: 'center' | 'stretch' |'baseline' | 'flex-start' | 'flex-end' | undefined,
     alignSelf?: 'auto' | 'center' | 'stretch' |'baseline' | 'flex-start' | 'flex-end' | undefined,
     flexDirection?: 'row' | 'column' | undefined,
-    style?: ViewStyle | undefined,
+    flexWrap?: 'wrap' | 'nowrap' | 'wrap-reverse' | undefined,
+    style?: StyleProp<ViewStyle>,
     gap?: number | undefined,
-    width?: DimensionValue,
+    width?: DimensionValue | undefined,
     flex?: number | undefined,
-    height?: DimensionValue,
+    height?: DimensionValue | undefined,
+    paddingBottom?: number | undefined,
+    paddingTop?: number | undefined,
+    paddingLeft?: number | undefined,
+    paddingRight?: number | undefined,
+    paddingVertical?: number | undefined,
+    paddingHorizontal?: number | undefined,
     borderRadius?: number | undefined,
     backgroundColor?: string | undefined,
 }
@@ -23,12 +29,19 @@ const Flex: FC<FlexProps> = ({
     alignItems = 'flex-start',
     alignSelf = 'auto',
     flexDirection = 'column',
+    flexWrap = 'nowrap',
     gap,
     width,
     flex,
     height,
     backgroundColor,
     borderRadius,
+    paddingBottom,
+    paddingHorizontal,
+    paddingLeft,
+    paddingRight,
+    paddingTop,
+    paddingVertical,
     children,
     style,
     ...rest
@@ -37,17 +50,24 @@ const Flex: FC<FlexProps> = ({
     return (
         <View 
             style={[
-                style !== undefined && style,
                 {justifyContent},
                 {alignItems},
                 {alignSelf},
                 {flexDirection},
+                {flexWrap},
                 gap !== undefined && {gap},
                 flex !== undefined && {flex},
                 width !== undefined && {width},
                 height !== undefined && {height},
+                paddingBottom !== undefined && {paddingBottom},
+                paddingHorizontal !== undefined && {paddingHorizontal},
+                paddingLeft !== undefined && {paddingLeft},
+                paddingRight !== undefined && {paddingRight},
+                paddingTop!== undefined && {paddingTop},
+                paddingVertical !== undefined && {paddingVertical},
                 backgroundColor !== undefined && {backgroundColor},
                 borderRadius !== undefined && {borderRadius},
+                style,
             ]}
             {...rest}
         >

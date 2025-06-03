@@ -1,19 +1,15 @@
 import { supabase } from "@/lib/supabase"
 import { Response, Schedule } from "@/types/api";
 import { Level, Semester } from "@/types/general";
+import { ProcessScheduleResponse } from "./handleGroq";
 
 const tableName = "schedules"
 
 type AddSchedulePayload = {
     session: string,
     level: Level, 
-    semester: Semester,
-    schedule_array: {
-        days_of_the_week: number[], 
-        lecturer_hours: number[], 
-        course_id: string | undefined,
-        course_code: string,
-    }[] 
+    semester: string,
+    schedule_array: ProcessScheduleResponse[] 
 }
 
 const addSchudules = async ({schedule_array, session, level, semester}: AddSchedulePayload): Promise<Response<null>> => {
@@ -68,7 +64,33 @@ const getBySessionAndSemester = async ({session, semester}: {session: string, se
             .select('*')
             .eq('session', session)
             .eq('semester', semester)
-            .order('course_code', {ascending: true});
+            .order('course_code', {ascending: true})
+            .order('level', {ascending: true});
+
+        if (error && status !== 406) {
+            throw error;
+        }
+
+        return {
+            isSuccessful: true,
+            message: "Courses selected successfully",
+            data: data || [],
+        } 
+    } catch (error) {
+        throw error;
+    }
+}
+
+const getBySessionSemesterAndLevel = async ({session, semester, level}: {session: string, semester: Semester, level: Level}): Promise<Response<Schedule[] | []>> => {
+    try {
+        const { data, error, status } = await supabase
+            .from(tableName)
+            .select('*')
+            .eq('session', session)
+            .eq('semester', semester)
+            .eq('level', level)
+            .order('course_code', {ascending: true})
+            .order('level', {ascending: true});
 
         if (error && status !== 406) {
             throw error;
@@ -112,4 +134,5 @@ export default {
     addSchudules,
     getByCourseSchedule,
     getBySessionAndSemester,
+    getBySessionSemesterAndLevel
 }

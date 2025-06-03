@@ -11,9 +11,11 @@ const extractJsonPayload = (input: string): Array<any> => {
 
     // Extract and parse the JSON substring
     const jsonString = input.slice(startIndex, endIndex + 1);
+    console.log("🚀 ~ extractJsonPayload ~ jsonString:", jsonString)
     try {
   		return JSON.parse(jsonString);
     } catch (error) {
+      // return jsonString
 	  	throw new Error("Invalid JSON format.");
     }
 }

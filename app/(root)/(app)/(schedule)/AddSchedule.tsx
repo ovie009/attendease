@@ -1,25 +1,22 @@
-import { ScrollView, StyleSheet, TextInput, View } from 'react-native'
+import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { colors } from '@/utilities/colors'
 import CustomButton from '@/components/CustomButton'
 import { HEIGHT, WIDTH } from '@/utilities/dimensions'
 import FixedWrapper from '@/components/FixedWrapper'
-import Input from '@/components/Input'
 import SelectInput from '@/components/SelectInput'
 import CustomBottomSheet from '@/components/CustomBottomSheet'
-import { BottomSheetFlashList, BottomSheetModal, BottomSheetScrollView } from '@gorhom/bottom-sheet'
-import { Department } from '@/types/api'
+import { BottomSheetFlashList, BottomSheetModal } from '@gorhom/bottom-sheet'
+import { Course, Schedule, Setting } from '@/types/api'
 import OptionListItem from '@/components/OptionListItem'
-import { ListRenderItemInfo } from '@shopify/flash-list'
+import { FlashList, ListRenderItemInfo } from '@shopify/flash-list'
 import { useLocalSearchParams, usePathname, useRouter } from 'expo-router'
 import { handleDisableDataLoading } from '@/utilities/handleDisableDataLoading'
 import { useAppStore } from '@/stores/useAppStore'
-import handleDepartments from '@/api/handleDepartments'
 import { Level, MenuButton, Semester } from '@/types/general'
-import moment from 'moment'
 import { ImagePickerAsset } from 'expo-image-picker'
 import SelectImage from '@/components/SelectImage'
-import handleGroq from '@/api/handleGroq'
+import handleGroq, { ProcessScheduleResponse } from '@/api/handleGroq'
 import handleStorage from '@/api/handleStorage'
 import { useAuthStore } from '@/stores/useAuthStore'
 import "react-native-get-random-values";
@@ -29,17 +26,17 @@ import EditableCourseListItem from '@/components/EditableCourseListItem'
 import Feather from '@expo/vector-icons/Feather';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Menu from '@/components/Menu'
-import Flex from '@/components/Flex'
 import handleCourses from '@/api/handleCourses'
-
-// Define the combined type for clarity
-type SelectableDepartment = Department & { is_selected: boolean };
-
-type SelectableSemester = {
-	id: string,
-	value: Semester,
-	is_selected: boolean
-}
+import handleSettings from '@/api/handleSettings'
+import EditableScheduleListItem from '@/components/EditableScheduleListItem'
+import Flex from '@/components/Flex'
+import handleSchedule from '@/api/handleSchedule'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import Input from '@/components/Input'
+import InterText from '@/components/InterText'
+import moment from 'moment'
+import RNDateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
+import FixedButton from '@/components/FixedButton'
 
 type SelectableLevel = {
 	id: string,
@@ -47,25 +44,25 @@ type SelectableLevel = {
 	is_selected: boolean
 }
 
-type Course = {
-	id: string;
-	course_title: string,
-	course_code: string,
-}
+// Define the combined type for clarity
+type SelectableCourse = Course & { is_selected: boolean };
 
-type BottomSheetContent = 'Select Department' | 'Select Level' | 'Update course' | 'Select Semester';
+// bottom sheet content
+type BottomSheetContent = 'Select Course' | 'Edit Schedule' | 'Select Level';
 
 const AddSchedule = () => {
 
 	const router = useRouter();
 	const pathname = usePathname();
 
+	const {
+		_level
+	} = useLocalSearchParams();
+		// console.log("🚀 ~ AddSchedule ~ _level:", _level)
+
 	const user = useAuthStore(state => state.user)
 
-	const {
-		_add_with_ai
-	} = useLocalSearchParams();
-		// console.log("🚀 ~ AddCourse ~ _add_with_ai:", _add_with_ai)
+	const insets = useSafeAreaInsets();
 
 	const {
 		openMenu,
@@ -75,6 +72,7 @@ const AddSchedule = () => {
 	} = useAppStore.getState();
 
 	const isLoading = useAppStore(state => state.isLoading);
+	// const isLoading = useAppStore(state => stat);
 	const loadingPages = useAppStore(state => state.loadingPages)
 	
 	useEffect(() => {
@@ -83,35 +81,33 @@ const AddSchedule = () => {
 		}
 	}, []);
 
-	const [dataLoading, setDataLoading] = useState<{departments: boolean}>({
-		departments: true,
+	const [dataLoading, setDataLoading] = useState<{courses: boolean, settings: boolean}>({
+		courses: true,
+		settings: true 
 	})
 
-	const [courseTitle, setCourseTitle] = useState<string>('');
-	const [courseCode, setCourseCode] = useState<string>('');
-	const courseCodeRef = useRef<TextInput>(null)
-	const [departments, setDepartments] = useState<SelectableDepartment[]>([]);
-	const [departmentName, setDepartmentName] = useState<string>('');
-	const [departmentId, setDepartmentId] = useState<string>('');
-	const [courses, setCourses] = useState<Course[]>([]);
+	const [courses, setCourses] = useState<SelectableCourse[]>([]);
+	const [schedules, setSchedules] = useState<Array<ProcessScheduleResponse & {id: string}>>([]);
+	const [existingScehdule, setExistingSchedule] = useState<Array<Schedule>>([]);
+	// console.log("🚀 ~ AddSchedule ~ existingScehdule:", existingScehdule)
 
-	const [semester, setSemester] = useState<Semester | null>(null);
-	const [level, setLevel] = useState<Level | null>(null);
+	const [settings, setSettings] = useState<Setting[]>([]);
+
+	const [level, setLevel] = useState<Level | null>(_level ? parseInt(_level as string) as Level : null);
 
 	const [image, setImage] = useState<ImagePickerAsset | null>(null);
+	const [isProcessed, setIsProcessed] = useState<boolean>(false);
 
-	const [isProcessed, setIsProcessed] = useState<boolean>(!_add_with_ai);
+	const [courseCode, setCourseCode] = useState<string>('');
+	const [courseTitle, setCourseTitle] = useState<string>('');
+	const [courseSchedule, setCourseSchedule] = useState<Array<{dayOfTheWeek: number, startTime: number, duration: number}>>([]);
 
-	const coursesListRef = useRef<number[]>([]);
-	// console.log("🚀 ~ AddCourse ~ coursesListRef:", coursesListRef)
-	const formOffset = useRef<number>(0);
-	// console.log("🚀 ~ AddCourse ~ formOffset:", formOffset)
+	const [selectedTime, setSelectedTime] = useState<string | number>('');
+	const [updateTimeIndex, setUpdateTimeIndex] = useState<number>(0);
+	const [venue, setVenue] = useState<string>('');
 
-	const [containerHeight, setContainerHeight] = useState<number>(HEIGHT);
-	// console.log("🚀 ~ AddCourse ~ containerHeight:", containerHeight)
-	// console.log("")
 
-	const [menuTop, setMenuTop] = useState<number>(0);
+	const [updateSession, setUpdateSession] = useState<ProcessScheduleResponse | null>(null);
 	const [selectedCourseId, setSelectedCourseId] = useState<string>('');
 
 	const menuButtons = useMemo((): Array<MenuButton> => {
@@ -126,83 +122,51 @@ const AddSchedule = () => {
 			},
 		]
 	}, []) 
-
-	const [semesterOptions, setSemesterOptions] = useState<SelectableSemester[]>([
+	
+	const [levelOptions, setLevelOptions] = useState<SelectableLevel[]>([
 		{
 			id: '1',
-			value: 1,
-			is_selected: false,
+			value: 100,
+			is_selected: _level ? parseInt(_level as string) === 100 : false,
 		},
 		{
 			id: '2',
-			value: 2,
-			is_selected: false,
+			value: 200,
+			is_selected: _level ? parseInt(_level as string) === 200 : false,
+		},
+		{
+			id: '3',
+			value: 300,
+			is_selected: _level ? parseInt(_level as string) === 300 : false,
+		},
+		{
+			id: '4',
+			value: 400,
+			is_selected: _level ? parseInt(_level as string) === 400 : false,
+		},
+		{
+			id: '5',
+			value: 500,
+			is_selected: _level ? parseInt(_level as string) === 500 : false,
 		},
 	]);
-
-	const [levelOptions, setLevelOptions] = useState<SelectableLevel[]>([]);
-
-	useEffect(() => {
-		if (!departmentId) return;
-
-		const foundDepartment = departments.find(item => item.id === departmentId);
-
-		const courseDuration: number | undefined = foundDepartment?.course_duration;
-
-		if (!courseDuration) return;
-		const levelsArray: any = Array.from({ length: courseDuration }, (_, index: number) => ({
-			id: `level-${index + 1}`,
-			value: (index + 1)*100,
-			is_selected: false,
-		}));
-		// console.log("🚀 ~ levelsArray ~ levelsArray:", levelsArray);
-
-		if (level && levelOptions.some(item => item.value === level)) {
-			setLevelOptions(levelsArray.map((item: SelectableLevel) => {
-				if (item.value === level) {
-					return {
-						...item,
-						is_selected: true
-					}
-				}
-				return item;
-			}))
-		} else {
-			setLevelOptions(levelsArray)
-
-			setLevel(null)
-		}
-
-		// foundDepartment.
-	}, [departmentId])
 
 
 	const sheetRef = useRef<BottomSheetModal>(null);
 	const [sheetParameters, setSheetParameters] = useState<{snapPoints: [string | number], content: BottomSheetContent}>({
 		snapPoints: ['50%'],
-		content: 'Select Department',
+		content: 'Select Level',
 	})
 
 	const openBottomSheet = useCallback((content: BottomSheetContent) => {
-		const minHeight = 130;
+		const minHeight = 150;
 		const listItemHieght = 60;
 
 		let height = 0;
-		if (content === 'Select Department') {
-			height = Math.min(HEIGHT, minHeight + listItemHieght*departments.length);
-		} else if (content === 'Select Semester') {
-			height = Math.min(HEIGHT, minHeight + listItemHieght*semesterOptions.length);
-		} else if (content === 'Select Level') {
+		if (content === 'Select Level') {
 			height = Math.min(HEIGHT, minHeight + listItemHieght*levelOptions.length);
 		} else {
-			const targetCourse = courses.find(item => item.id === selectedCourseId);
-
-			if (targetCourse) {
-				setCourseTitle(targetCourse.course_title);
-				setCourseCode(targetCourse.course_code);
-			};
-
-			height = 400;
+			height = HEIGHT + insets.bottom;
 		}
 
 		setSheetParameters({
@@ -211,7 +175,7 @@ const AddSchedule = () => {
 		})
 
 		sheetRef?.current?.present();
-	}, [selectedCourseId, departments, semesterOptions, levelOptions, courses])
+	}, [levelOptions])
 
 	const closeBottomSheet = () => {
 		sheetRef?.current?.close();
@@ -219,94 +183,74 @@ const AddSchedule = () => {
 	
 
 	useEffect(() => {
-		// (async () => )
-		const fetchDepartments = async () => {
+		const fetchCourses = async () => {
 			try {
-				const departmentsResponse = await handleDepartments.getAll();
+				const coursesResponse = await handleCourses.getAll();
 
-				if (departmentsResponse.isSuccessful) {
-					setDepartments(departmentsResponse.data.map(item => ({...item, is_selected: false})))
+				if (coursesResponse.isSuccessful) {
+					setCourses(coursesResponse.data.map(item => ({...item, is_selected: false})))
 				}
-				// console.log("🚀 ~ fetchDepartments ~ departmentsResponse.data:", departmentsResponse.data)
 			} catch (error: any) {
 				displayToast('ERROR', error?.message)
 			} finally {
-				handleDisableDataLoading('departments', setDataLoading)
+				handleDisableDataLoading('courses', setDataLoading)
 			}
 		}
 
-		fetchDepartments();
+		const fetchSettings = async () => {
+			try {
+				const settingsResponse = await handleSettings.getAll();
+
+				if (settingsResponse.isSuccessful) {
+					setSettings(settingsResponse.data)
+				}
+			} catch (error: any) {
+				displayToast('ERROR', error?.message)
+			} finally {
+				handleDisableDataLoading('settings', setDataLoading)
+			}
+		}
+
+		fetchCourses();
+		fetchSettings();
 			
-	}, [])
+	}, []);
 
 	useEffect(() => {
-		if (!dataLoading.departments) {
+		if (settings.length === 0) return;
+		if (!level) return;
+		const fetchSchedule = async () => {
+			try {
+				setLoadingPages([...loadingPages, pathname])
+				const semester = settings.find(item => item.key === 'semester')?.value as string;
+				const session = settings.find(item => item.key === 'academic_session')?.value as string;
+
+				if (!semester) return;
+				if (!session) return;
+
+				const scheduleResponse = await handleSchedule.getBySessionSemesterAndLevel({
+					semester: parseInt(semester) as Semester,
+					session: session,
+					level: level,
+				});
+				setExistingSchedule(scheduleResponse.data);
+				// console.log("🚀 ~ fetchSchedule ~ scheduleResponse:", scheduleResponse)
+			} catch (error: any) {
+				displayToast('ERROR', error?.message)
+			} finally {
+				setLoadingPages(loadingPages.filter(item => item !== pathname))
+			}
+		}
+
+		fetchSchedule();
+	}, [settings, level])
+
+	useEffect(() => {
+		if (!dataLoading.courses && !dataLoading.settings) {
 			// disable loading pages
 			setLoadingPages(loadingPages.filter(item => item !== pathname))
 		}
-	}, [dataLoading.departments])
-
-	const handleSelectDepartment = useCallback((id: string): void => {
-		// console.log("🚀 ~ handleSelectDepartment ~ id:", id)
-		// console.log("🚀 ~ handleSelectDepartment ~ departments:", departments)
-		// This check ensures that 'find' below will succeed.
-		if (departments.some(item => item.id === id)) {
-			// Add '!' after find(...) to assert it's not null/undefined
-			const foundDepartment = departments.find((item) => item.id === id)!;
-			setDepartmentName(foundDepartment.department_name); // Now TypeScript knows foundLecturer is Lecturer, not Lecturer | undefined
-
-			setDepartmentId(id);
-
-			// update lecturer list
-			setDepartments(prevState => {
-				return prevState.map(item => {
-					if (item.id === id) {
-						return {
-							...item,
-							is_selected: true,
-						}
-					}
-					return {
-						...item,
-						is_selected: false,
-					}
-				})
-			})
-
-			closeBottomSheet()
-		}
-		// Optional: Handle the else case if needed, though 'some' prevents it here.
-		// else { console.warn(`Lecturer with id ${id} not found unexpectedly.`); }
-	}, [departments]); // <-- Add setDean to dependencies
-	
-	const handleSelectSemster = useCallback((id: string): void => {
-		// This check ensures that 'find' below will succeed.
-		if (semesterOptions.some(item => item.id === id)) {
-			// Add '!' after find(...) to assert it's not null/undefined
-			const foundValue = semesterOptions.find((item) => item.id === id)!;
-			setSemester(foundValue.value); // Now TypeScript knows foundLecturer is Lecturer, not Lecturer | undefined
-
-			// update lecturer list
-			setSemesterOptions(prevState => {
-				return prevState.map(item => {
-					if (item.id === id) {
-						return {
-							...item,
-							is_selected: true,
-						}
-					}
-					return {
-						...item,
-						is_selected: false,
-					}
-				})
-			})
-
-			closeBottomSheet()
-		}
-		// Optional: Handle the else case if needed, though 'some' prevents it here.
-		// else { console.warn(`Lecturer with id ${id} not found unexpectedly.`); }
-	}, [semesterOptions]); // <-- Add setDean to dependencies
+	}, [dataLoading.courses, dataLoading.settings])
 
 	const handleSelectLevel = useCallback((id: string): void => {
 		// This check ensures that 'find' below will succeed.
@@ -337,27 +281,34 @@ const AddSchedule = () => {
 		// else { console.warn(`Lecturer with id ${id} not found unexpectedly.`); }
 	}, [levelOptions]); // <-- Add setDean to dependencies
 
-	const renderDepartmentItem = useCallback(({item}: ListRenderItemInfo<SelectableDepartment>) => (
-		<OptionListItem
-			id={item?.id}
-			text={item?.department_name}
-			isSelected={item?.is_selected}
-			onPress={() => {
-				handleSelectDepartment(item.id)
-			}}
-		/>
-	), [handleSelectDepartment]);
+	const handleSelectCourse = useCallback((id: string): void => {
+		// This check ensures that 'find' below will succeed.
+		if (courses.some(item => item.id === id)) {
+			// Add '!' after find(...) to assert it's not null/undefined
+			const foundValue = courses.find((item) => item.id === id)!;
+			setCourseTitle(foundValue.course_title); // Now TypeScript knows foundLecturer is Lecturer, not Lecturer | undefined
 
-	const renderSemsterItem = useCallback(({item}: ListRenderItemInfo<SelectableSemester>) => (
-		<OptionListItem
-			id={item?.id}
-			text={`${moment(item.value, 'd').format('do')} semester`}
-			isSelected={item?.is_selected}
-			onPress={() => {
-				handleSelectSemster(item.id)
-			}}
-		/>
-	), [handleSelectSemster]);
+			// update lecturer list
+			setCourses(prevState => {
+				return prevState.map(item => {
+					if (item.id === id) {
+						return {
+							...item,
+							is_selected: true,
+						}
+					}
+					return {
+						...item,
+						is_selected: false,
+					}
+				})
+			})
+
+			openBottomSheet('Edit Schedule')
+		}
+		// Optional: Handle the else case if needed, though 'some' prevents it here.
+		// else { console.warn(`Lecturer with id ${id} not found unexpectedly.`); }
+	}, [courses]); // <-- Add setDean to dependencies
 
 	const renderLevelItem = useCallback(({item}: ListRenderItemInfo<SelectableLevel>) => (
 		<OptionListItem
@@ -370,53 +321,157 @@ const AddSchedule = () => {
 		/>
 	), [handleSelectLevel]);
 
+	const renderCourseItem = useCallback(({item}: ListRenderItemInfo<SelectableCourse>) => (
+		<OptionListItem
+			id={item?.id}
+			text={item?.course_code}
+			subtext={item.course_title}
+			isSelected={item?.is_selected}
+			onPress={() => {
+				handleSelectCourse(item.id)
+			}}
+		/>
+	), [handleSelectCourse]);
+
+	const handleSelectDay = (day: number) => {
+		// update course schedule - remove if exists
+		if (courseSchedule.some(i => i.dayOfTheWeek === day)) {
+			setCourseSchedule(prevState => {
+				return prevState.filter(item => item.dayOfTheWeek !== day)
+			})
+			return;
+		}
+
+		// else add new item in the correct position based on day order
+		setCourseSchedule(prevState => {
+			const newItem = {
+				...prevState[0], // use first item as template
+				dayOfTheWeek: day,
+			};
+
+			// Find the correct position to insert the new day
+			const insertIndex = prevState.findIndex(item => item.dayOfTheWeek > day);
+			
+			// If no item has a higher day value, append to end
+			if (insertIndex === -1) {
+				return [...prevState, newItem];
+			}
+			
+			// Otherwise, insert at the correct position
+			return [
+				...prevState.slice(0, insertIndex),
+				newItem,
+				...prevState.slice(insertIndex)
+			];
+		});
+	}
+
+	const handleSelectTime = (params: any) => {
+	  	console.log("🚀 ~ handleSelectTime ~ params:", params)
+		// 🚀 ~ handleSelectTime ~ params: {"nativeEvent": {"timestamp": 1748935800000, "utcOffset": 60}, "type": "set"}
+		const hours = moment(params.nativeEvent.timestamp).format('H');
+		setCourseSchedule(prevState => {
+			return prevState.map((item, index) => {
+				if (index === updateTimeIndex) {
+					return {
+						...item,
+						startTime: parseInt(hours),
+					}
+				}
+				return item;
+			})
+		})
+
+		setSelectedTime('')
+
+	}
+	
+	
+	const handleUpdateCourseDuration = (text: string, index: number) => {
+		setCourseSchedule(prevState => {
+			return prevState.map((item, i) => {
+				if (i === index) {
+					return {
+						...item,
+						duration: text ? parseInt(text.replace(' hrs', '')) : 0
+					}
+				}
+				return item;
+			})
+		})
+	}
+	
+	const handleUpdateSchedule = () => {
+		setSchedules(prevState => {
+			return prevState.map((item, index) => {
+				if (item.id === updateSession?.id) {
+					return {
+						...item,
+						days_of_the_week: courseSchedule.map(item => item.dayOfTheWeek),
+						lecture_start_time: courseSchedule.map(item => item.startTime),
+						lecture_hours: courseSchedule.map(item => item.duration),
+						course_code: courseCode,
+						venue,
+						course_id: courses.find(item => item.is_selected)?.id || '',
+					}
+				}
+				return item;
+			})
+		})
+
+		setUpdateSession(null)
+		setCourseSchedule([])
+		setCourseCode('')
+		setVenue('')
+		setCourseTitle('')
+
+		closeBottomSheet()
+	}
+
+	const handleDeleteSchedule = () => {
+		setSchedules(prevState => prevState.filter(item => item.id !== updateSession?.id))	
+
+		setUpdateSession(null)
+		setCourseSchedule([])
+		setCourseCode('')
+		setVenue('')
+		setCourseTitle('')
+
+		closeBottomSheet()
+	}
+	
 	
 
-	const handleCreateCourse = async (): Promise<void> => {
+	const handleCreateSchedule = async (): Promise<void> => {
 		try {
-			if (!level || !semester) {
+			if (!level) {
 				throw new Error("Select level and semester")
 			}
 			setIsLoading(true);
+			
+			if (schedules?.length === 0) return; 
+			// console.log('creating schedule...')
+			
+			// console.log("🚀 ~ handleCreateSchedule ~ schedules:", schedules[0])
 
-			if (_add_with_ai) {
-				const coursesResponse = await handleCourses.addCourses({
-					department_id: departmentId,
-					level,
-					semester,
-					courses,
-				});
+			await handleSchedule.addSchudules({
+				schedule_array: schedules,
+				session: settings.find(item => item.key === 'academic_session')?.value as string,
+				semester: settings.find(item => item.key === 'semester')?.value as string,
+				level,
+			})
 
-				if (coursesResponse.isSuccessful) {
-					displayToast('SUCCESS', 'Courses added successfully')
-					router.back();
-				}
-			} else {
-				if (!courseTitle || !courseCode) {
-					throw new Error("Enter course title and code")
-				}
+			router.back();
 
-				const coursesResponse = await handleCourses.create({
-					department_id: departmentId,
-					level,
-					semester,
-					course_code: courseCode,
-					course_title: courseTitle
-				});
-
-				if (coursesResponse.isSuccessful) {
-					displayToast('SUCCESS', 'Courses added successfully')
-					router.back();
-				}
-			}
 		} catch (error: any) {
+			console.log("🚀 ~ handleCreateSchedule ~ error:", error)
 			displayToast('ERROR', error?.message)
 		} finally {
 			setIsLoading(false);
 		}
 	}
 
-	const handleProcessCourse = async (): Promise<void> => {
+	const handleProcessSchedule = async (): Promise<void> => {
 		try {
 			setIsLoading(true);
 
@@ -443,9 +498,13 @@ const AddSchedule = () => {
 				bucketName: 'groq',
 				uri: uploadResponse.uri,
 			});
-			// console.log("🚀 ~ handleProcessCourse ~ downloadResponse:", downloadResponse)
 
-			const groqResponse: Array<{course_title: string, course_code: string}> | null = await handleGroq.processCourses(downloadResponse.uri);
+			const course_codes = courses.map(item => ({id: item.id, course_code: item.course_code}));
+
+			const exclude_course_codes = existingScehdule.map(item => item.course_code);
+			// console.log("🚀 ~ handleProcessSchedule ~ exclude_course_codes:", exclude_course_codes)
+
+			const groqResponse: Array<ProcessScheduleResponse> | null = await handleGroq.processSchedule(downloadResponse.uri, course_codes, exclude_course_codes);
 
 			// delete file
 			await handleStorage.deleteFile({
@@ -455,7 +514,29 @@ const AddSchedule = () => {
 
 			if (!groqResponse) return;
 
-			setCourses(groqResponse.map(item => ({...item, id: `${Math.random()}`})));
+			const isValidUUID = (uuid: string | null) => {
+				if (!uuid || uuid === null || uuid === undefined) return false;
+				const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+				return uuidRegex.test(uuid) && course_codes.some(item => item.id === uuid);
+			}
+
+			setSchedules(
+				groqResponse
+				.filter(item => item.course_code 
+					&& item.venue
+					&& (item.days_of_the_week && item.days_of_the_week?.length !== 0)
+					&& (item.lecture_start_time && item.lecture_start_time?.length !== 0)
+					&& (item.lecture_hours && item.lecture_hours?.length !== 0)
+				)
+				.map(item => ({
+					...item,
+					id: Math.random().toString(),
+					// days_of_the_week: item.days_of_the_week.map(day => parseInt(day)),
+					course_id: isValidUUID(item.course_id) ? item.course_id : null
+				}))
+			);
+			
+			// setSchedules(groqResponse);
 
 			setIsProcessed(true);
 		} catch (error: any) {
@@ -465,147 +546,88 @@ const AddSchedule = () => {
 		}
 	}
 
-	const handleOnPressCourseOption = useCallback((id: string) => {
-		// console.log("🚀 ~ handleOnPressCourseOption ~ id:", id);
-		setSelectedCourseId(id);
-		const index = courses.findIndex(item => item.id === id);
+	const handleOnPressEditButtion = useCallback((item: ProcessScheduleResponse) => {
+		
+		setUpdateSession(item)
+		
+		setCourseCode(item.course_code)
+		setCourseTitle(courses.find(i => i.id === item?.course_id)?.course_title || '')
+		setCourseSchedule(item.days_of_the_week.map((day, index) => {
+			return {
+				dayOfTheWeek: day,
+				startTime: item.lecture_start_time[index] ? item.lecture_start_time[index] : 0,
+				duration: item.lecture_hours[index] ? item.lecture_hours[index] : 0,
+			}
+		}));
 
-		const courseItemOffset = coursesListRef.current[index];
-		const menuHeight = 116;
-		const evaluatedHeight = courseItemOffset + (62 - 24)/2 - menuHeight;
+		setVenue(item.venue)
+		
+		console.log("🚀 ~ handleOnPressEditButtion ~ item.course_code:", item.course_code)
+		openBottomSheet('Edit Schedule')
+	}, [openBottomSheet])
 
-		setMenuTop(evaluatedHeight)
-
-		openMenu();
-	}, [courses])
-
-
-	const handleDeleteCourse = useCallback(() => {
-		setCourses(prevState => prevState.filter(item => item.id !== selectedCourseId));
-
-		setSelectedCourseId('');
-	}, [selectedCourseId])
-
-
-	const handleUpdateCourse = useCallback(() => {
-		// console.log("🚀 ~ handleUpdateCourse ~ selectedCourseId:", selectedCourseId)
-		// console.log("🚀 ~ handleUpdateCourse ~ courseCode:", courseCode)
-		// console.log("🚀 ~ handleUpdateCourse ~ courseTitle:", courseTitle);
-		// console.log("🚀 ~ handleUpdateCourse ~ courses:", courses)
-		setCourses(prevState => {
-			return prevState.map(item => {
-				if (item.id === selectedCourseId) {
-					return {
-						...item,
-						course_code: courseCode,
-						course_title: courseTitle,
-					}
-				}
-
-				return item
-			})
-		})
-
-		closeBottomSheet();
-	}, [selectedCourseId, courseCode, courseTitle, courses])
-
-	const handleOnPressMenuButtion = useCallback((title: string) => {
-		if (title === 'Edit') {
-			openBottomSheet('Update course')
-			return;
-		}
-		handleDeleteCourse();
-	}, [handleDeleteCourse, openBottomSheet])
+	const renderScheduleItem = useCallback(({item}: ListRenderItemInfo<ProcessScheduleResponse & {id: string}>) => (
+		<EditableScheduleListItem
+			id={item?.id}
+			courseCode={item?.course_code}
+			courseTitle={courses.find(i => i.id === item?.course_id)?.course_title || ''}
+			daysOfTheWeek={item?.days_of_the_week}
+			lectureHours={item?.lecture_hours}
+			lectureStartTime={item?.lecture_start_time}
+			venue={item?.venue}
+			// isError={true}
+			onPressEdit={() => {
+				handleOnPressEditButtion(item);
+			}}
+		/>
+	), [courses, handleOnPressEditButtion]);
 
 	return (<>
-		<ScrollView
-			keyboardShouldPersistTaps={'handled'}
-			contentContainerStyle={styles.contentContainer}
-			onContentSizeChange={(w, h) => {
-				setContainerHeight(h)
-			}}
+		<View
+			style={styles.contentContainer}
 		>
-			<View 
-				style={styles.main}
-				onLayout={(event) => {
-					formOffset.current = event.nativeEvent.layout.y 
-				}}
-			>
-				{!_add_with_ai as boolean && <>
-					<Input
-						defaultValue={courseTitle}
-						onChangeText={setCourseTitle}
-						label='Course Title'
-						placeholder='Basic Digital Fundamental'
-						onSubmitEditing={() => courseCodeRef.current?.focus()}
-					/>
-					<Input
-						ref={courseCodeRef}
-						defaultValue={courseCode}
-						onChangeText={setCourseCode}
-						label='Course Code'
-						placeholder='CSC 101'
-					/>
-				</>}
-				<SelectInput
-					label='Select Semester'
-					placeholder='1st semester'
-					onPress={() => openBottomSheet('Select Semester')}
-					value={semester ? `${moment(semester, 'd').format('do')} semester` : ''}
-				/>
-				<SelectInput
-					label='Select Department'
-					placeholder='Select from available departments'
-					onPress={() => openBottomSheet('Select Department')}
-					value={departmentName}
-				/>
-				{departmentId && <>
-					<SelectInput
-						label='Select Level'
-						placeholder='100 Level'
-						onPress={() => openBottomSheet('Select Level')}
-						value={level ? `${level}` : ''}
-					/>
-					{_add_with_ai && (
+			<FlashList
+				data={schedules}
+				estimatedItemSize={156}
+				contentContainerStyle={{
+					paddingTop: 30,
+					paddingBottom: 120,
+				}}		
+				keyboardShouldPersistTaps={'handled'}
+				keyExtractor={(item => item.id)}
+				ListHeaderComponent={(<>
+					<Flex
+						width={'100%'}
+						gap={20}
+						style={{
+							marginBottom: 20,
+						}}
+					>
+						<SelectInput
+							label='Select Level'
+							placeholder='100 Level'
+							onPress={() => openBottomSheet('Select Level')}
+							value={level ? `${level}` : ''}
+						/>
 						<SelectImage
 							image={image}
 							onImageSelected={setImage}
 							title='Select image of courses'
-							subtitle='Select image containig list of courses for the semester, department, and level selected above'
+							subtitle='Select image containig list of timetable'
 						/>
-					)}
-				</>}
-				{courses && courses.length > 0 && courses.map((item, index) => (
-					<EditableCourseListItem
-						key={item.id}
-						onLayout={e => {
-							const { y } = e.nativeEvent.layout;
-							coursesListRef.current[index] = y;
-						}}
-						courseCode={item.course_code}
-						courseTitle={item.course_title}
-						onPress={() => {
-							handleOnPressCourseOption(item.id)
-						}}
-					/>
-				))}
-
-				<Menu
-					menuButtons={menuButtons}
-					top={menuTop}
-					right={15}
-					onPressOption={handleOnPressMenuButtion}
-				/>
-			</View>
-		</ScrollView>
+					</Flex>
+				</>)}
+				renderItem={renderScheduleItem}
+			/>
+		</View>
 		<FixedWrapper
 			contentContainerStyle={styles.buttonWraper}
 		>
 			<CustomButton
-				onPress={isProcessed ? handleCreateCourse : handleProcessCourse}
-				text={isProcessed ? `Add course${_add_with_ai ? "s" : ""}` : 'Process with AI'}
+				onPress={isProcessed ? handleCreateSchedule : handleProcessSchedule}
+				text={isProcessed ? `Add schedules (${schedules.length})` : 'Process with AI'}
 				isLoading={isLoading}
-				disabled={_add_with_ai ? (!departmentId || !semester || !level) : (!courseCode || !courseTitle || !departmentId || !semester || !level)}
+				disabled={!level || !image}
 			/>
 		</FixedWrapper>
 		<CustomBottomSheet
@@ -614,24 +636,6 @@ const AddSchedule = () => {
 			snapPoints={sheetParameters.snapPoints}
 			closeBottomSheet={closeBottomSheet}
 		>
-			{sheetParameters.content === 'Select Department' && (
-				<BottomSheetFlashList
-					data={departments}
-					keyExtractor={(item) => item.id}
-					contentContainerStyle={{paddingBottom: 30}}
-					estimatedItemSize={81}
-					renderItem={renderDepartmentItem}
-				/>
-			)}
-			{sheetParameters.content === 'Select Semester' && (
-				<BottomSheetFlashList
-					data={semesterOptions}
-					keyExtractor={(item) => item.id}
-					contentContainerStyle={{paddingBottom: 30}}
-					estimatedItemSize={81}
-					renderItem={renderSemsterItem}
-				/>
-			)}
 			{sheetParameters.content === 'Select Level' && (
 				<BottomSheetFlashList
 					data={levelOptions}
@@ -641,55 +645,197 @@ const AddSchedule = () => {
 					renderItem={renderLevelItem}
 				/>
 			)}
-			{sheetParameters.content === 'Update course' && (
-				<BottomSheetScrollView
-					showsVerticalScrollIndicator={false}
-					keyboardShouldPersistTaps='handled'
-					contentContainerStyle={{flexGrow: 1}}
+
+			{sheetParameters.content === 'Select Course' && (
+				<BottomSheetFlashList
+					data={courses}
+					keyExtractor={(item) => item.id}
+					contentContainerStyle={{paddingBottom: 30}}
+					estimatedItemSize={81}
+					renderItem={renderCourseItem}
+				/>
+			)}
+
+			{sheetParameters.content === 'Edit Schedule' && (
+				<Flex
+					width={WIDTH - 32}
+					paddingTop={10}
+					style={{position: 'relative'}}
 				>
-					<Flex
-						gap={20}
-						flex={1}
-						style={{
-							width: '100%',
-							paddingTop: 20,
-							paddingBottom: 30, 
+					<ScrollView
+						contentContainerStyle={{
+							display: 'flex',
+							gap: 20,
+							flexGrow: 1,
+							paddingTop: 30
 						}}
-						
-						// backgroundColor='red'
 					>
-						<Flex 
-							gap={20} 
-							flex={1} 
-							style={{width: '100%'}}
-							// backgroundColor='blue'
+						<Input
+							placeholder='Course Code'
+							label='Course Code'
+							width={WIDTH - 40}
+							defaultValue={courseCode}
+							onChangeText={setCourseCode}
+						/>
+
+						<Input
+							placeholder='Venue'
+							label='Venue'
+							width={WIDTH - 40}
+							defaultValue={venue}
+							onChangeText={setVenue}
+						/>
+
+						<SelectInput
+							label='Course title'
+							placeholder='Select course'
+							value={courseTitle}
+							onPress={() => {
+								openBottomSheet('Select Course')
+							}}
+						/>
+
+						<Flex
+							alignItems='center'
+							justifyContent='flex-start'
+							gap={16}
+							flexDirection='row'
+							width={'100%'}
+							paddingTop={20}
 						>
-							<Input
-								defaultValue={courseTitle}
-								onChangeText={setCourseTitle}
-								label='Course Title'
-								placeholder='Basic Digital Fundamental'
-								onSubmitEditing={() => courseCodeRef.current?.focus()}
-								width={WIDTH - 40}
-							/>
-							<Input
-								ref={courseCodeRef}
-								defaultValue={courseCode}
-								onChangeText={setCourseCode}
-								label='Course Code'
-								placeholder='CSC 101'
-								width={WIDTH - 40}
-							/>
+							{[1, 2, 3, 4, 5, 6].map(item => (
+								<TouchableOpacity
+									key={item}
+									onPress={() => handleSelectDay(item)}
+								>
+									<Flex
+										width={35}
+										height={35}
+										borderRadius={35/2}
+										justifyContent='center'
+										alignItems='center'
+										backgroundColor={courseSchedule.some(i => i.dayOfTheWeek === item) ? colors.primary : colors.lightBackground}
+										style={{
+											borderWidth: 1,
+											borderColor: courseSchedule.some(i => i.dayOfTheWeek === item) ? colors.primary : colors.lightBackground
+										}}
+									>
+										<InterText
+											fontWeight={500}
+											color={courseSchedule.some(i => i.dayOfTheWeek === item) ? colors.white : colors.subtext}
+
+										>
+											{moment().day(item).format('ddd')}
+										</InterText>
+									</Flex>
+								</TouchableOpacity>
+							))}
 						</Flex>
+
+						<Flex
+							gap={16}
+							width={'100%'}
+						>
+							<Flex
+								flexDirection='row'
+								width={'100%'}
+								justifyContent='space-between'
+								alignItems='center'
+							>
+								<InterText
+									fontSize={16}
+									lineHeight={19}
+									fontWeight={500}
+								>
+									Day
+								</InterText>
+								<InterText
+									fontSize={16}
+									lineHeight={19}
+									fontWeight={500}
+								>
+									Start time
+								</InterText>
+								<InterText
+									fontSize={16}
+									lineHeight={19}
+									fontWeight={500}
+								>
+									Duration (hrs)
+								</InterText>
+							</Flex>
+							{courseSchedule.map((item, index) => (
+								<Flex
+									key={index}
+									flexDirection='row'
+									width={'100%'}
+									justifyContent='space-between'
+									alignItems='center'
+								>
+									<InterText>
+										{moment().day(item.dayOfTheWeek).format('ddd')}: 
+									</InterText>
+									<TouchableOpacity
+										onPress={() => {
+											setSelectedTime(item.startTime)
+											setUpdateTimeIndex(index)
+										}}
+									>
+										<InterText>
+											{moment(item.startTime, 'H').format('ha')} - {moment(item.duration + item.startTime, 'H').format('ha')}
+										</InterText>
+									</TouchableOpacity>
+									<Flex>
+										<Input
+											keyboardType='numeric'
+											// label='Course duration'
+											width={90}
+											defaultValue={item.duration ? `${item.duration}` : ''}
+											onChangeText={(text) => handleUpdateCourseDuration(text, index)}
+											textAlign='center'
+										/>
+									</Flex>
+								</Flex>
+							))}
+						</Flex>
+
+					</ScrollView>
+					<Flex
+						flexDirection='row'
+						justifyContent='space-between'
+						alignItems='center'
+						paddingBottom={50}
+						gap={16}
+						style={{
+							position: 'absolute',
+							bottom: 0
+						}}
+					>
+						<CustomButton
+							text='Delete'
+							width={(WIDTH - 40 - 16)/2}
+							isSecondary={true}
+							onPress={handleDeleteSchedule}
+						/>
 						<CustomButton
 							text='Update'
-							onPress={handleUpdateCourse}
-							disabled={!courseCode || !courseTitle}
+							width={(WIDTH - 40 - 16)/2}
+							onPress={handleUpdateSchedule}
 						/>
 					</Flex>
-				</BottomSheetScrollView>
+				</Flex>
 			)}
+
 		</CustomBottomSheet>
+		{selectedTime && (
+			<RNDateTimePicker 
+				mode='time' 
+				display='clock' 
+				value={moment(selectedTime, 'H').toDate()} 
+				onChange={handleSelectTime} 
+				// on
+			/>
+		)}
 	</>)
 }
 
@@ -699,9 +845,7 @@ const styles = StyleSheet.create({
 	contentContainer: {
 		backgroundColor: colors.white,
 		paddingHorizontal: 20,
-		flexGrow: 1,
-		paddingTop: 30,
-		paddingBottom: 120,
+		flex: 1,
 	},
 	main: {
 		display: 'flex',

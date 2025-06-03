@@ -104,6 +104,27 @@ const getByKey = async (key: Key): Promise<Response<Setting>> => {
     }
 }
 
+const getByKeys = async (keys: Key[]): Promise<Response<Setting[]>> => {
+    try {
+        const { data, error, status } = await supabase
+            .from(tableName)
+            .select('*')
+            .in('key', keys)
+            
+        if (error && status !== 406) {
+            throw error;
+        }
+
+        return {
+            isSuccessful: true,
+            message: "Setting selected successfully",
+            data: data || [],
+        } 
+    } catch (error) {
+        throw error;
+    }
+}
+
 
 
 export default {
@@ -111,4 +132,5 @@ export default {
     getAll,
     update,
     getByKey,
+    getByKeys,
 }

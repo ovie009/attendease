@@ -31,11 +31,13 @@ export type Schedule = {
     id: string;
     session: string;
     days_of_the_week: number[]; 
-    lecturer_hours: number[]; 
+    lecture_hours: number[];
+    lecture_start_time: number[];
     course_id: string | null;
     course_code: string;
     level: Level; 
     semester: Semester;
+    venue: string,
     created_at: string;
     updated_at: string;
 };

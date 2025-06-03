@@ -95,6 +95,14 @@ export default function AppLayout() {
 				}}
 			/>
 			<Stack.Screen 
+				name="(schedule)" 
+				options={{ 
+					title: '',
+					headerShown: false, 
+					headerShadowVisible: false,
+				}}
+			/>
+			<Stack.Screen 
 				name="college" 
 				options={{ 
 					title: "", 
