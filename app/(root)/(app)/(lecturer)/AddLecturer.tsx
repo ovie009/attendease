@@ -37,7 +37,7 @@ const AddLecturer = () => {
     const pathname = usePathname();
 
 	const {
-		_department_id
+		_department_id,
 	} = useLocalSearchParams();
 
 	const {

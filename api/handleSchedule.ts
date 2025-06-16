@@ -12,6 +12,17 @@ type AddSchedulePayload = {
     schedule_array: ProcessScheduleResponse[] 
 }
 
+type UpdateSchedulePayload = {
+    course_code: string,
+	course_id: string,
+	venue: string,
+    level: Level,
+	days_of_the_week: number[],
+	lecture_hours: number[],
+	lecture_start_time: number[],
+	id: string,
+}
+
 const addSchudules = async ({schedule_array, session, level, semester}: AddSchedulePayload): Promise<Response<null>> => {
     try {
         const { data, error } = await supabase
@@ -153,7 +164,49 @@ const getByCourseSchedule = async (course_id: string): Promise<Response<Schedule
     }
 }
 
+const update = async ({id, course_code, level, course_id, venue, days_of_the_week, lecture_hours, lecture_start_time}: UpdateSchedulePayload): Promise<Response<Schedule>> => {
+    try {
+
+        if (!id || !course_code || !level || !course_id || !venue || !days_of_the_week || !lecture_hours || !lecture_start_time) {
+            throw new Error('All fields are required');
+        }
+        console.log("🚀 ~ update ~ days_of_the_week:", days_of_the_week)
+        console.log("🚀 ~ update ~ lecture_hours:", lecture_hours)
+        console.log("🚀 ~ update ~ lecture_start_time:", lecture_start_time)
+
+        
+
+        const { data, error, status } = await supabase
+            .from(tableName)
+            .update({
+                course_code,
+                course_id,
+                venue,
+                level,
+                days_of_the_week,
+                lecture_hours,
+                lecture_start_time
+            })
+            .eq('id', id)
+            .select('*')
+            .single()
+
+        if (error && status !== 406) {
+            throw error;
+        }
+
+        return {
+            isSuccessful: true,
+            message: "Courses selected successfully",
+            data,
+        }
+    } catch (error:any) {
+        throw error;
+    }
+}
+
 export default {
+    update,
     getAll,
     addSchudules,
     getByCourseSchedule,

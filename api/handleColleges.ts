@@ -89,7 +89,7 @@ const getByIds = async (ids: string[]): Promise<Response<College[] | []>> => {
             .select('*')
             .in('id', ids)
             .order('college_name', {ascending: true});
-        console.log("🚀 ~ getByIds ~ data:", data)
+        // console.log("🚀 ~ getByIds ~ data:", data)
             
         if (error && status !== 406) {
             throw error;

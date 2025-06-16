@@ -135,6 +135,8 @@ const CollegeDetails = () => {
 						_department_name: item?.department_name,
 						_department_id: item?.id,
 						_college_id: item?.college_id,
+                        _course_duration: item?.course_duration,
+                        _college_name,
 					}
 				})
             }}

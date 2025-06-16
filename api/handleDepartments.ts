@@ -124,8 +124,36 @@ const getById = async (id: string): Promise<Response<Department | null>> => {
     }
 }
 
+const update = async ({id, department_name, college_id, course_duration}: {id: string, department_name: string, college_id: string, course_duration: number}): Promise<Response<Department>> => {
+    try {
+        const { data, error, status } = await supabase
+            .from(tableName)
+            .update({ 
+                department_name,
+                course_duration,
+                college_id
+            })
+            .eq('id', id)
+            .select('*')
+            .single();
+
+        if (error && status !== 406) {
+            throw error;
+        }
+
+        return {
+            isSuccessful: true,
+            message: "Department created successfully",
+            data: data
+        }
+    } catch (error) {
+        throw error;
+    }
+}
+
 export default {
     create,
+    update,
     getAll,
     getById,
     getByIds,

@@ -50,13 +50,9 @@ const Lecturers = () => {
 	const [colleges, setColleges] = useState<College[]>([]);
 	const [collegeIds, setCollegeIds] = useState<string[]>([]);
 	const [departmentIds, setDepartmentIds] = useState<string[]>([]);
-	// console.log("🚀 ~ Departments ~ collegeIds:", collegeIds)
 	const [searchInput, setSearchInput] = useState<string>("");
 	const [departments, setDepartments] = useState<Department[]>([])
 	const [lecturers, setLecturers] = useState<Lecturer[]>([])
-	// console.log("🚀 ~ Departments ~ colleges:", colleges)
-	// console.log("🚀 ~ Departments ~ departments:", departments)
-	console.log("")
 
 	const data = useMemo<any>(() => {
 		if (dataLoading.colleges || dataLoading.departments || dataLoading.lecturers) {
@@ -94,7 +90,7 @@ const Lecturers = () => {
 				}
 			});
 	}, [colleges, dataLoading.colleges, dataLoading.departments, searchInput, lecturers, dataLoading.lecturers]);
-	console.log("🚀 ~ Lecturers ~ data:", data)
+	console.log("🚀 ~ Lecturers ~ data:", data[0])
 
 
 	useEffect(() => {
@@ -141,7 +137,7 @@ const Lecturers = () => {
 		const fetchLecturers = async () => {
 			try {
 				const lecturersResponse = await handleLecturers.getAll();
-				console.log("🚀 ~ fetchLecturers ~ lecturersResponse:", lecturersResponse)
+				// console.log("🚀 ~ fetchLecturers ~ lecturersResponse:", lecturersResponse)
 
 				if (lecturersResponse.isSuccessful) {
 					setLecturers(lecturersResponse.data)
@@ -173,7 +169,17 @@ const Lecturers = () => {
 			courseIds={item?.course_ids}
 			role={item?.role}
 			onPress={() => {
-
+				router.push({
+					pathname: '/(root)/(app)/(lecturer)/EditLecturer',
+					params: {
+						_role: item?.role,
+						_department_id: item?.department_id,
+						_department_name: item?.department_name,
+						_lecturer_id: item?.id,
+						_full_name: item?.full_name,
+						_rfid: item?.rfid,
+					}
+				})
 			}}
 		/>
 	), []);

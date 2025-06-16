@@ -6,9 +6,9 @@ import handleSettings from '@/api/handleSettings';
 import { handleDisableDataLoading } from '@/utilities/handleDisableDataLoading';
 import { useAppStore } from '@/stores/useAppStore';
 import CustomButton from '@/components/CustomButton';
-import { Link, useRouter } from 'expo-router';
+import { Link, usePathname, useRouter } from 'expo-router';
 import handleSchedule from '@/api/handleSchedule';
-import { Response, Schedule } from '@/types/api';
+import { Course, Response, Schedule } from '@/types/api';
 import Flex from '@/components/Flex';
 import { colors } from '@/utilities/colors';
 import FlatTabs from '@/components/FlatTabs';
@@ -20,11 +20,13 @@ import EditableScheduleListItem from '@/components/EditableScheduleListItem';
 import InterText from '@/components/InterText';
 import AddCircleIcon from "@/assets/svg/AddCircleIcon.svg"
 import AntDesign from '@expo/vector-icons/AntDesign';
+import handleCourses from '@/api/handleCourses';
 
 
 const Schedules = () => {
 
 	const router = useRouter();
+	const pathname = usePathname();
 
 	const {
 		displayToast,
@@ -34,10 +36,12 @@ const Schedules = () => {
 	const [semester, setSemester] = useState<Semester | null>(null)
 	const [schedule, setSchedules] = useState<Schedule[]>([])
 	// console.log("🚀 ~ Schedules ~ schedule:", schedule)
+	const [courses, setCourses] = useState<Course[]>([]);
 
-	const [dataLoading, setDataLoading] = useState<{schedules: boolean, settings: boolean}>({
+	const [dataLoading, setDataLoading] = useState<{schedules: boolean, settings: boolean, courses: boolean}>({
 		settings: true,
 		schedules: true,
+		courses: true,
 	});
 
 	const [tabs, setTabs] = useState<FlatTab<string>[]>([
@@ -98,6 +102,7 @@ const Schedules = () => {
 	}, []);
 
 	useEffect(() => {
+		if (pathname !== '/schedules') return;
 		if (!academicSession || !semester) return;
 		const fetchSchedule = async  () => {
 			try {
@@ -142,24 +147,49 @@ const Schedules = () => {
 		}
 
 		fetchSchedule()
-	}, [academicSession, semester]);
+	}, [academicSession, semester, pathname]);
+
+	useEffect(() => {
+		const fetchCourses = async () => {
+			try {
+				let courseResponse
+				courseResponse = await handleCourses.getAll();
+
+				if (courseResponse.isSuccessful) {
+					setCourses(courseResponse.data)
+				}
+			} catch (error: any) {
+				displayToast('ERROR', error?.message)
+			} finally {
+				handleDisableDataLoading('courses', setDataLoading)
+			}
+		}
+
+		fetchCourses();
+			
+	}, [])
 
 
 	const data = useMemo(() => {
-		if (dataLoading.schedules) {
+		if (dataLoading.schedules || dataLoading.courses) {
 			return getLoadingData(['course_code', 'course_title'], ['', ''])
 		}
 
 		const activeTab = tabs.find(item => item.active);
 
-		return schedule.filter(item => item.level === (activeTab?.id && parseInt(activeTab?.id)));
+		return schedule.filter(item => item.level === (activeTab?.id && parseInt(activeTab?.id))).map(item => {
+			return {
+				...item,
+				course_title: courses.find(course => course.course_code === item.course_code)?.course_title || '',
+			}
+		});
 	}, [dataLoading, schedule, tabs]);
 	// console.log("🚀 ~ data ~ data:", data[0])
 
-	const renderItem = useCallback(({item}: ListRenderItemInfo<Schedule & {is_loading: boolean}>) => (
+	const renderItem = useCallback(({item}: ListRenderItemInfo<Schedule & {is_loading: boolean, course_title: string}>) => (
 		<EditableScheduleListItem
 			courseCode={item.course_code}
-			courseTitle=''
+			courseTitle={item?.course_title}
 			daysOfTheWeek={item.days_of_the_week}
 			lectureHours={item.lecture_hours}
 			lectureStartTime={item.lecture_start_time}
@@ -167,7 +197,19 @@ const Schedules = () => {
 			isLoading={item?.is_loading}
 			hideEditButton={true}
 			onPress={() => {
-
+				router.push({
+					pathname: '/(root)/(app)/(schedule)/EditSchedule',
+					params: {
+						_level: item?.level,
+						_course_code: item?.course_code,
+						_course_id: item?.course_id,
+						_days_of_the_week: JSON.stringify(item?.days_of_the_week),
+						_lecture_hours: JSON.stringify(item?.lecture_hours),
+						_lecture_start_time: JSON.stringify(item?.lecture_start_time),
+						_venue: item?.venue,
+						_schedule_id: item?.id,
+					}
+				})
 			}}
 			// onPress={() => router.push(`/schedule/${item.id}`)}
 		/>

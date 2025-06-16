@@ -235,7 +235,19 @@ const CourseDetails = () => {
 							venue={schedule.venue}
 							hideEditButton={true}
 							onPress={() => {
-	
+								router.push({
+									pathname: '/(root)/(app)/(schedule)/EditSchedule',
+									params: {
+										_level: schedule?.level,
+										_course_code: schedule?.course_code,
+										_course_id: schedule?.course_id,
+										_days_of_the_week: JSON.stringify(schedule?.days_of_the_week),
+										_lecture_hours: JSON.stringify(schedule?.lecture_hours),
+										_lecture_start_time: JSON.stringify(schedule?.lecture_start_time),
+										_venue: schedule?.venue,
+										_schedule_id: schedule?.id,
+									}
+								})
 							}}
 						/>
 					)}

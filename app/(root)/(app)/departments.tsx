@@ -12,7 +12,7 @@ import { getLoadingData } from '@/utilities/getLoadingData'
 import Input from '@/components/Input'
 import FixedButton from '@/components/FixedButton'
 import AddCircleIcon from "@/assets/svg/AddCircleIcon.svg"
-import { useRouter, useSegments } from 'expo-router'
+import { usePathname, useRouter, useSegments } from 'expo-router'
 import { colors } from '@/utilities/colors'
 import CustomButton from '@/components/CustomButton'
 import handleDepartments from '@/api/handleDepartments'
@@ -29,6 +29,7 @@ const Departments = () => {
 
 	const router = useRouter()
 	const segments = useSegments();
+	const pathname = usePathname();
 
 	const {
 		displayToast,
@@ -99,6 +100,7 @@ const Departments = () => {
 	}, [collegeIds])
 
 	useEffect(() => {
+		if (pathname !== '/departments') return;
 		const fetchDepartments = async () => {
 			try {
 				const departmentsResponse = await handleDepartments.getAll();
@@ -115,7 +117,7 @@ const Departments = () => {
 		}
 
 		fetchDepartments();
-	}, [segments])
+	}, [pathname])
 
 	const RenderItem = useCallback(({item, index}: {item: DepartmentsListItemProps, index: number}) => (
 		<DepartmentListItem
@@ -131,6 +133,8 @@ const Departments = () => {
 						_department_name: item?.department_name,
 						_department_id: item?.id,
 						_college_id: item?.college_id,
+						_course_duration: item?.course_duration,
+						_college_name: item?.college_name
 					}
 				})
 			}}

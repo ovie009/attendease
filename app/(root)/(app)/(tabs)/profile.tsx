@@ -47,14 +47,14 @@ const Profile = () => {
     const [dataLoading, setDataLoading] = useState<{admins: boolean}>({
         admins: true,
     }); 
-    console.log("🚀 ~ Profile ~ dataLoading:", dataLoading)
+    // console.log("🚀 ~ Profile ~ dataLoading:", dataLoading)
 
     useEffect(() => {
         const fetchAdmins = async () => {
             if (!user?.is_admin) return;
             try {
                 const adminsResponse = await handleAdmin.getAll();
-                console.log("🚀 ~ fetchAdmins ~ adminsResponse:", adminsResponse)
+                // console.log("🚀 ~ fetchAdmins ~ adminsResponse:", adminsResponse)
                 // remove logged in user form list
                 setAdmins(adminsResponse.data.filter(item => item.id !== user?.id));
             } catch (error: any) {

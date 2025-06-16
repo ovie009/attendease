@@ -35,7 +35,10 @@ const DepartmentDetails = () => {
 		_department_name,
 		_department_id,
 		_college_id,
+		_college_name,
+		_course_duration,
 	} = useLocalSearchParams();
+		console.log("🚀 ~ DepartmentDetails ~ _course_duration:", _course_duration)
 
 	const {
 		displayToast
@@ -47,6 +50,9 @@ const DepartmentDetails = () => {
             params: {
                 _department_name,
                 _department_id,
+				_college_id,
+				_college_name,
+				_course_duration,
             }
         })
     }
