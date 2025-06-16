@@ -240,13 +240,16 @@ const Schedules = () => {
 									fontSize={16}
 									lineHeight={19}
 								>
-									No schedule added for this level
+									{semester ? "No schedule added for this level" : "No settings for semester and session added, add settings first"}
 								</InterText>
 								<CustomButton
 									onPress={() => {
+										if (!semester) {
+											router.push('/(root)/(app)/session')
+										}
 										router.push('/(root)/(app)/(schedule)/AddSchedule')				
 									}}
-									text={"Add Schedule"}
+									text={semester ? "Add Schedule" : "Add settings"}
 									Icon={<AddCircleIcon width={22.5} height={22.5} />}
 
 								/>

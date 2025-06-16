@@ -11,13 +11,15 @@ import { BottomSheetFlashList, BottomSheetModal } from '@gorhom/bottom-sheet'
 import { Department, RfidCard } from '@/types/api'
 import OptionListItem from '@/components/OptionListItem'
 import { ListRenderItemInfo } from '@shopify/flash-list'
-import { usePathname, useRouter } from 'expo-router'
+import { useLocalSearchParams, usePathname, useRouter } from 'expo-router'
 import { handleDisableDataLoading } from '@/utilities/handleDisableDataLoading'
 import { useAppStore } from '@/stores/useAppStore'
 import handleDepartments from '@/api/handleDepartments'
 import { Role } from '@/types/general'
 import handleLecturers from '@/api/handleLecturers'
 import handleRfidCards from '@/api/handleRfidCards'
+import Flex from '@/components/Flex'
+import Container from '@/components/Container'
 
 // Define the combined type for clarity
 type SelectableDepartment = Department & { is_selected: boolean };
@@ -33,6 +35,10 @@ const AddLecturer = () => {
 
 	const router = useRouter();
     const pathname = usePathname();
+
+	const {
+		_department_id
+	} = useLocalSearchParams();
 
 	const {
 		setIsLoading,
@@ -122,7 +128,14 @@ const AddLecturer = () => {
 				const departmentsResponse = await handleDepartments.getAll();
 
 				if (departmentsResponse.isSuccessful) {
-					setDepartments(departmentsResponse.data.map(item => ({...item, is_selected: false})))
+					setDepartments(departmentsResponse.data.map(item => ({...item, is_selected: item?.id === _department_id})))
+
+					if (_department_id) {
+						const foundDepartment = departmentsResponse.data.find((item) => item.id === _department_id)!;
+						setDepartmentName(foundDepartment.department_name); // Now TypeScript knows foundLecturer is Lecturer, not Lecturer | undefined
+
+						setDepartmentId(_department_id as string);
+					}
 				}
 				// console.log("🚀 ~ fetchDepartments ~ departmentsResponse.data:", departmentsResponse.data)
 			} catch (error: any) {
@@ -381,7 +394,7 @@ const AddLecturer = () => {
 				<BottomSheetFlashList
 					data={departments}
 					keyExtractor={(item) => item.id}
-					contentContainerStyle={{paddingBottom: 30}}
+					contentContainerStyle={{paddingTop: 50}}
 					estimatedItemSize={81}
 					renderItem={renderDepartmentItem}
 				/>
@@ -390,7 +403,7 @@ const AddLecturer = () => {
 				<BottomSheetFlashList
 					data={roles}
 					keyExtractor={(item) => item.id}
-					contentContainerStyle={{paddingBottom: 30}}
+					contentContainerStyle={{paddingTop: 50}}
 					estimatedItemSize={81}
 					renderItem={renderRoleItem}
 				/>
@@ -399,7 +412,7 @@ const AddLecturer = () => {
 				<BottomSheetFlashList
 					data={rfidCards}
 					keyExtractor={(item) => item.id}
-					contentContainerStyle={{paddingBottom: 30}}
+					contentContainerStyle={{paddingTop: 50}}
 					estimatedItemSize={81}
 					renderItem={renderCardItem}
 				/>

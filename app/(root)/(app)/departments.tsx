@@ -1,7 +1,7 @@
 // ./app/(app)/colleges.tsx
 import { StyleSheet, View } from 'react-native'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { Paragraph, Title } from 'react-native-paper'
+import InterText from '@/components/InterText';
 import { FlashList } from '@shopify/flash-list'
 import { College, Department } from '@/types/api'
 import { HEIGHT, WIDTH } from '@/utilities/dimensions'
@@ -125,7 +125,14 @@ const Departments = () => {
 			collegeName={item.college_name}
 			hod={item?.hod}
 			onPress={() => {
-
+				router.push({
+					pathname: '/(root)/(app)/department/[_department_name]',
+					params: {
+						_department_name: item?.department_name,
+						_department_id: item?.id,
+						_college_id: item?.college_id,
+					}
+				})
 			}}
 		/>
 	), []);
@@ -149,12 +156,12 @@ const Departments = () => {
 				ListEmptyComponent={(colleges.length === 0 && data.length === 0) ? (
 					<View style={styles.listEmptyComponent}>
 						<View style={styles.text}>
-							<Title>
+							<InterText>
 								No departments added
-							</Title>
-							<Paragraph>
+							</InterText>
+							<InterText>
 								Add departments to your instituition
-							</Paragraph>
+							</InterText>
 						</View>
 						<CustomButton
 							onPress={() => {

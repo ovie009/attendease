@@ -6,6 +6,7 @@ import InterText from './InterText';
 import moment from 'moment';
 import Feather from '@expo/vector-icons/Feather';
 import Skeleton from './Skeleton';
+import { WIDTH } from '@/utilities/dimensions';
 
 interface EditableCourseListItemProps extends FlexProps {
     courseTitle: string,
@@ -14,6 +15,7 @@ interface EditableCourseListItemProps extends FlexProps {
     lectureHours: number[],
     lectureStartTime: number[],
     venue: string,
+    backgroundColor?: string,
     hideEditButton?: boolean,
     isError?: boolean, 
     isLoading?: boolean,
@@ -21,7 +23,7 @@ interface EditableCourseListItemProps extends FlexProps {
     onPressEdit?: () => void;
 }
 
-const EditableScheduleListItem: FC<EditableCourseListItemProps> = ({courseTitle, courseCode, onPress, onPressEdit, lectureHours, lectureStartTime, daysOfTheWeek, venue, isError, hideEditButton, isLoading, ...rest}) => {
+const EditableScheduleListItem: FC<EditableCourseListItemProps> = ({courseTitle, courseCode, onPress, onPressEdit, lectureHours, lectureStartTime, daysOfTheWeek, venue, isError, hideEditButton, isLoading, backgroundColor, ...rest}) => {
 
     const formatLectureSchedule = () => {
         if (!daysOfTheWeek) return '';
@@ -38,12 +40,13 @@ const EditableScheduleListItem: FC<EditableCourseListItemProps> = ({courseTitle,
         <TouchableOpacity onPress={onPress}>
             <Flex
                 flexDirection='row'
+                width={WIDTH - 40}
                 justifyContent='space-between'
+                backgroundColor={backgroundColor ? backgroundColor :colors.lightBackground}
                 gap={20}
                 style={{
                     padding: 15,
                     borderRadius: 14,
-                    backgroundColor: colors.lightBackground,
                     borderWidth: 1,
                     borderColor: isError ? colors.error : colors.inputBorder,
                     marginBottom: 20,

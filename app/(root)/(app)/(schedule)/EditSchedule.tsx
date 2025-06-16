@@ -182,7 +182,7 @@ const EditSchedule = () => {
 			<BottomSheetFlashList
 				data={lecturers}
 				keyExtractor={(item) => item.id}
-				contentContainerStyle={{paddingBottom: 30}}
+				contentContainerStyle={{paddingTop: 50}}
                 estimatedItemSize={81}
 				renderItem={renderItem}
 				ListEmptyComponent={!dataLoading.lecturers ? (

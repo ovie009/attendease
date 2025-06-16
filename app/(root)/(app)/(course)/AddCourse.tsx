@@ -63,7 +63,8 @@ const AddCourse = () => {
 	const user = useAuthStore(state => state.user)
 
 	const {
-		_add_with_ai
+		_add_with_ai,
+		_department_id
 	} = useLocalSearchParams();
 		// console.log("🚀 ~ AddCourse ~ _add_with_ai:", _add_with_ai)
 
@@ -225,7 +226,13 @@ const AddCourse = () => {
 				const departmentsResponse = await handleDepartments.getAll();
 
 				if (departmentsResponse.isSuccessful) {
-					setDepartments(departmentsResponse.data.map(item => ({...item, is_selected: false})))
+					setDepartments(departmentsResponse.data.map(item => ({...item, is_selected: item?.id === _department_id})))
+					if (_department_id) {
+						const foundDepartment = departmentsResponse.data.find((item) => item.id === _department_id)!;
+						setDepartmentName(foundDepartment.department_name); // Now TypeScript knows foundLecturer is Lecturer, not Lecturer | undefined
+
+						setDepartmentId(_department_id as string);
+					}
 				}
 				// console.log("🚀 ~ fetchDepartments ~ departmentsResponse.data:", departmentsResponse.data)
 			} catch (error: any) {
@@ -618,7 +625,7 @@ const AddCourse = () => {
 				<BottomSheetFlashList
 					data={departments}
 					keyExtractor={(item) => item.id}
-					contentContainerStyle={{paddingBottom: 30}}
+					contentContainerStyle={{paddingTop: 50}}
 					estimatedItemSize={81}
 					renderItem={renderDepartmentItem}
 				/>
@@ -627,7 +634,7 @@ const AddCourse = () => {
 				<BottomSheetFlashList
 					data={semesterOptions}
 					keyExtractor={(item) => item.id}
-					contentContainerStyle={{paddingBottom: 30}}
+					contentContainerStyle={{paddingTop: 50}}
 					estimatedItemSize={81}
 					renderItem={renderSemsterItem}
 				/>
@@ -636,7 +643,7 @@ const AddCourse = () => {
 				<BottomSheetFlashList
 					data={levelOptions}
 					keyExtractor={(item) => item.id}
-					contentContainerStyle={{paddingBottom: 30}}
+					contentContainerStyle={{paddingTop: 50}}
 					estimatedItemSize={81}
 					renderItem={renderLevelItem}
 				/>

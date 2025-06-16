@@ -1,9 +1,9 @@
 // ./app/(app)/colleges.tsx
 import { StyleSheet, View } from 'react-native'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { Paragraph, Title } from 'react-native-paper'
+import InterText from '@/components/InterText';
 import { FlashList } from '@shopify/flash-list'
-import { College } from '@/types/api'
+import { College, Dean } from '@/types/api'
 import { HEIGHT, WIDTH } from '@/utilities/dimensions'
 import { useAppStore } from '@/stores/useAppStore'
 import handleColleges from '@/api/handleColleges'
@@ -16,10 +16,12 @@ import AddCircleIcon from "@/assets/svg/AddCircleIcon.svg"
 import { useRouter, useSegments } from 'expo-router'
 import { colors } from '@/utilities/colors'
 import CustomButton from '@/components/CustomButton'
+import handleLecturers from '@/api/handleLecturers';
 
 // Let's stick with 'is_loading' as used in useMemo annotation.
 type CollegeListItemProps = College & {
     is_loading?: boolean | undefined;
+	name_of_dean?: string | undefined;
 	onPress?: () => void | undefined;
 };
 
@@ -32,22 +34,25 @@ const Colleges = () => {
 		displayToast,
 	} = useAppStore.getState()
 	
-	const [dataLoading, setDataloading] = useState<{colleges: boolean}>({
+	const [dataLoading, setDataloading] = useState<{colleges: boolean, deans: boolean}>({
 		colleges: true,
+		deans: true,
 	});
 
 	// list of collegs
 	const [colleges, setColleges] = useState<College[]>([]);
+	const [deans, setDeans] = useState<Dean[]>([]);
 	const [searchInput, setSearchInput] = useState<string>("");
 
 	const data = useMemo<any>(() => {
-		if (dataLoading.colleges) {
+		if (dataLoading.colleges || dataLoading.deans) {
 			return getLoadingData(['college_name'], ['loading...']);
 		}
 
 		if (searchInput) {
 			return colleges.filter(item => item.college_name.toLowerCase().includes(searchInput.toLowerCase())).map(item => ({
 				...item,
+				name_of_dean: deans.find(dean => dean.college_id === item.id)?.lecturer?.full_name,
 				onPress: () => {
 					router.push({
 						pathname: '/(root)/(app)/college/[_college_name]',
@@ -63,6 +68,7 @@ const Colleges = () => {
 
 		return colleges.map(item => ({
 			...item,
+			name_of_dean: deans.find(dean => dean.college_id === item.id)?.lecturer?.full_name,
 			onPress: () => {
 				router.push({
 					pathname: '/(root)/(app)/college/[_college_name]',
@@ -74,7 +80,7 @@ const Colleges = () => {
 			},
 			is_loading: false
 		}));
-	}, [colleges, dataLoading.colleges, searchInput]);
+	}, [colleges, dataLoading.colleges, searchInput, deans, dataLoading.colleges]);
 
 
 	useEffect(() => {
@@ -86,7 +92,7 @@ const Colleges = () => {
 				if (collegesResponse.isSuccessful) {
 					setColleges(collegesResponse.data)
 				}
-				console.log("🚀 ~ fetchColleges ~ collegesResponse.data:", collegesResponse.data)
+				// console.log("🚀 ~ fetchColleges ~ collegesResponse.data:", collegesResponse.data)
 			} catch (error: any) {
 				displayToast('ERROR', error?.message)
 			} finally {
@@ -98,11 +104,33 @@ const Colleges = () => {
 			
 	}, [segments])
 
+	useEffect(() => {
+		// (async () => )
+		const fetchCollegeDeans = async () => {
+			try {
+				const deansResponse = await handleLecturers.getCollegeDeans();
+				console.log("🚀 ~ fetchCollegeDeans ~ deansResponse:", deansResponse)
+
+				if (deansResponse.isSuccessful) {
+					setDeans(deansResponse.data)
+				}
+			} catch (error: any) {
+				displayToast('ERROR', error?.message)
+			} finally {
+				handleDisableDataLoading('deans', setDataloading)
+			}
+		}
+
+		fetchCollegeDeans();
+			
+	}, [segments])
+
 	const RenderItem = useCallback(({item, index}: {item: CollegeListItemProps, index: number}) => (
 		<CollegeListItem
 			index={index}
 			isLoading={item?.is_loading}
 			onPress={item?.onPress}
+			nameOfDean={item?.name_of_dean}
 			collegeName={item.college_name}
 		/>
 	), []);
@@ -126,12 +154,12 @@ const Colleges = () => {
 				ListEmptyComponent={(colleges.length === 0 && data.length === 0) ? (
 					<View style={styles.listEmptyComponent}>
 						<View style={styles.text}>
-							<Title>
+							<InterText>
 								No college added
-							</Title>
-							<Paragraph>
+							</InterText>
+							<InterText>
 								Add colleges to your instituition
-							</Paragraph>
+							</InterText>
 						</View>
 						<CustomButton
 							onPress={() => {

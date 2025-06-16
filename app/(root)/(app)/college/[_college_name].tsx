@@ -20,263 +20,270 @@ import DepartmentListItem from '@/components/DepartmentListItem'
 // Let's stick with 'is_loading' as used in useMemo annotation.
 type DepartmentListItemProps = Department & {
     is_loading?: boolean | undefined;
-	hod?: string | undefined;
+    hod?: string | undefined;
 };
 
 const CollegeDetails = () => {
 
-	const router = useRouter();
-	const segments = useSegments();
-	const navigation = useNavigation();
+    const router = useRouter();
+    const segments = useSegments();
+    const navigation = useNavigation();
 
-	// get route params
-	const {
-		_college_name,
-		_college_id,
-		_dean_id,
-	} = useLocalSearchParams();
-		console.log("🚀 ~ CollegeDetails ~ _dean_id:", _dean_id)
-		console.log("🚀 ~ CollegeDetails ~ _college_id:", _college_id)
-		// console.log("🚀 ~ CollegeDetails ~ useLocalSearchParams():", useLocalSearchParams())
+    // get route params
+    const {
+        _college_name,
+        _college_id,
+        _dean_id,
+    } = useLocalSearchParams();
+        // console.log("🚀 ~ CollegeDetails ~ _dean_id:", _dean_id)
+        // console.log("🚀 ~ CollegeDetails ~ _college_id:", _college_id)
+        // console.log("🚀 ~ CollegeDetails ~ useLocalSearchParams():", useLocalSearchParams())
 
-	const {
-		displayToast,
-	} = useAppStore.getState()
-	// console.log("🚀 ~ Colleges ~ keyboardHeight:", keyboardHeight)
+    const {
+        displayToast,
+    } = useAppStore.getState()
+    // console.log("🚀 ~ Colleges ~ keyboardHeight:", keyboardHeight)
 
-	const [dataLoading, setDataloading] = useState<{departments: boolean}>({
-		departments: true,
-	});
+    const [dataLoading, setDataloading] = useState<{departments: boolean}>({
+        departments: true,
+    });
 
-	const [departments, setDepartments] = useState<Department[]>([]);
-	const [searchInput, setSearchInput] = useState<string>("");
-	const [hods, setHods] = useState<Lecturer[] | undefined>(undefined) 
+    const [departments, setDepartments] = useState<Department[]>([]);
+    const [searchInput, setSearchInput] = useState<string>("");
+    const [hods, setHods] = useState<Lecturer[] | undefined>(undefined) 
 
-	useEffect(() => {
-		// (async () => )
-		const fetchDepartments = async () => {
-			try {
-				const departmentsResponse = await handleDepartments.getByCollegeId(_college_id as string);
+    useEffect(() => {
+        // (async () => )
+        const fetchDepartments = async () => {
+            try {
+                const departmentsResponse = await handleDepartments.getByCollegeId(_college_id as string);
 
-				if (departmentsResponse.isSuccessful) {
-					setDepartments(departmentsResponse.data)
-				}
-			} catch (error: any) {
-				displayToast('ERROR', error?.message)
-			} finally {
-				handleDisableDataLoading('departments', setDataloading)
-			}
-		}
+                if (departmentsResponse.isSuccessful) {
+                    setDepartments(departmentsResponse.data)
+                }
+            } catch (error: any) {
+                displayToast('ERROR', error?.message)
+            } finally {
+                handleDisableDataLoading('departments', setDataloading)
+            }
+        }
 
-		fetchDepartments();
-	}, [segments])
+        fetchDepartments();
+    }, [segments])
 
-	const data = useMemo<any>(() => {
-		if (dataLoading.departments) {
-			return getLoadingData(['department_name'], ['loading...']);
-		}
+    const data = useMemo<any>(() => {
+        if (dataLoading.departments) {
+            return getLoadingData(['department_name'], ['loading...']);
+        }
 
-		if (searchInput) {
-			return departments.filter(item => item.department_name.toLowerCase().includes(searchInput.toLowerCase())).map(item => ({
-				...item,
-				hod: undefined,
-				onPress: () => {
-				},
-			}));
-		}
+        if (searchInput) {
+            return departments.filter(item => item.department_name.toLowerCase().includes(searchInput.toLowerCase())).map(item => ({
+                ...item,
+                hod: undefined,
+                onPress: () => {
+                },
+            }));
+        }
 
-		return departments.map(item => ({
-			...item,
-			hod: undefined,
-			onPress: () => {
-			},
-		}));
-	}, [departments, dataLoading.departments, searchInput]);
+        return departments.map(item => ({
+            ...item,
+            hod: undefined,
+            onPress: () => {
+            },
+        }));
+    }, [departments, dataLoading.departments, searchInput]);
 
-	const handleEditCollege = () => {
-		router.push({
-			pathname: '/(root)/(app)/(college)/editCollege',
-			params: {
-				_college_name,
-				_college_id,
-				_dean_id,
-			}
-		})
-	}
+    const handleEditCollege = () => {
+        router.push({
+            pathname: '/(root)/(app)/(college)/editCollege',
+            params: {
+                _college_name,
+                _college_id,
+                _dean_id,
+            }
+        })
+    }
 
-	useEffect(() => {
-		navigation.setOptions({
-			headerRight: () => (
-				<CustomButton
-					onPress={handleEditCollege}
-					text='Edit'
-					buttonStyle={{
-						width: 'auto', 
-						borderRadius: 14,
-						minHeight: 30,
-					}}
-					isSecondary={true}
-				/>
-			)
-		});
-	}, []);
+    useEffect(() => {
+        navigation.setOptions({
+            headerRight: () => (
+                <CustomButton
+                    onPress={handleEditCollege}
+                    text='Edit'
+                    buttonStyle={{
+                        width: 'auto', 
+                        borderRadius: 14,
+                        minHeight: 30,
+                    }}
+                    isSecondary={true}
+                />
+            )
+        });
+    }, []);
 
-	const RenderItem = useCallback(({item, index}: {item: DepartmentListItemProps, index: number}) => (
-		<DepartmentListItem
-			index={index}
-			isLoading={item?.is_loading}
-			departmentName={item.department_name}
-			collegeName={_college_name as string}
-			hod={item?.hod}
-			onPress={() => {
-
-			}}
-		/>
-	), []);
+    const RenderItem = useCallback(({item, index}: {item: DepartmentListItemProps, index: number}) => (
+        <DepartmentListItem
+            index={index}
+            isLoading={item?.is_loading}
+            departmentName={item.department_name}
+            collegeName={_college_name as string}
+            hod={item?.hod}
+            onPress={() => {
+                router.push({
+					pathname: '/(root)/(app)/department/[_department_name]',
+					params: {
+						_department_name: item?.department_name,
+						_department_id: item?.id,
+						_college_id: item?.college_id,
+					}
+				})
+            }}
+        />
+    ), []);
 
     return (<>
-		<View style={styles.contentContainerStyle}>
-			<FlashList
-				keyExtractor={(item) => item.id}
-				ListHeaderComponent={!(!dataLoading.departments && departments.length === 0) ? (
-					<View style={styles.header}>
-						<Input
-							defaultValue={searchInput}
-							onChangeText={setSearchInput}
-							placeholder='Search Departments'
-						/>
-					</View>
-				) : undefined}
-				data={data}
-				renderItem={RenderItem}
-				estimatedItemSize={100}
-				ListEmptyComponent={(
-					<View style={styles.listEmptyComponent}>
-						<View style={styles.text}>
-							<InterText
-								fontWeight={600}
-								fontSize={16}
-								lineHeight={19}
-							>
-								No departments found
-							</InterText>
-							<InterText
-								color={colors.subtext}
-							>
-								Add departments to {_college_name}
-							</InterText>
-						</View>
-						<CustomButton
-							onPress={() => {
-								router.push({
-									pathname: '/(root)/(app)/(department)/addDepartment',
-									params: {
-										_college_name,
-										_college_id,
-									}
-								})		
-							}}
-							text={"Add Department"}
-							Icon={<AddCircleIcon width={22.5} height={22.5} />}
-						/>
-					</View>
-				)}
-			/> 
-		</View>
-		{!(!dataLoading.departments && departments.length === 0) && (
-			<FixedButton
-				onPress={() => {
-					router.push({
-						pathname: '/(root)/(app)/(department)/addDepartment',
-						params: {
-							_college_name,
-							_college_id,
-						}
-					})			
-				}}
-				text={"Add Department"}
-				Icon={<AddCircleIcon width={22.5} height={22.5} />}
-			/>
-		)}
-	</>)
+        <View style={styles.contentContainerStyle}>
+            <FlashList
+                keyExtractor={(item) => item.id}
+                ListHeaderComponent={!(!dataLoading.departments && departments.length === 0) ? (
+                    <View style={styles.header}>
+                        <Input
+                            defaultValue={searchInput}
+                            onChangeText={setSearchInput}
+                            placeholder='Search Departments'
+                        />
+                    </View>
+                ) : undefined}
+                data={data}
+                renderItem={RenderItem}
+                estimatedItemSize={100}
+                ListEmptyComponent={(
+                    <View style={styles.listEmptyComponent}>
+                        <View style={styles.text}>
+                            <InterText
+                                fontWeight={600}
+                                fontSize={16}
+                                lineHeight={19}
+                            >
+                                No departments found
+                            </InterText>
+                            <InterText
+                                color={colors.subtext}
+                            >
+                                Add departments to {_college_name}
+                            </InterText>
+                        </View>
+                        <CustomButton
+                            onPress={() => {
+                                router.push({
+                                    pathname: '/(root)/(app)/(department)/addDepartment',
+                                    params: {
+                                        _college_name,
+                                        _college_id,
+                                    }
+                                })		
+                            }}
+                            text={"Add Department"}
+                            Icon={<AddCircleIcon width={22.5} height={22.5} />}
+                        />
+                    </View>
+                )}
+            /> 
+        </View>
+        {!(!dataLoading.departments && departments.length === 0) && (
+            <FixedButton
+                onPress={() => {
+                    router.push({
+                        pathname: '/(root)/(app)/(department)/addDepartment',
+                        params: {
+                            _college_name,
+                            _college_id,
+                        }
+                    })			
+                }}
+                text={"Add Department"}
+                Icon={<AddCircleIcon width={22.5} height={22.5} />}
+            />
+        )}
+    </>)
 }
 
 export default CollegeDetails
 
 const styles = StyleSheet.create({
-	contentContainerStyle: {
-		flex: 1,
-		// backgroundColor: 'white',
-		paddingHorizontal: 20,
-		paddingVertical: 30,
-		display: 'flex',
-		// justifyContent: 'center',
-		// alignItems: 'center',
-		gap: 20,
-		width: WIDTH,
-		backgroundColor: colors.white,
-		position: 'relative',
-	},
-	header: {
-		marginBottom: 40,
-	},
-	text: {
-		display: 'flex',
-		justifyContent: 'center',
-		alignItems: 'center',
-		gap: 10,
-	},
-	listEmptyComponent: {
-		display: 'flex',
-		justifyContent: 'center',
-		alignItems: 'center',
-		gap: 20,
-		height: HEIGHT/2,
-		width: '100%',
-		// width: WIDTH - 20,
-	},
-	buttonWrapper: {
-		position: 'absolute',
-		bottom: 0,
-		left: 0,
-		width: '100%',
-		backgroundColor: colors.grey,
-		height: 100,
-	},
-	// BOTTOM SHEEET
-	// BOTTOM SHEEET
-	// BOTTOM SHEEET
-	sheetWrapper: {
-		// height: '100%',
-		flex: 1,
-		display: 'flex',
-		justifyContent: 'flex-start',
-		alignItems: 'flex-start',
-		paddingBottom: 30,
-		width: '100%',
-		// backgroundColor: 'pink',
-		gap: 20
-	},
-	sheetForm: {
-		width: '100%',
-		gap: 20,
-		// backgroundColor: 'teal'
-	},
-	input: {
-		flexGrow: 0,
-		width: WIDTH - 40,
-		flex: 0,
-		// maxHeight: 50,
-		// backgroundColor: 'red',
-		// opacity: 0.3,
-	},
-	inputOutline: {
-		backgroundColor: 'orange',
-	},
-	modalButtonWrapper: {
-		flex: 1,
-		justifyContent: 'flex-end',
-		// display: 'flex',`
-		width: '100%'
-	}
+    contentContainerStyle: {
+        flex: 1,
+        // backgroundColor: 'white',
+        paddingHorizontal: 20,
+        paddingVertical: 30,
+        display: 'flex',
+        // justifyContent: 'center',
+        // alignItems: 'center',
+        gap: 20,
+        width: WIDTH,
+        backgroundColor: colors.white,
+        position: 'relative',
+    },
+    header: {
+        marginBottom: 40,
+    },
+    text: {
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 10,
+    },
+    listEmptyComponent: {
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 20,
+        height: HEIGHT/2,
+        width: '100%',
+        // width: WIDTH - 20,
+    },
+    buttonWrapper: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        width: '100%',
+        backgroundColor: colors.grey,
+        height: 100,
+    },
+    // BOTTOM SHEEET
+    // BOTTOM SHEEET
+    // BOTTOM SHEEET
+    sheetWrapper: {
+        // height: '100%',
+        flex: 1,
+        display: 'flex',
+        justifyContent: 'flex-start',
+        alignItems: 'flex-start',
+        paddingBottom: 30,
+        width: '100%',
+        // backgroundColor: 'pink',
+        gap: 20
+    },
+    sheetForm: {
+        width: '100%',
+        gap: 20,
+        // backgroundColor: 'teal'
+    },
+    input: {
+        flexGrow: 0,
+        width: WIDTH - 40,
+        flex: 0,
+        // maxHeight: 50,
+        // backgroundColor: 'red',
+        // opacity: 0.3,
+    },
+    inputOutline: {
+        backgroundColor: 'orange',
+    },
+    modalButtonWrapper: {
+        flex: 1,
+        justifyContent: 'flex-end',
+        // display: 'flex',`
+        width: '100%'
+    }
 })

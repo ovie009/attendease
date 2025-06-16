@@ -250,7 +250,8 @@ const AddSchedule = () => {
 			// disable loading pages
 			setLoadingPages(loadingPages.filter(item => item !== pathname))
 		}
-	}, [dataLoading.courses, dataLoading.settings])
+	}, [dataLoading.courses, dataLoading.settings]);
+	
 
 	const handleSelectLevel = useCallback((id: string): void => {
 		// This check ensures that 'find' below will succeed.
@@ -640,7 +641,7 @@ const AddSchedule = () => {
 				<BottomSheetFlashList
 					data={levelOptions}
 					keyExtractor={(item) => item.id}
-					contentContainerStyle={{paddingBottom: 30}}
+					contentContainerStyle={{paddingTop: 50}}
 					estimatedItemSize={81}
 					renderItem={renderLevelItem}
 				/>
@@ -650,7 +651,7 @@ const AddSchedule = () => {
 				<BottomSheetFlashList
 					data={courses}
 					keyExtractor={(item) => item.id}
-					contentContainerStyle={{paddingBottom: 30}}
+					contentContainerStyle={{paddingTop: 50}}
 					estimatedItemSize={81}
 					renderItem={renderCourseItem}
 				/>

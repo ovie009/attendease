@@ -17,6 +17,9 @@
   "expo": {
     "doctor": {
       "reactNativeDirectoryCheck": {
+        "exclude": [
+          "@react-native-community/datetimepicker"
+        ],
         "listUnknownPackages": false
       }
     }
@@ -25,7 +28,7 @@
     "@expo/vector-icons": "^14.0.2",
     "@gorhom/bottom-sheet": "^5.1.2",
     "@react-native-async-storage/async-storage": "^2.1.2",
-    "@react-native-community/datetimepicker": "^8.3.0",
+    "@react-native-community/datetimepicker": "8.3.0",
     "@react-navigation/bottom-tabs": "^7.2.0",
     "@react-navigation/native": "^7.0.14",
     "@shopify/flash-list": "1.7.6",
@@ -62,14 +65,14 @@
     "react-native-get-random-values": "^1.11.0",
     "react-native-paper": "^5.13.1",
     "react-native-reanimated": "~3.17.4",
-    "react-native-safe-area-context": "^5.4.0",
-    "react-native-screens": "~4.10.0",
+    "react-native-safe-area-context": "5.4.0",
+    "react-native-screens": "~4.11.1",
     "react-native-shimmer-placeholder": "^2.0.9",
     "react-native-svg": "15.11.2",
     "react-native-vector-icons": "^10.2.0",
     "react-native-web": "^0.20.0",
-    "react-native-webview": "^13.13.5",
-    "react-test-renderer": "^19.1.0",
+    "react-native-webview": "13.13.5",
+    "react-test-renderer": "^19.0.0",
     "uuid": "^11.1.0",
     "zustand": "^5.0.3"
   },

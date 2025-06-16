@@ -128,7 +128,7 @@ const AddDepartment = () => {
 				if (collegesResponse.isSuccessful) {
 					setColleges(collegesResponse.data.map(item => ({...item, is_selected: item.id === _college_id})))
 				}
-				console.log("🚀 ~ fetchColleges ~ collegesResponse.data:", collegesResponse.data)
+				// console.log("🚀 ~ fetchColleges ~ collegesResponse.data:", collegesResponse.data)
 			} catch (error: any) {
 				displayToast('ERROR', error?.message)
 			} finally {
@@ -302,7 +302,7 @@ const AddDepartment = () => {
 				<BottomSheetFlashList
 					data={colleges}
 					keyExtractor={(item) => item.id}
-					contentContainerStyle={{paddingBottom: 30}}
+					contentContainerStyle={{paddingTop: 50}}
 					estimatedItemSize={81}
 					renderItem={renderCollegeItem}
 					ListEmptyComponent={!dataLoading.colleges ? (
@@ -325,7 +325,7 @@ const AddDepartment = () => {
 				<BottomSheetFlashList
 					data={courseDurationOptions}
 					keyExtractor={(item) => item.id}
-					contentContainerStyle={{paddingBottom: 30}}
+					contentContainerStyle={{paddingTop: 50}}
 					estimatedItemSize={81}
 					renderItem={renderDurationItem}
 				/>

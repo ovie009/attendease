@@ -192,7 +192,7 @@ const ScanCard = () => {
             <BottomSheetFlashList
                 data={accountTypeOptions}
                 keyExtractor={(item) => item.id}
-                contentContainerStyle={{paddingBottom: 30}}
+                contentContainerStyle={{paddingTop: 50}}
                 renderItem={renderItem}
                 estimatedItemSize={60}
             />

@@ -106,6 +106,30 @@ const getBySessionSemesterAndLevel = async ({session, semester, level}: {session
     }
 }
 
+const getBySessionSemesterAndCourseCode = async ({session, semester, course_code}: {session: string, semester: Semester, course_code: string}): Promise<Response<Schedule | null>> => {
+    try {
+        const { data, error, status } = await supabase
+            .from(tableName)
+            .select('*')
+            .eq('session', session)
+            .eq('semester', semester)
+            .eq('course_code', course_code)
+            .single()
+
+        if (error && status !== 406) {
+            throw error;
+        }
+
+        return {
+            isSuccessful: true,
+            message: "Courses selected successfully",
+            data,
+        } 
+    } catch (error) {
+        throw error;
+    }
+}
+
 const getByCourseSchedule = async (course_id: string): Promise<Response<Schedule | null>> => {
     try {
         const { data, error, status } = await supabase
@@ -134,5 +158,6 @@ export default {
     addSchudules,
     getByCourseSchedule,
     getBySessionAndSemester,
-    getBySessionSemesterAndLevel
+    getBySessionSemesterAndLevel,
+    getBySessionSemesterAndCourseCode,
 }

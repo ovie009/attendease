@@ -1,7 +1,7 @@
 // ./app/(app)/courses.tsx
 import { StyleSheet, TouchableOpacity, View } from 'react-native'
 import React, { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Paragraph, Title } from 'react-native-paper'
+import InterText from '@/components/InterText';
 import { FlashList } from '@shopify/flash-list'
 import { Course } from '@/types/api'
 import { HEIGHT, WIDTH } from '@/utilities/dimensions'
@@ -10,7 +10,7 @@ import { handleDisableDataLoading } from '@/utilities/handleDisableDataLoading'
 import { getLoadingData } from '@/utilities/getLoadingData'
 import Input from '@/components/Input'
 import AddCircleIcon from "@/assets/svg/AddCircleIcon.svg"
-import { useNavigation, useRouter, useSegments } from 'expo-router'
+import { useLocalSearchParams, useNavigation, useRouter, useSegments } from 'expo-router'
 import { colors } from '@/utilities/colors'
 import CustomButton from '@/components/CustomButton'
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
@@ -21,7 +21,6 @@ import { BottomSheetModal } from '@gorhom/bottom-sheet'
 import CustomBottomSheet from '@/components/CustomBottomSheet'
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import Flex from '@/components/Flex'
-import InterText from '@/components/InterText'
 
 // Let's stick with 'is_loading' as used in useMemo annotation.
 type CourseListItemProps = Course & {
@@ -41,6 +40,11 @@ const Courses = () => {
 	const router = useRouter()
 	const segments = useSegments();
 	const navigation = useNavigation();
+
+	const {
+		_department_id
+	} = useLocalSearchParams();
+		// console.log("🚀 ~ Courses ~ _department_id:", _department_id)
 
 	const {
 		displayToast,
@@ -143,7 +147,13 @@ const Courses = () => {
 		// (async () => )
 		const fetchCourses = async () => {
 			try {
-				const courseResponse = await handleCourses.getAll();
+				let courseResponse
+
+				if (!_department_id) {
+					courseResponse = await handleCourses.getAll();
+				} else {
+					courseResponse = await handleCourses.getByDepartmentId(_department_id as string);
+				}
 
 				if (courseResponse.isSuccessful) {
 					setCourses(courseResponse.data)
@@ -185,7 +195,13 @@ const Courses = () => {
 			level={item.level}
 			semester={item.semester}
 			onPress={() => {
-
+				router.push({
+					pathname: '/(root)/(app)/course/[_course_code]',
+					params: {
+						_course_code: item.course_code,
+						_course_id: item.id,
+					}
+				})
 			}}
 		/>
 	), []);
@@ -210,12 +226,12 @@ const Courses = () => {
 				ListEmptyComponent={(courses.length === 0 && data.length === 0) ? (
 					<View style={styles.listEmptyComponent}>
 						<View style={styles.text}>
-							<Title>
+							<InterText>
 								No courses added
-							</Title>
-							<Paragraph>
+							</InterText>
+							<InterText>
 								Add course to your instituition
-							</Paragraph>
+							</InterText>
 						</View>
 						<CustomButton
 							onPress={() => {
@@ -249,7 +265,7 @@ const Courses = () => {
 			sheetTitle=''
 			hideSheetHeader={true}
 			closeBottomSheet={closeBottomSheet}
-			contentContainerStyle={{paddingTop: 30}}
+			contentContainerStyle={{paddingTop: 50}}
 		>
 			{addOptionsButtons.map(item => (
 				<TouchableOpacity 

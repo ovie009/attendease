@@ -294,7 +294,7 @@ const AddSession = () => {
 				<BottomSheetFlashList
 					data={sessionOptions}
 					keyExtractor={(item) => item.id}
-					contentContainerStyle={{paddingBottom: 30}}
+					contentContainerStyle={{paddingTop: 50}}
 					estimatedItemSize={81}
 					renderItem={renderSessionItem}
 				/>
@@ -303,7 +303,7 @@ const AddSession = () => {
 				<BottomSheetFlashList
 					data={semesterOptions}
 					keyExtractor={(item) => item.id}
-					contentContainerStyle={{paddingBottom: 30}}
+					contentContainerStyle={{paddingTop: 50}}
 					estimatedItemSize={81}
 					renderItem={renderSemsterItem}
 				/>

@@ -1,4 +1,4 @@
-import { TouchableOpacity, StyleSheet, ViewStyle } from "react-native";
+import { TouchableOpacity, StyleSheet, ViewStyle, View } from "react-native";
 import {
     BottomSheetModal,
     BottomSheetBackdrop,
@@ -113,7 +113,7 @@ const CustomBottomSheet = React.forwardRef<BottomSheetModal, CustomBottomSheetPr
                             <AntDesign name="close" size={20} color={colors.black} />
                         </TouchableOpacity>
                         {sheetTitle !== undefined && (
-                            <BottomSheetView style={styles.sheetTitle}>
+                            <View style={styles.sheetTitle}>
                                 {/* <Text variant={'titleLarge'}>{sheetTitle}</Text> */}
                                 <InterText
                                     fontSize={20}
@@ -122,7 +122,7 @@ const CustomBottomSheet = React.forwardRef<BottomSheetModal, CustomBottomSheetPr
                                 >
                                     {sheetTitle}
                                 </InterText>
-                            </BottomSheetView>
+                            </View>
                         )}
                     </BottomSheetView>
                 )}

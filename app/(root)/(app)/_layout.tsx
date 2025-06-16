@@ -111,6 +111,22 @@ export default function AppLayout() {
 				}}
 			/>
 			<Stack.Screen 
+				name="department" 
+				options={{ 
+					title: "", 
+					headerShown: true, 
+					headerShadowVisible: false,
+				}}
+			/>
+			<Stack.Screen 
+				name="course" 
+				options={{ 
+					title: "", 
+					headerShown: true, 
+					headerShadowVisible: false,
+				}}
+			/>
+			<Stack.Screen 
 				name="session" 
 				options={{
 					headerBackVisible: false,

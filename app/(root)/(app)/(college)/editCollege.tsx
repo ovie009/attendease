@@ -11,7 +11,7 @@ import { BottomSheetFlashList, BottomSheetModal } from '@gorhom/bottom-sheet'
 import { Lecturer } from '@/types/api'
 import OptionListItem from '@/components/OptionListItem'
 import { ListRenderItemInfo } from '@shopify/flash-list'
-import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router'
+import { useLocalSearchParams, useNavigation, usePathname, useRouter } from 'expo-router'
 import { handleDisableDataLoading } from '@/utilities/handleDisableDataLoading'
 import { useAppStore } from '@/stores/useAppStore'
 import handleLecturers from '@/api/handleLecturers'
@@ -26,14 +26,16 @@ const EditCollege = () => {
 
 	const router = useRouter();
 	const navigation = useNavigation<any>();
+	const pathname = usePathname();
+	
 
 	const {
 		_college_name,
 		_college_id,
 		_dean_id,
 	} = useLocalSearchParams();
-		console.log("🚀 ~ EditCollege ~ _dean_id:", _dean_id)
-		console.log("🚀 ~ EditCollege ~ _college_id:", _college_id)
+		// console.log("🚀 ~ EditCollege ~ _dean_id:", _dean_id)
+		// console.log("🚀 ~ EditCollege ~ _college_id:", _college_id)
 
 	const [collegeName, setCollegeName] = useState<string>(_college_name as string || '');
 	const [dean, setDean] = useState<string>('');
@@ -41,7 +43,19 @@ const EditCollege = () => {
 
 	const {
 		displayToast,
+		setIsLoading,
+		setLoadingPages,
 	} = useAppStore.getState();
+
+	const loadingPages = useAppStore(state => state.loadingPages)
+	const isLoading = useAppStore(state => state.isLoading)
+	
+
+	useEffect(() => {
+		if (pathname) {
+			setLoadingPages([...loadingPages, pathname])
+		}
+	}, []);
 
 	const sheetRef = useRef<BottomSheetModal>(null);
 
@@ -78,15 +92,23 @@ const EditCollege = () => {
 		fetchCollegeLecturers()
 	}, [])
 
+	useEffect(() => {
+		if (!dataLoading.lecturers) {
+			// disable loading pages
+			setLoadingPages(loadingPages.filter(item => item !== pathname))
+		}
+	}, [dataLoading.lecturers])
+
 	const [lecturers, setLecturers] = useState<Array<SelectableLecturer>>([]);
 
 	const handleSelectedDean = useCallback((id: string): void => {
+		console.log("🚀 ~ handleSelectedDean ~ id:", id)
 		// This check ensures that 'find' below will succeed.
 		if (lecturers.some(item => item.id === id)) {
 			// Add '!' after find(...) to assert it's not null/undefined
 			const foundLecturer = lecturers.find((item) => item.id === id)!;
 			setDean(foundLecturer.full_name); // Now TypeScript knows foundLecturer is Lecturer, not Lecturer | undefined
-
+			setDeanId(foundLecturer?.id)
 			// update lecturer list
 			setLecturers(prevState => {
 				return prevState.map(item => {
@@ -107,7 +129,7 @@ const EditCollege = () => {
 		}
 		// Optional: Handle the else case if needed, though 'some' prevents it here.
 		// else { console.warn(`Lecturer with id ${id} not found unexpectedly.`); }
-	}, [lecturers, setDean]); // <-- Add setDean to dependencies
+	}, [lecturers]); // <-- Add setDean to dependencies
 
 	const renderItem = useCallback(({item}: ListRenderItemInfo<SelectableLecturer>) => (
 		<OptionListItem
@@ -117,20 +139,31 @@ const EditCollege = () => {
 			subtext={'Department: Computer Science'}
 			onPress={handleSelectedDean}
 		/>
-	), []);
+	), [handleSelectedDean]);
 
 	const handleEditCollege = async () => {
 		try {
+			setIsLoading(true)
 			const collegeResponse = await handleColleges.update({
 				college_name: collegeName,
 				id: _college_id as string,
 			});
+
+			if (deanId && deanId !== _dean_id) {
+				const updateLecturerResponse = await handleLecturers.updateLecturer({
+					id: deanId,
+					role: 'Dean',
+				})
+				console.log("🚀 ~ handleEditCollege ~ updateLecturerResponse:", updateLecturerResponse)
+			}
 
 			if (collegeResponse.isSuccessful) {
 				navigation.pop(2)
 			}
 		} catch (error: any) {
 			displayToast('ERROR', error?.message)
+		} finally {
+			setIsLoading(false)
 		}
 	}
 	
@@ -169,6 +202,7 @@ const EditCollege = () => {
 			<CustomButton
 				onPress={handleEditCollege}
 				width={(WIDTH - 60)/2}
+				isLoading={isLoading}
 				text='Save'
 				disabled={collegeName === _college_name && deanId === _dean_id}
 			/>
@@ -182,7 +216,7 @@ const EditCollege = () => {
 			<BottomSheetFlashList
 				data={lecturers}
 				keyExtractor={(item) => item.id}
-				contentContainerStyle={{paddingBottom: 30}}
+				contentContainerStyle={{paddingTop: 50}}
                 estimatedItemSize={81}
 				renderItem={renderItem}
 				ListEmptyComponent={!dataLoading.lecturers ? (

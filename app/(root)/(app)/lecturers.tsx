@@ -1,7 +1,6 @@
 // ./app/(app)/colleges.tsx
 import { StyleSheet, View } from 'react-native'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { Paragraph, Title } from 'react-native-paper'
 import { FlashList } from '@shopify/flash-list'
 import { College, Department, Lecturer } from '@/types/api'
 import { HEIGHT, WIDTH } from '@/utilities/dimensions'
@@ -12,13 +11,13 @@ import { getLoadingData } from '@/utilities/getLoadingData'
 import Input from '@/components/Input'
 import FixedButton from '@/components/FixedButton'
 import AddCircleIcon from "@/assets/svg/AddCircleIcon.svg"
-import { usePathname, useRouter, useSegments } from 'expo-router'
+import { useRouter, useSegments } from 'expo-router'
 import { colors } from '@/utilities/colors'
 import CustomButton from '@/components/CustomButton'
 import handleDepartments from '@/api/handleDepartments'
-import DepartmentListItem from '@/components/DepartmentListItem'
 import handleLecturers from '@/api/handleLecturers'
 import LecturerListItem from '@/components/LecturerListItem'
+import InterText from '@/components/InterText'
 
 // Let's stick with 'is_loading' as used in useMemo annotation.
 type LecturersListItemProps = Lecturer & {
@@ -198,12 +197,16 @@ const Lecturers = () => {
 				ListEmptyComponent={(colleges.length === 0 && data.length === 0) ? (
 					<View style={styles.listEmptyComponent}>
 						<View style={styles.text}>
-							<Title>
+							<InterText
+								fontWeight={500}
+								fontSize={16}
+								lineHeight={19}
+							>
 								No lecturer added
-							</Title>
-							<Paragraph>
+							</InterText>
+							<InterText>
 								Add lecturers to your instituition
-							</Paragraph>
+							</InterText>
 						</View>
 						<CustomButton
 							onPress={() => {

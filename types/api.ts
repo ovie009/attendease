@@ -55,6 +55,12 @@ export type Lecturer = {
     updated_at: string;
 };
 
+
+export type Dean = {
+    lecturer: Lecturer,
+    college_id: string,
+}
+
 export type Admin = {
     id: string;
     email: string;

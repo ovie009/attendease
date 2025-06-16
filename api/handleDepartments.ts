@@ -102,9 +102,32 @@ const getByIds = async (ids: string[]): Promise<Response<Department[] | []>> => 
     }
 }
 
+const getById = async (id: string): Promise<Response<Department | null>> => {
+    try {
+        const { data, error, status } = await supabase
+            .from(tableName)
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        if (error && status !== 406) {
+            throw error;
+        }
+
+        return {
+            isSuccessful: true,
+            message: "Course selected successfully",
+            data,
+        } 
+    } catch (error) {
+        throw error;
+    }
+}
+
 export default {
     create,
     getAll,
+    getById,
     getByIds,
     getByCollegeId,
 }

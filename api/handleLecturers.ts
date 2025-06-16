@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase"
-import { Lecturer, Response } from "@/types/api";
+import { Dean, Lecturer, Response } from "@/types/api";
 import { Role } from "../types/general";
 import { User } from "@supabase/supabase-js";
 
@@ -16,6 +16,13 @@ type AddLecturerPayload = {
     department_id: string,
     role: Role | undefined,
     rfid: string,
+}
+
+type UpdateLecturerPayload = {
+    id: string,
+    full_name?: string,
+    department_id?: string,
+    role?: Role,
 }
 
 const create = async ({full_name, role, department_id}: {full_name: string, role: Role, department_id: string}): Promise<Response<Lecturer>> => {
@@ -109,6 +116,28 @@ const getByDepartmentId = async (department_id: string): Promise<Response<Lectur
     }
 }
 
+const getByCourseId = async (course_id: string): Promise<Response<Lecturer[] | []>> => {
+    try {
+        const { data, error, status } = await supabase
+            .from(tableName)
+            .select('*')
+            .contains('course_ids', [course_id])
+            .order('full_name', { ascending: true });
+
+        if (error && status !== 406) {
+            throw error;
+        }
+
+        return {
+            isSuccessful: true,
+            message: "Lecturers selected successfully",
+            data: data || [],
+        };
+    } catch (error) {
+        throw error;
+    }
+};
+
 const getByDepartmentIds = async (department_ids: string[]): Promise<Response<Lecturer[] | []>> => {
     try {
         if (department_ids.length === 0) {
@@ -182,11 +211,81 @@ const addLecturer = async ({ email, full_name, department_id, role, rfid }: AddL
     }
 };
 
+const updateLecturer = async ({ id, full_name, department_id, role }: UpdateLecturerPayload):  Promise<Response<Lecturer>> => {
+    try {
+
+        const payload: {full_name?: string, department_id?: string, role?: string } = {};
+
+        if (!id) {
+            throw new Error('Id is required')
+        }
+
+        if (!full_name && !department_id && !role) {
+            throw new Error('Empty fields')
+        }
+
+        if (full_name) {
+            payload.full_name = full_name;
+        }
+
+        if (department_id) {
+            payload.department_id = department_id;
+        }
+
+        if (role) {
+            payload.role = role;
+        }
+        console.log("🚀 ~ updateLecturer ~ payload:", payload)
+
+        const { data, error, status } = await supabase
+            .from(tableName)
+            .update(payload)
+            .eq("id", id)
+            .select('*')
+            .single();
+
+        if (error && status !== 406) {
+            throw error;
+        }
+
+        return {
+            isSuccessful: true,
+            message: "Lecturer created successfully",
+            data: data
+        }
+    } catch (error) {
+            console.error('Error in createLecturer function:', error);
+        throw error;
+    }
+}
+
+const getCollegeDeans = async (): Promise<Response<Array<Dean>>> => {
+    try {
+        const { data, error } = await supabase
+            .rpc('get_college_deans');
+
+        if (error) {
+            throw error;
+        }
+
+        return {
+            isSuccessful: true,
+            message: "Course created successfully",
+            data: data
+        }
+    } catch (error) {
+        throw error;
+    }
+}
+
 export default {
     create,
     getAll,
     getById,
     addLecturer,
+    getByCourseId,
+    updateLecturer,
+    getCollegeDeans,
     getByDepartmentId,
     getByDepartmentIds,
 }
