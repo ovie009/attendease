@@ -71,8 +71,31 @@ const getUnassignedLecturerCards = async (): Promise<Response<RfidCard[] | []>> 
     }
 }
 
+const getByCardUid = async (card_uid: string): Promise<Response<RfidCard | null>> => {
+    try {
+        const { data, error, status } = await supabase
+            .from(tableName)
+            .select('*')
+            .eq('card_uid', card_uid)
+            .single();
+
+        if (error && status !== 406) {
+            throw error;
+        }
+
+        return {
+            isSuccessful: true,
+            message: "Rfid cards selected successfully",
+            data: data || null,
+        } 
+    } catch (error) {
+        throw error;
+    }
+}
+
 export default {
     create,
     getAll,
+    getByCardUid,
     getUnassignedLecturerCards,
 }

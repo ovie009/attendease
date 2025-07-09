@@ -13,6 +13,8 @@ import {
 	configureReanimatedLogger,
 	ReanimatedLogLevel,
 } from 'react-native-reanimated';
+import { AccountType } from '@/types/general';
+import handleStudents from '@/api/handleStudents';
 
 configureReanimatedLogger({
     level: ReanimatedLogLevel.warn,
@@ -49,20 +51,34 @@ export default function RootLayout() {
 		const { data: authListener } = supabase.auth.onAuthStateChange(
 			(event, session) => {
 				// console.log('Auth state changed:', event, !!session);
-				setSession(session); // Update Zustand store with the session
 				if (session?.user) {
-					handleAdmin.getAdminById(session?.user?.id).then(adminResponse => {
-						// console.log("🚀 ~ handleAdmin.getAdminById ~ adminResponse:", adminResponse)
-						if (adminResponse.data) {
-							setUser({...adminResponse.data, is_admin: true})
+					if (session?.user?.user_metadata?.account_type) {
+						if (session?.user?.user_metadata?.account_type === AccountType.Admin) {
+							handleAdmin.getAdminById(session?.user?.id).then(adminResponse => {
+								// console.log("🚀 ~ handleAdmin.getAdminById ~ adminResponse:", adminResponse)
+								if (adminResponse.data) {
+									setUser({...adminResponse.data, is_admin: true, account_type: AccountType.Admin})
+								}
+							})
 						}
-					})
-					handleLecturers.getById(session?.user?.id).then(lecturerResponse => {
-						// console.log("🚀 ~ handleAdmin.getAdminById ~ lecturerResponse:", lecturerResponse)
-						if (lecturerResponse.data) {
-							setUser({...lecturerResponse.data, is_admin: false})
+						if (session?.user?.user_metadata?.account_type === AccountType.Lecturer) {
+							handleLecturers.getById(session?.user?.id).then(lecturerResponse => {
+								// console.log("🚀 ~ handleAdmin.getAdminById ~ lecturerResponse:", lecturerResponse)
+								if (lecturerResponse.data) {
+									setUser({...lecturerResponse.data, is_admin: false, account_type: AccountType.Lecturer})
+								}
+							})
 						}
-					})
+						if (session?.user?.user_metadata?.account_type === AccountType.Student) {
+							handleStudents.getById(session?.user?.id).then(lecturerResponse => {
+								// console.log("🚀 ~ handleAdmin.getAdminById ~ lecturerResponse:", lecturerResponse)
+								if (lecturerResponse.data) {
+									setUser({...lecturerResponse.data, is_admin: false, account_type: AccountType.Student})
+								}
+							})
+						}
+						setSession(session); // Update Zustand store with the session
+					}
 				} else {
 					setUser(null)
 				}
@@ -87,19 +103,32 @@ export default function RootLayout() {
 			if (!initialized) { // Only if listener hasn't fired yet
 				// console.log('Initial getSession result:', !!session);
 				setSession(session);
-				if (session?.user) {
-					handleAdmin.getAdminById(session?.user?.id).then(adminResponse => {
-						// console.log("🚀 ~ handleAdmin.getAdminById ~ adminResponse:", adminResponse)
-						if (adminResponse.data) {
-							setUser({...adminResponse.data, is_admin: true})
-						}
-					})
-					handleLecturers.getById(session?.user?.id).then(lecturerResponse => {
-						// console.log("🚀 ~ handleAdmin.getAdminById ~ lecturerResponse:", lecturerResponse)
-						if (lecturerResponse.data) {
-							setUser({...lecturerResponse.data, is_admin: false})
-						}
-					})
+				if (session?.user?.user_metadata?.account_type) {
+					if (session?.user?.user_metadata?.account_type === AccountType.Admin) {
+						handleAdmin.getAdminById(session?.user?.id).then(adminResponse => {
+							// console.log("🚀 ~ handleAdmin.getAdminById ~ adminResponse:", adminResponse)
+							if (adminResponse.data) {
+								setUser({...adminResponse.data, is_admin: true, account_type: AccountType.Admin})
+							}
+						})
+					}
+					if (session?.user?.user_metadata?.account_type === AccountType.Lecturer) {
+						handleLecturers.getById(session?.user?.id).then(lecturerResponse => {
+							// console.log("🚀 ~ handleAdmin.getAdminById ~ lecturerResponse:", lecturerResponse)
+							if (lecturerResponse.data) {
+								setUser({...lecturerResponse.data, is_admin: false, account_type: AccountType.Lecturer})
+							}
+						})
+					}
+					if (session?.user?.user_metadata?.account_type === AccountType.Student) {
+						handleStudents.getById(session?.user?.id).then(lecturerResponse => {
+							// console.log("🚀 ~ handleAdmin.getAdminById ~ lecturerResponse:", lecturerResponse)
+							if (lecturerResponse.data) {
+								setUser({...lecturerResponse.data, is_admin: false, account_type: AccountType.Student})
+							}
+						})
+					}
+					setSession(session); // Update Zustand store with the session
 				} else {
 					setUser(null)
 				}

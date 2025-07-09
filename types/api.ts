@@ -1,4 +1,4 @@
-import { Key, KeyValueType, Level, Role, Semester, UserType } from "./general";
+import { AccountType, Key, KeyValueType, Level, Role, Semester, UserType } from "./general";
 
 export type College = {
     id: string;
@@ -55,6 +55,21 @@ export type Lecturer = {
     updated_at: string;
 };
 
+export type Student = {
+    id: string;
+    full_name: string;
+    matric_number: string,
+    department_id: string,
+    device_id: string,
+    pin: string,
+    email: string;
+    level: number,
+    rfid: string,
+    is_active: boolean,
+    created_at: string;
+    updated_at: string;
+};
+
 
 export type Dean = {
     lecturer: Lecturer,
@@ -101,6 +116,7 @@ export type User = {
     role?: Role | undefined;
     created_at: string;
     updated_at: string;
+    account_type: AccountType;
 }
 
 export type Response<T> = {

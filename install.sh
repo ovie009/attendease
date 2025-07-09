@@ -54,3 +54,6 @@ npx expo install expo-image-picker
 npm install --save react-native-calendars
 
 npm i react-native-calendars
+
+# encrypt pin
+npx expo install expo-crypto

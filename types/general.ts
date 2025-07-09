@@ -28,7 +28,11 @@ export type MenuButton = {
     Icon?: ReactNode | undefined;
 }
 
-export type AccountType = 'Admin' | UserType;
+export enum AccountType {
+    Admin = "Admin",
+    Lecturer = "Lecturer",
+    Student = "Student",
+};
 
 export type UserType =  'Lecturer' | 'Student';
 

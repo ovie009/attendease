@@ -94,7 +94,7 @@ class MQTTService {
                     password: mqttPassword,
                     timeout: CONNECT_TIMEOUT,
                     keepAliveInterval: KEEP_ALIVE_INTERVAL, // Reduced keep-alive interval
-                    cleanSession: true,
+                    cleanSession: false,
                     useSSL: true, // Required for WSS
                     reconnect: false, // Handle reconnection manually
                     onSuccess: () => {

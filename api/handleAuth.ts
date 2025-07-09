@@ -1,12 +1,41 @@
-import { EmailOtpType } from "@supabase/supabase-js";
+import { AuthResponse, EmailOtpType, Session, SignUpWithPasswordCredentials, User } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase"
 
 interface authParams {
     email: string, 
     password: string
+    data?: object,
 }
 
-const signup = async ({email, password}: authParams): Promise<{
+const signup = async ({email, password, data}: authParams): Promise<{
+    isSuccessful: boolean,
+    message: string,
+    data: {user: User | null, session: Session | null},
+}> => {
+    try {
+        const response: AuthResponse = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+                data
+            }
+        });
+
+        if (response.error) {
+            throw response.error;
+        }
+
+        return {
+            isSuccessful: true,
+            message: "signup successful",
+            data: response.data,
+        }
+    } catch (error) {
+        throw error;
+    }
+}
+
+const updateUser = async ({email, user_metadata}: {email: string, user_metadata: object}): Promise<{
     isSuccessful: boolean,
     message: string,
     data: any,
@@ -15,9 +44,9 @@ const signup = async ({email, password}: authParams): Promise<{
         const {
             data,
             error
-        } = await supabase.auth.signUp({
+        } = await supabase.auth.updateUser({
             email,
-            password
+            data: user_metadata,
         });
 
         if (error) {
@@ -158,6 +187,7 @@ export default {
     login,
     signout,
     verifyOTP,
+    updateUser,
     signupTeamMember,
     resendVerificationOTP,
 }

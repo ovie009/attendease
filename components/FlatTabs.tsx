@@ -16,6 +16,7 @@ interface FlatTabsProps {
     previousTranslateX?: React.RefObject<number> | undefined; // required for recycling
     previousTabs?: React.RefObject<FlatTab<any>[]> | undefined; // required for recycling
     gap?: number | undefined;
+    disabled?: boolean,
     hideTrack?: boolean | undefined;
     fontProps?: InterTextProps | undefined;
     activeColor?: string | undefined;
@@ -31,6 +32,7 @@ const FlatTabs: FC<FlatTabsProps> = ({
     setTabs,
     gap,
     hideTrack,
+    disabled,
     fontProps,
     indicatorHeight,
     activeColor,
@@ -177,6 +179,7 @@ const FlatTabs: FC<FlatTabsProps> = ({
                 {tabs.map((tab) => (
                     <TouchableOpacity
                         key={tab.name}
+                        disabled={disabled}
                         onPress={() => handleOnPressTab(tab.id)}
                         onLayout={(e) => {
                             // console.log('getting tabs layout...')

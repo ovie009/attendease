@@ -18,10 +18,15 @@ import { useAppStore } from '@/stores/useAppStore';
 import { handleDisableDataLoading } from '@/utilities/handleDisableDataLoading';
 import Skeleton from '@/components/Skeleton';
 import handleDepartments from '@/api/handleDepartments';
+import { useAuthStore } from '@/stores/useAuthStore';
+import handleAuth from '@/api/handleAuth';
 
 const Home = () => {
 
 	const router = useRouter();
+
+	const user = useAuthStore(state => state.user)
+	console.log("🚀 ~ Home ~ user:", user)
 
 	const {
 		displayToast
@@ -72,6 +77,7 @@ const Home = () => {
 		const fetchDepartments = async (): Promise<void> => {
 			try {
 				const departmentsResponse = await handleDepartments.getAll();
+
 				
 				setNumberOfDepartments(departmentsResponse.data.length);
 			

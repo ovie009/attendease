@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { View, StyleSheet, TextInput } from 'react-native';
+import { View, StyleSheet, TextInput, ScrollView } from 'react-native';
 import { Link, RelativePathString } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 import { colors } from '@/utilities/colors';
@@ -11,6 +11,8 @@ import { useAppStore } from '@/stores/useAppStore';
 const Login = () => {
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
+
+	const keyboardHeight = useAppStore(state => state.keyboardHeight);
 
 	const {
 		displayToast
@@ -37,7 +39,10 @@ const Login = () => {
 	};
 
   return (
-    <View style={styles.container}>
+	<ScrollView
+		contentContainerStyle={[styles.container, { paddingBottom: 50 }]}
+		keyboardShouldPersistTaps={'handled'}
+	>
 		<View style={styles.form}>
 			<InterText
 				fontWeight={'semibold'}
@@ -59,7 +64,7 @@ const Login = () => {
 				placeholder="Password"
 				defaultValue={password}
 				onChangeText={setPassword}
-				secureTextEntry
+				isPasswordInput={true}
 			/>
 			<CustomButton
 				text={"Login"}
@@ -70,14 +75,14 @@ const Login = () => {
 		</View>
 		<Link href={"/(root)/(auth)/signup" as RelativePathString} style={styles.link}>Don't have an account? Sign Up</Link>
 		<Link href={"/(root)/(auth)/forgotPassword" as RelativePathString} style={styles.link}>Forgot Password?</Link>
-    </View>
+	</ScrollView>
   );
 }
 
 export default Login
 
 const styles = StyleSheet.create({ // Add basic styles
-    container: { flex: 1, justifyContent: 'center', padding: 20, backgroundColor: 'white' },
+    container: { flexGrow: 1, justifyContent: 'center', padding: 20, backgroundColor: 'white' },
 	form: {
 		display: 'flex',
 		// justifyContent: 'flex-start',
