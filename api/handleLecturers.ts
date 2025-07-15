@@ -16,6 +16,7 @@ type AddLecturerPayload = {
     department_id: string,
     role: Role | undefined,
     rfid: string,
+    course_ids: string[]
 }
 
 type UpdateLecturerPayload = {
@@ -23,6 +24,8 @@ type UpdateLecturerPayload = {
     full_name?: string,
     department_id?: string,
     role?: Role,
+    course_ids?: string[],
+    pin?: string,
 }
 
 const create = async ({full_name, role, department_id}: {full_name: string, role: Role, department_id: string}): Promise<Response<Lecturer>> => {
@@ -168,7 +171,7 @@ const getByDepartmentIds = async (department_ids: string[]): Promise<Response<Le
     }
 }
 
-const addLecturer = async ({ email, full_name, department_id, role, rfid }: AddLecturerPayload): Promise<Response<AddLecturerResponse>> => {
+const addLecturer = async ({ email, full_name, department_id, role, rfid, course_ids }: AddLecturerPayload): Promise<Response<AddLecturerResponse>> => {
     try {
         // Validate inputs
         if (!email || !full_name || !department_id) {
@@ -186,6 +189,7 @@ const addLecturer = async ({ email, full_name, department_id, role, rfid }: AddL
                 full_name,
                 department_id,
                 rfid,
+                course_ids,
                 role // Optional, will default to 'Academic' if not provided
              }),
         });
@@ -211,16 +215,16 @@ const addLecturer = async ({ email, full_name, department_id, role, rfid }: AddL
     }
 };
 
-const updateLecturer = async ({ id, full_name, department_id, role }: UpdateLecturerPayload):  Promise<Response<Lecturer>> => {
+const updateLecturer = async ({ id, full_name, department_id, role, course_ids, pin }: UpdateLecturerPayload):  Promise<Response<Lecturer>> => {
     try {
 
-        const payload: {full_name?: string, department_id?: string, role?: string } = {};
+        const payload: Omit<UpdateLecturerPayload, 'id'> = {};
 
         if (!id) {
             throw new Error('Id is required')
         }
 
-        if (!full_name && !department_id && !role) {
+        if (!full_name && !department_id && !role && !course_ids && !pin) {
             throw new Error('Empty fields')
         }
 
@@ -234,6 +238,14 @@ const updateLecturer = async ({ id, full_name, department_id, role }: UpdateLect
 
         if (role) {
             payload.role = role;
+        }
+
+        if (pin) {
+            payload.pin = pin;
+        }
+
+        if (course_ids) {
+            payload.course_ids = course_ids;
         }
         console.log("🚀 ~ updateLecturer ~ payload:", payload)
 

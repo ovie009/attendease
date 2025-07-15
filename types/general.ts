@@ -34,6 +34,11 @@ export enum AccountType {
     Student = "Student",
 };
 
+export type Region = {
+    latitude: number;
+    longitude: number;
+}
+
 export type UserType =  'Lecturer' | 'Student';
 
 export type Bucket = 'profiles' | 'groq';

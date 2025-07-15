@@ -10,8 +10,9 @@ import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { supabase } from '@/lib/supabase';
 import { useAppStore } from '@/stores/useAppStore';
-// You might want to import icons
-// import { Ionicons } from '@expo/vector-icons';
+import { AccountType } from '@/types/general';
+import CourseIcon from '@/assets/svg/CourseIcon.svg';
+import CourseInactiveIcon from '@/assets/svg/CourseInactiveIcon.svg';
 
 export default function TabLayout() {
 
@@ -70,9 +71,22 @@ export default function TabLayout() {
 			<Tabs.Screen
 				name="settings" // This corresponds to settings.tsx
 				options={{
+					href: user?.account_type === AccountType.Admin ? '/settings' : null,
 					headerTitle: () => <InterText fontSize={32} fontWeight={600} lineHeight={35}>Settings</InterText>,
 					tabBarLabel: ({focused}) => <InterText color={focused ? colors.primary : colors.grey}>Settings</InterText>,
 					tabBarIcon: ({focused}) => <Entypo name="sound-mix" size={20} color={focused ? colors.primary : colors.grey} />,
+					headerLeft: () => <View style={{paddingLeft: 20}}>
+						<Entypo name="sound-mix" size={40} color={colors.primary} />
+					</View>,
+				}}
+			/>
+			<Tabs.Screen
+				name="courses" // This corresponds to settings.tsx
+				options={{
+					href: user?.account_type !== AccountType.Admin ? '/courses' : null,
+					headerTitle: () => <InterText fontSize={32} fontWeight={600} lineHeight={35}>Courses</InterText>,
+					tabBarLabel: ({focused}) => <InterText color={focused ? colors.primary : colors.grey}>Courses</InterText>,
+					tabBarIcon: ({focused}) => focused ? <CourseIcon width={20} height={20} /> : <CourseInactiveIcon width={20} height={20} />,
 					headerLeft: () => <View style={{paddingLeft: 20}}>
 						<Entypo name="sound-mix" size={40} color={colors.primary} />
 					</View>,

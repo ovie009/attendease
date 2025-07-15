@@ -27,6 +27,19 @@ export type Course = {
     updated_at: string;
 };
 
+export type AttendanceSession = {
+    id: string;
+    lecturer_id: string;
+    course_id: string;
+    started_at: string;
+    ended_at: string;
+    latitude: number;
+    longitude: number;
+    academic_session: string;
+    created_at: string;
+    updated_at: string;
+};
+
 export type Schedule = {
     id: string;
     session: string;
@@ -110,6 +123,8 @@ export type User = {
     email: string;
     full_name: string;
     is_active?: boolean | undefined;
+    department_id?: string;
+    course_ids?: string[] | null;
     is_admin: boolean;
     rfid?: string | undefined;
     pin?: string | null | undefined;

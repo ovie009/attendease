@@ -135,7 +135,7 @@ const ScanCard = () => {
             });
             console.log("🚀 ~ handleCreateRfidCard ~ createRfidCardResponse:", createRfidCardResponse)
 
-            router.push('/(root)/(app)/cards');
+            router.replace('/(root)/(app)/cards');
         } catch (error: any) {
             displayToast(TOAST_TYPE.ERROR, error?.message)
         } finally {

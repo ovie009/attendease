@@ -29,6 +29,7 @@ export default function RootLayout() {
 	// Zustand state selectors
 	const session = useAuthStore((state) => state.session);
 	const setSession = useAuthStore((state) => state.setSession);
+	const user = useAuthStore((state) => state.user);
 	const setUser = useAuthStore((state) => state.setUser);
 	const isFirstLaunch = useAuthStore((state) => state.isFirstLaunch);
 	const signOut = useAuthStore((state) => state.signOut);
@@ -50,7 +51,7 @@ export default function RootLayout() {
 		// console.log('Setting up Supabase auth listener...');
 		const { data: authListener } = supabase.auth.onAuthStateChange(
 			(event, session) => {
-				// console.log('Auth state changed:', event, !!session);
+				console.log('Auth state changed:', event, !!session);
 				if (session?.user) {
 					if (session?.user?.user_metadata?.account_type) {
 						if (session?.user?.user_metadata?.account_type === AccountType.Admin) {
@@ -59,6 +60,7 @@ export default function RootLayout() {
 								if (adminResponse.data) {
 									setUser({...adminResponse.data, is_admin: true, account_type: AccountType.Admin})
 								}
+								setInitialized(true);
 							})
 						}
 						if (session?.user?.user_metadata?.account_type === AccountType.Lecturer) {
@@ -67,6 +69,7 @@ export default function RootLayout() {
 								if (lecturerResponse.data) {
 									setUser({...lecturerResponse.data, is_admin: false, account_type: AccountType.Lecturer})
 								}
+								setInitialized(true);
 							})
 						}
 						if (session?.user?.user_metadata?.account_type === AccountType.Student) {
@@ -75,24 +78,20 @@ export default function RootLayout() {
 								if (lecturerResponse.data) {
 									setUser({...lecturerResponse.data, is_admin: false, account_type: AccountType.Student})
 								}
+								setInitialized(true);
 							})
 						}
 						setSession(session); // Update Zustand store with the session
 					}
 				} else {
 					setUser(null)
+					setInitialized(true);
 				}
 				// If user signs out, ensure isFirstLaunch doesn't block login screen
 				if (event === 'SIGNED_OUT') {
 					// Clear store explicitly (though listener also sets session to null)
 					signOut();
 					// Redirect is handled by Effect 2
-				}
-
-				// Mark initialization complete after first auth event (or initial null session)
-				if (!initialized) {
-					setInitialized(true);
-					// console.log('Auth listener initialized.');
 				}
 			}
 		);
@@ -110,6 +109,7 @@ export default function RootLayout() {
 							if (adminResponse.data) {
 								setUser({...adminResponse.data, is_admin: true, account_type: AccountType.Admin})
 							}
+							setInitialized(true);
 						})
 					}
 					if (session?.user?.user_metadata?.account_type === AccountType.Lecturer) {
@@ -118,6 +118,7 @@ export default function RootLayout() {
 							if (lecturerResponse.data) {
 								setUser({...lecturerResponse.data, is_admin: false, account_type: AccountType.Lecturer})
 							}
+							setInitialized(true);
 						})
 					}
 					if (session?.user?.user_metadata?.account_type === AccountType.Student) {
@@ -126,13 +127,14 @@ export default function RootLayout() {
 							if (lecturerResponse.data) {
 								setUser({...lecturerResponse.data, is_admin: false, account_type: AccountType.Student})
 							}
+							setInitialized(true);
 						})
 					}
 					setSession(session); // Update Zustand store with the session
 				} else {
 					setUser(null)
+					setInitialized(true);
 				}
-				setInitialized(true);
 				// console.log('Initial getSession check complete.');
 			}
 		});
@@ -149,9 +151,9 @@ export default function RootLayout() {
 	if (!initialized) {
 		// console.log('Rendering loading indicator...');
 		return (
-		<View style={styles.container}>
-			<ActivityIndicator size="large" color="black" />
-		</View>
+			<View style={styles.container}>
+				<ActivityIndicator size="large" color="black" />
+			</View>
 		);
 	}
 
@@ -164,20 +166,20 @@ export default function RootLayout() {
 
 	// Define the message handler using useCallback to keep its identity stable
 	const handleMqttMessage = useCallback((message: string, topic: string) => {
-		console.log("[App] Received MQTT Message:");
+		// console.log("[App] Received MQTT Message:");
 		console.log("  Topic:", topic);
 		console.log("  Message:", message);
 
 		setScannedCardTopic(topic);
 		
 		if (message.includes('card_uid')) {
-		try {
-			const payload = JSON.parse(message);
-			const payloadObject = JSON.parse(payload);
-			setScannedCard(payloadObject);
-		} catch (error) {
-			console.error("[App] Error parsing MQTT message:", error);
-		}
+			try {
+				const payload = JSON.parse(message);
+				const payloadObject = JSON.parse(payload);
+				setScannedCard(payloadObject);
+			} catch (error) {
+				// console.error("[App] Error parsing MQTT message:", error);
+			}
 		}
 
 		// Auto-clear scanned card after timeout
@@ -193,45 +195,45 @@ export default function RootLayout() {
 		
 		// Setup connection health check
 		const checkConnectionInterval = setInterval(() => {
-		if (isMounted && !isConnecting.current) {
-			// If we think we're connected but actually aren't, try to reconnect
-			if (isConnected.current && !MQTTService.isConnected()) {
-			console.log("[App] Connection health check: Detected disconnection, attempting to reconnect");
-			connectMqtt();
+			if (isMounted && !isConnecting.current) {
+				// If we think we're connected but actually aren't, try to reconnect
+				if (isConnected.current && !MQTTService.isConnected()) {
+					// console.log("[App] Connection health check: Detected disconnection, attempting to reconnect");
+					connectMqtt();
+				}
 			}
-		}
 		}, 30000); // Check every 30 seconds
 		
 		// Connect to MQTT
 		const connectMqtt = async () => {
-		if (isConnecting.current) {
-			console.log("[App] Already attempting to connect. Skipping request.");
-			return;
-		}
-		
-		isConnecting.current = true;
-		
-		try {
-			console.log("[App] Connecting to MQTT service...");
-			await MQTTService.connect(topicsToSubscribe);
-			
-			if (!isMounted) {
-			console.log("[App] Component unmounted after MQTT connect resolved, disconnecting.");
-			MQTTService.disconnect();
-			return;
+			if (isConnecting.current) {
+				// console.log("[App] Already attempting to connect. Skipping request.");
+				return;
 			}
 			
-			isConnected.current = true;
-			console.log("[App] MQTT Connected. Setting message callback...");
-			MQTTService.setMessageCallback(handleMqttMessage);
-		} catch (error) {
-			console.error("[App] Error connecting to MQTT:", error);
-			isConnected.current = false;
-		} finally {
-			if (isMounted) {
-			isConnecting.current = false;
+			isConnecting.current = true;
+		
+			try {
+				// console.log("[App] Connecting to MQTT service...");
+				await MQTTService.connect(topicsToSubscribe);
+				
+				if (!isMounted) {
+					// console.log("[App] Component unmounted after MQTT connect resolved, disconnecting.");
+					MQTTService.disconnect();
+					return;
+				}
+				
+				isConnected.current = true;
+				// console.log("[App] MQTT Connected. Setting message callback...");
+				MQTTService.setMessageCallback(handleMqttMessage);
+			} catch (error) {
+				// console.error("[App] Error connecting to MQTT:", error);
+				isConnected.current = false;
+			} finally {
+				if (isMounted) {
+				isConnecting.current = false;
+				}
 			}
-		}
 		};
     
 		// Initial connection
@@ -239,13 +241,13 @@ export default function RootLayout() {
 
 		// Cleanup function
 		return () => {
-			console.log("[App] Effect cleanup running.");
+			// console.log("[App] Effect cleanup running.");
 			isMounted = false;
 			isConnecting.current = false;
 			isConnected.current = false;
 			clearInterval(checkConnectionInterval);
 			
-			console.log("[App] Performing MQTT disconnect in cleanup.");
+			// console.log("[App] Performing MQTT disconnect in cleanup.");
 			MQTTService.disconnect();
 		};
 	}, [handleMqttMessage, topicsToSubscribe]);
@@ -288,6 +290,9 @@ export default function RootLayout() {
 	if (!isFirstLaunch && session) {
 		// If we are not already somewhere in the app group, redirect to home.
 		if (!inAppGroup) {
+			if (user?.account_type === AccountType.Lecturer && !user.pin) {
+				return <Redirect href={'/completeRegistration'} />
+			}
 			// return router.replace("/(root)/(app)/(tabs)/home");
 			return <Redirect href={'/(root)/(app)/(tabs)/home'} />
 		}

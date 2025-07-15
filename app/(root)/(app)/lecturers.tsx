@@ -178,6 +178,7 @@ const Lecturers = () => {
 						_lecturer_id: item?.id,
 						_full_name: item?.full_name,
 						_rfid: item?.rfid,
+						_course_ids: item?.course_ids?.join(',')
 					}
 				})
 			}}

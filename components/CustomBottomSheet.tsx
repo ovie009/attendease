@@ -181,6 +181,8 @@ const styles = StyleSheet.create({
     },
     modalWrapper: {
         flex: 1,
+        height: '100%',
+        // backgroundColor: 'teal',
         paddingHorizontal: 20,
     }
 });

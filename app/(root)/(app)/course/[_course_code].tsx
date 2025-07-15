@@ -130,11 +130,11 @@ const CourseDetails = () => {
 				const scheduleResponse = await handleSchedule.getBySessionSemesterAndCourseCode({
 					semester,
 					session: settings.find(item => item.key === 'academic_session')?.value as string,
-					course_code: course?.course_code
+					course_codes: [course?.course_code]
 				});
-				// console.log("🚀 ~ fetchSchedule ~ scheduleResponse:", scheduleResponse)
+				console.log("🚀 ~ fetchSchedule ~ scheduleResponse:", scheduleResponse)
 
-				setSchedule(scheduleResponse.data);
+				setSchedule(scheduleResponse.data[0] || null);
 
 				handleDisableDataLoading('schedule', setDataloading)
 			} catch (error: any) {

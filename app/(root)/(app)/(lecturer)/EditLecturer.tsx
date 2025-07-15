@@ -8,7 +8,7 @@ import Input from '@/components/Input'
 import SelectInput from '@/components/SelectInput'
 import CustomBottomSheet from '@/components/CustomBottomSheet'
 import { BottomSheetFlashList, BottomSheetModal } from '@gorhom/bottom-sheet'
-import { Department, RfidCard } from '@/types/api'
+import { Course, Department, RfidCard } from '@/types/api'
 import OptionListItem from '@/components/OptionListItem'
 import { ListRenderItemInfo } from '@shopify/flash-list'
 import { useLocalSearchParams, usePathname, useRouter } from 'expo-router'
@@ -20,6 +20,7 @@ import handleLecturers from '@/api/handleLecturers'
 import handleRfidCards from '@/api/handleRfidCards'
 import Flex from '@/components/Flex'
 import Container from '@/components/Container'
+import handleCourses from '@/api/handleCourses'
 
 // Define the combined type for clarity
 type SelectableDepartment = Department & { is_selected: boolean };
@@ -29,7 +30,11 @@ type SelectableRole = {
 	title: Role,
 	is_selected: boolean
 }
-type BottomSheetContent = 'Select Department' | 'Select Role' | 'Select Card';
+type BottomSheetContent = 'Select Department' | 'Select Role' | 'Select Card' | 'Select Course';
+
+type SelectableCOurse = Course & {
+	is_selected: boolean;
+};
 
 const EditLecturer = () => {
 
@@ -43,14 +48,16 @@ const EditLecturer = () => {
 		_full_name,
 		_rfid,
 		_role,
+		_course_ids,
 	} = useLocalSearchParams();
-		console.log("🚀 ~ EditLecturer ~ _role:", _role)
-		console.log("🚀 ~ EditLecturer ~ _rfid:", _rfid)
-		console.log("🚀 ~ EditLecturer ~ _full_name:", _full_name)
-		console.log("🚀 ~ EditLecturer ~ _lecturer_id:", _lecturer_id)
-		console.log("🚀 ~ EditLecturer ~ _department_name:", _department_name)
-		console.log("🚀 ~ EditLecturer ~ _department_id:", _department_id)
-		console.log("")
+		// console.log("🚀 ~ EditLecturer ~ _course_ids:", _course_ids)
+		// console.log("🚀 ~ EditLecturer ~ _role:", _role)
+		// console.log("🚀 ~ EditLecturer ~ _rfid:", _rfid)
+		// console.log("🚀 ~ EditLecturer ~ _full_name:", _full_name)
+		// console.log("🚀 ~ EditLecturer ~ _lecturer_id:", _lecturer_id)
+		// console.log("🚀 ~ EditLecturer ~ _department_name:", _department_name)
+		// console.log("🚀 ~ EditLecturer ~ _department_id:", _department_id)
+		// console.log("")
 
 	const {
 		setIsLoading,
@@ -67,9 +74,10 @@ const EditLecturer = () => {
 		}
 	}, []);
 
-	const [dataLoading, setDataLoading] = useState<{departments: boolean, rfid_cards: boolean}>({
+	const [dataLoading, setDataLoading] = useState<{departments: boolean, rfid_cards: boolean, courses: boolean}>({
 		departments: true,
 		rfid_cards: true,
+		courses: true,
 	})
 
 	const [fullName, setFullName] = useState<string>(_full_name as string);
@@ -78,6 +86,11 @@ const EditLecturer = () => {
 	const [departmentId, setDepartmentId] = useState<string>(_department_id as string);
 	const [role, setRole] = useState<Role>(_role as Role)
 	const [rfidCards, setRfidCards] = useState<SelectableRfidCard[]>([])
+
+	// list of collegs
+	const [courses, setCourses] = useState<SelectableCOurse[]>([]);
+	const [courseIds, setCourseIds] = useState<string[]>(_course_ids ? (_course_ids as string).split(',') : []) // [courseIds]
+	const [courseNames, setCourseNames] = useState<string[]>([])
 
 	const [roles, setRoles] = useState<SelectableRole[]>([
 		{
@@ -113,6 +126,8 @@ const EditLecturer = () => {
 			height = Math.min(HEIGHT, minHeight + listItemHieght*departments.length);
 		} else if (content === 'Select Role') {
 			height = Math.min(HEIGHT, minHeight + listItemHieght*roles.length);
+		} else if (content === 'Select Course') {
+			height = HEIGHT;
 		} else {
 			height = Math.min(HEIGHT, minHeight + listItemHieght*rfidCards.length);
 		}
@@ -123,7 +138,7 @@ const EditLecturer = () => {
 		})
 
 		sheetRef?.current?.present();
-	}, [roles, departments])
+	}, [roles, departments, courses])
 
 	const closeBottomSheet = () => {
 		sheetRef?.current?.close();
@@ -163,7 +178,7 @@ const EditLecturer = () => {
 		const fetchRfidCards = async () => {
 			try {
 				const rfidCardsResponse = await handleRfidCards.getUnassignedLecturerCards();
-				console.log("🚀 ~ fetchRfidCards ~ rfidCardsResponse:", rfidCardsResponse)
+				// console.log("🚀 ~ fetchRfidCards ~ rfidCardsResponse:", rfidCardsResponse)
 
 				if (rfidCardsResponse.isSuccessful) {
 					setRfidCards(rfidCardsResponse.data.map(item => ({...item, is_selected: false})))
@@ -177,7 +192,30 @@ const EditLecturer = () => {
 
 		fetchRfidCards();
 			
-	}, [])
+	}, []);
+
+	useEffect(() => {
+		if (!departmentId) return;
+		const fetchCourses = async () => {
+			try {
+				setDataLoading({...dataLoading, courses: true})
+
+				const courseResponse = await handleCourses.getByDepartmentId(departmentId);
+				
+				setCourses(courseResponse.data.map(item => ({...item, is_selected: _course_ids?.includes(item.id as string) || false})))
+
+				setCourseNames(courseResponse.data.filter(item => _course_ids?.includes(item.id as string)).map(item => item.course_code))
+
+			} catch (error: any) {
+				displayToast('ERROR', error?.message)
+			} finally {
+				handleDisableDataLoading('courses', setDataLoading)
+			}
+		}
+
+		fetchCourses();
+			
+	}, [departmentId])
 
 	useEffect(() => {
 		if (!dataLoading.departments && !dataLoading.rfid_cards) {
@@ -248,6 +286,28 @@ const EditLecturer = () => {
 		// else { console.warn(`Lecturer with id ${id} not found unexpectedly.`); }
 	}, [roles]); // <-- Add setDean to dependencies
 
+	const handleSelectCourse = useCallback((id: string): void => {
+		// This check ensures that 'find' below will succeed.
+		if (courses.some(item => item.id === id)) {
+			// Add '!' after find(...) to assert it's not null/undefined
+
+			// update lecturer list
+			setCourses(prevState => {
+				return prevState.map(item => {
+					if (item.id === id) {
+						return {
+							...item,
+							is_selected: true,
+						}
+					}
+					return item;
+				})
+			})
+		}
+		// Optional: Handle the else case if needed, though 'some' prevents it here.
+		// else { console.warn(`Lecturer with id ${id} not found unexpectedly.`); }
+	}, [courses]); // <-- Add setDean to dependencies
+
 
 	const renderDepartmentItem = useCallback(({item}: ListRenderItemInfo<SelectableDepartment>) => (
 		<OptionListItem
@@ -271,7 +331,19 @@ const EditLecturer = () => {
 		/>
 	), [handleSelectRole]);
 
-	const handleCreateDepartment = async () => {
+	const renderCourseItem = useCallback(({item}: ListRenderItemInfo<SelectableCOurse>) => (
+		<OptionListItem
+			id={item?.id}
+			text={item?.course_code}
+			subtext={item?.course_title}
+			isSelected={item?.is_selected}
+			onPress={() => {
+				handleSelectCourse(item.id)
+			}}
+		/>
+	), []);
+
+	const handleUpdateLecturer = async () => {
 		try {
 			setIsLoading(true);
 
@@ -280,6 +352,7 @@ const EditLecturer = () => {
 				full_name: fullName,
 				department_id: departmentId,
 				role,
+				course_ids: courseIds
 			})
 
 			if (lecturerResponse.isSuccessful) {
@@ -317,6 +390,12 @@ const EditLecturer = () => {
 					onPress={() => openBottomSheet('Select Role')}
 					value={role}
 				/>
+				<SelectInput
+					label='Courses'
+					placeholder='Select lecturer course'
+					onPress={() => openBottomSheet('Select Course')}
+					value={courseNames.join(', ')}
+				/>
 			</View>
 		</ScrollView>
 		<FixedWrapper
@@ -331,12 +410,12 @@ const EditLecturer = () => {
 				text='Cancel'
 			/>
 			<CustomButton
-				onPress={handleCreateDepartment}
+				onPress={handleUpdateLecturer}
 				width={(WIDTH - 60)/2}
 				text='Save'
 				isLoading={isLoading}
 				disabled={!departmentId || !role || !fullName || (
-					departmentId === _department_id && role === _role && fullName === _full_name
+					departmentId === _department_id && role === _role && fullName === _full_name && courseIds.length === 0
 				)}
 			/>
 		</FixedWrapper>
@@ -345,6 +424,8 @@ const EditLecturer = () => {
 			sheetTitle={sheetParameters.content}
 			snapPoints={sheetParameters.snapPoints}
 			closeBottomSheet={closeBottomSheet}
+			enableOverDrag={false}
+			// enablePanDownToClose={false}
 		>
 			{sheetParameters.content === 'Select Department' && (
 				<BottomSheetFlashList
@@ -363,6 +444,34 @@ const EditLecturer = () => {
 					estimatedItemSize={81}
 					renderItem={renderRoleItem}
 				/>
+			)}
+			{sheetParameters.content === 'Select Course' && (
+				<Container
+					height={HEIGHT - 50}
+					width={WIDTH - 40}
+					style={{
+						position: "relative",
+						paddingBottom: 20,
+					}}
+				>
+					<BottomSheetFlashList
+						data={courses}
+						keyExtractor={(item) => item.id}
+						contentContainerStyle={{paddingTop: 50, paddingBottom: 150}}
+						estimatedItemSize={81}
+						renderItem={renderCourseItem}
+					/>
+					<CustomButton
+						text='Done'
+						onPress={() => {
+							const selectedCourses = courses.filter((item) => item.is_selected);
+							setCourseIds(selectedCourses.map(item => item.id)); 
+							setCourseNames(selectedCourses.map(item => item.course_code)); 
+
+							closeBottomSheet()
+						}}
+					/>
+				</Container>
 			)}
 		</CustomBottomSheet>
 	</>)

@@ -136,6 +136,15 @@ export default function AppLayout() {
 				}} 
 			/>
 			<Stack.Screen 
+				name="attendance" 
+				options={{
+					headerBackVisible: false,
+					headerBackTitle: "",
+					headerTitle: () => <InterText fontSize={32} fontWeight={600} lineHeight={35}>Attendance</InterText>,
+					headerLeft: () => <View style={{marginRight: 6}}><SessionIcon width={40} height={40}/></View>,
+				}} 
+			/>
+			<Stack.Screen 
 				name="cards" 
 				options={{
 					headerBackVisible: false,
@@ -188,6 +197,15 @@ export default function AppLayout() {
 					headerBackTitle: "",
 					headerLeft: () => <View style={{marginRight: 6}}><ScheduleIcon width={40} height={40}/></View>,
 					headerTitle: () => <InterText fontSize={32} fontWeight={600} lineHeight={35}>Schedules</InterText>,
+				}} 
+			/>
+
+			<Stack.Screen 
+				name="completeRegistration"
+				options={{
+					headerTintColor: colors.black,
+					headerBackTitle: "",
+					headerTitle: () => <InterText fontSize={32} fontWeight={600} lineHeight={35}>Complete Registration</InterText>,
 				}} 
 			/>
 		</Stack>

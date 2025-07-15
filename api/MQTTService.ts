@@ -98,7 +98,7 @@ class MQTTService {
                     useSSL: true, // Required for WSS
                     reconnect: false, // Handle reconnection manually
                     onSuccess: () => {
-                        // // console.log('[MQTT] Connection successful!');
+                        // console.log('[MQTT] Connection successful!');
                         this.connected = true;
                         // Reset reconnect counter on successful connection
                         this.reconnectCount = 0;

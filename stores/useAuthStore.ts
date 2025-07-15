@@ -39,7 +39,8 @@ export const useAuthStore = create<AuthState>()(
 			// but rely on the listener for the most up-to-date state.
 			isFirstLaunch: state.isFirstLaunch,
 			session: state.session,
-        }),
+      user: state.user,
+    }),
 		onRehydrateStorage: () => (state) => {
 			// Set initialized to true once persisted state is loaded
 			// This happens AFTER the initial getSession call in _layout might run

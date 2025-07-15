@@ -17,6 +17,7 @@ import AdminListItem from '@/components/AdminListItem';
 import { useAppStore } from '@/stores/useAppStore';
 import { useRouter, useSegments } from 'expo-router';
 import Skeleton from '@/components/Skeleton';
+import { AccountType } from '@/types/general';
 
 type AdminListItemProps = Admin & {
     is_loading?: boolean | undefined;
@@ -51,8 +52,8 @@ const Profile = () => {
 
     useEffect(() => {
         const fetchAdmins = async () => {
-            if (!user?.is_admin) return;
             try {
+                if (!user?.is_admin) return;
                 const adminsResponse = await handleAdmin.getAll();
                 // console.log("🚀 ~ fetchAdmins ~ adminsResponse:", adminsResponse)
                 // remove logged in user form list
@@ -125,7 +126,7 @@ const Profile = () => {
                                 </InterText>
                             </View>
                         </View>
-                        {(dataLoading.admins) && (
+                        {user?.account_type === AccountType.Admin && (dataLoading.admins) && (
                             <View style={styles.adminHeaderBar}>
                                 <Skeleton
                                     height={19}
@@ -139,31 +140,35 @@ const Profile = () => {
                                 />
                             </View>
                         )}
-                        {(!dataLoading.admins && adminsData.length !== 0) ? (
-                            <View style={styles.adminHeaderBar}>
-                                <InterText
-                                    fontWeight={500}
-                                >
-                                    Other Admins:
-                                </InterText>
-                                <LinkText
-                                    onPress={() => {
-                                        router.push('/(root)/(app)/(admin)/AddAdmin')
-                                    }}
-                                >
-                                    Add admin
-                                </LinkText>
-                            </View>
-                        ) : (
-                            <LinkText
-                                fontSize={16}
-                                lineHeight={19}
-                                onPress={() => {
-                                    router.push('/(root)/(app)/(admin)/AddAdmin')
-                                }}
-                            >
-                                + Add admin
-                            </LinkText>
+                        {user?.account_type === AccountType.Admin && (
+                            <React.Fragment>
+                                {(!dataLoading.admins && adminsData.length !== 0) ? (
+                                    <View style={styles.adminHeaderBar}>
+                                        <InterText
+                                            fontWeight={500}
+                                        >
+                                            Other Admins:
+                                        </InterText>
+                                        <LinkText
+                                            onPress={() => {
+                                                router.push('/(root)/(app)/(admin)/AddAdmin')
+                                            }}
+                                        >
+                                            Add admin
+                                        </LinkText>
+                                    </View>
+                                ) : (
+                                    <LinkText
+                                        fontSize={16}
+                                        lineHeight={19}
+                                        onPress={() => {
+                                            router.push('/(root)/(app)/(admin)/AddAdmin')
+                                        }}
+                                    >
+                                        + Add admin
+                                    </LinkText>
+                                )}
+                            </React.Fragment>
                         )}
                     </View>
                 )}

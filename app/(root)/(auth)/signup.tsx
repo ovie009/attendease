@@ -331,7 +331,7 @@ const Signup = () => {
 
 				const hashedPin = await Crypto.digestStringAsync(
 					Crypto.CryptoDigestAlgorithm.SHA256,
-					password
+					pin
 				);
 				// console.log("🚀 ~ signupUser ~ createUserResponse:", createUserResponse)
 
@@ -432,7 +432,7 @@ const Signup = () => {
 				snapToInterval={WIDTH}
 				decelerationRate={'fast'}
 				keyboardShouldPersistTaps='handled'
-				// scrollEnabled={false}
+				scrollEnabled={false}
 			>
 				<Flex
 					flexDirection='row'

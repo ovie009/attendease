@@ -84,9 +84,6 @@ const Courses = () => {
 					closeBottomSheet()
 					router.push({
 						pathname: '/(root)/(app)/(course)/AddCourse',
-						params: {
-							_add_with_ai: 1
-						}
 					})				
 				},
 			},
