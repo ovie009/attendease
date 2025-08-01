@@ -3,17 +3,20 @@ import React, { FC } from 'react';
 import { colors } from '@/utilities/colors';
 import InterText from './InterText';
 import RightArrowIcon from '../assets/svg/RIghtArrowIcon.svg';
+import Flex from './Flex';
 
 interface InputProps extends TouchableOpacityProps {
 	value?: string | number | undefined;
 	placeholder?: string | undefined;
 	label?: string | undefined,
+	width?: number,
 }
 
 const SelectInput: FC<InputProps> = ({
     value,
     placeholder,
 	label,
+	width,
 	...rest
 }) => {
 
@@ -28,7 +31,8 @@ const SelectInput: FC<InputProps> = ({
 					{label}
 				</InterText>
 			)}
-			<View
+			<Flex
+				width={width || '100%'}
 				style={styles.input}
             >
 				<View style={styles.textWrapper}>
@@ -45,7 +49,7 @@ const SelectInput: FC<InputProps> = ({
 				<View style={styles.arrowIcon}>
 					<RightArrowIcon />
 				</View>
-            </View>
+            </Flex>
 		</TouchableOpacity>
 	);
 };
@@ -60,7 +64,6 @@ const styles = StyleSheet.create({
 		gap: 8,
 	},
 	input: {
-		width: '100%',
 		height: 40,
 		paddingHorizontal: 9,
 		borderWidth: 1,

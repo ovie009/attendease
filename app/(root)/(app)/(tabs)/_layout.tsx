@@ -81,11 +81,11 @@ export default function TabLayout() {
 				}}
 			/>
 			<Tabs.Screen
-				name="courses" // This corresponds to settings.tsx
+				name="analytics" // This corresponds to settings.tsx
 				options={{
-					href: user?.account_type !== AccountType.Admin ? '/courses' : null,
-					headerTitle: () => <InterText fontSize={32} fontWeight={600} lineHeight={35}>Courses</InterText>,
-					tabBarLabel: ({focused}) => <InterText color={focused ? colors.primary : colors.grey}>Courses</InterText>,
+					href: user?.account_type !== AccountType.Admin ? '/analytics' : null,
+					headerTitle: () => <InterText fontSize={32} fontWeight={600} lineHeight={35}>Attendance Report</InterText>,
+					tabBarLabel: ({focused}) => <InterText color={focused ? colors.primary : colors.grey}>Attendance Report</InterText>,
 					tabBarIcon: ({focused}) => focused ? <CourseIcon width={20} height={20} /> : <CourseInactiveIcon width={20} height={20} />,
 					headerLeft: () => <View style={{paddingLeft: 20}}>
 						<Entypo name="sound-mix" size={40} color={colors.primary} />

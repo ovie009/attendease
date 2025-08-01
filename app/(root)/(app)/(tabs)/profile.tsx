@@ -1,6 +1,6 @@
 // ./app/(app)/(tabs)/profile.tsx
 import { StyleSheet, View } from 'react-native'
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import React, { ReactNode, use, useCallback, useEffect, useMemo, useState } from 'react'
 import { useAuthStore } from '@/stores/useAuthStore';
 import { supabase } from '@/lib/supabase';
 import { colors } from '@/utilities/colors';
@@ -15,9 +15,13 @@ import { handleDisableDataLoading } from '@/utilities/handleDisableDataLoading';
 import { HEIGHT } from '@/utilities/dimensions';
 import AdminListItem from '@/components/AdminListItem';
 import { useAppStore } from '@/stores/useAppStore';
-import { useRouter, useSegments } from 'expo-router';
+import { Href, RelativePathString, useRouter, useSegments } from 'expo-router';
 import Skeleton from '@/components/Skeleton';
 import { AccountType } from '@/types/general';
+import Flex from '@/components/Flex';
+import SettingsListItem from '@/components/SettingsListItem';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import AntDesign from '@expo/vector-icons/AntDesign';
 
 type AdminListItemProps = Admin & {
     is_loading?: boolean | undefined;
@@ -49,6 +53,21 @@ const Profile = () => {
         admins: true,
     }); 
     // console.log("🚀 ~ Profile ~ dataLoading:", dataLoading)
+
+    const buttons: { name: string, href: Href, onPress: () => void, Icon: ReactNode }[] = [
+		{
+			name: "Change pin",
+			href: '/changePin',
+			onPress: () => {},
+			Icon: <MaterialIcons name="password" size={20} color={colors.primary} />
+		},
+		{
+			name: "Change card",
+			href: '/changeCard',
+			onPress: () => {},
+			Icon: <AntDesign name="creditcard" size={20} color={colors.primary} />
+		},
+	];
 
     useEffect(() => {
         const fetchAdmins = async () => {
@@ -169,6 +188,16 @@ const Profile = () => {
                                     </LinkText>
                                 )}
                             </React.Fragment>
+                        )}
+                        {user?.account_type !== AccountType.Admin && (
+                            <Flex>
+                                {buttons.map((button) => (
+                                    <SettingsListItem
+                                        key={button?.name}
+                                        {...button}
+                                    />
+                                ))}
+                            </Flex>
                         )}
                     </View>
                 )}

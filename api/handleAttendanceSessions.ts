@@ -21,6 +21,7 @@ type CreateAcademicSessionPayload = {
     latitude: number,
     longitude: number,
     academic_session: string,
+    semester: Semester
 }
 
 const create = async (payload: CreateAcademicSessionPayload): Promise<Response<AttendanceSession>> => {
@@ -69,7 +70,54 @@ const getActiveSessionByLecturerId = async ({lecturer_id}: {lecturer_id: string}
     }
 }
 
+const getActiveSessionByCourseIds = async ({course_ids}: {course_ids: string[]}): Promise<Response<AttendanceSession[]>> => {
+    try {
+        const { data, error, status } = await supabase
+            .from(tableName)
+            .select('*')
+            .in('course_id', course_ids)
+            .eq('is_active', true)
+
+        if (error && status !== 406) {
+            throw error;
+        }
+
+        return {
+            isSuccessful: true,
+            message: "Attendnace session selected successfully",
+            data: data || [],
+        } 
+    } catch (error) {
+        throw error;
+    }
+}
+
+const getAttendanceSessionBySemesterAcademicSesssionAndCourseIds = async ({course_ids, semester, session}: {course_ids: string[], semester: Semester, session: string}): Promise<Response<AttendanceSession[]>> => {
+    try {
+        const { data, error, status } = await supabase
+            .from(tableName)
+            .select('*')
+            .in('course_id', course_ids)
+            .eq('semester', semester)
+            .eq('academic_session', session)
+
+        if (error && status !== 406) {
+            throw error;
+        }
+
+        return {
+            isSuccessful: true,
+            message: "Attendnace session selected successfully",
+            data: data || [],
+        } 
+    } catch (error) {
+        throw error;
+    }
+}
+
 export default {
     create,
     getActiveSessionByLecturerId,
+    getActiveSessionByCourseIds,
+    getAttendanceSessionBySemesterAcademicSesssionAndCourseIds,
 }

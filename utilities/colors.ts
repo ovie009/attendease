@@ -10,6 +10,7 @@ export const colors = {
     error: '#D9534F', // Standard error re
     white: '#FFFFFF',
     success: '#4CAF50',
+    green: "#32C71F",
     skeleton1: "#ebebeb",
     skeleton2: "#dbdbdb",
     grey: "#CCD3D4",
@@ -22,4 +23,5 @@ export const colors = {
     overlay: "#0000004D",
     lightBackground: '#F8F8F8',
     transparent: '#FFFFFF00', // Transparent color
+    recordBackground: "#D9D9D9",
 };

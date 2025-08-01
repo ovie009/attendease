@@ -12,6 +12,8 @@ import SessionIcon from '@/assets/svg/SessionIcon.svg';
 import LecturerIcon from '@/assets/svg/LecturerIcon.svg';
 import ScheduleIcon from '@/assets/svg/ScheduleIcon.svg';
 import { View } from 'react-native';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import AntDesign from '@expo/vector-icons/AntDesign';
 
 export default function AppLayout() {
     const session = useAuthStore((state) => state.session);
@@ -206,6 +208,35 @@ export default function AppLayout() {
 					headerTintColor: colors.black,
 					headerBackTitle: "",
 					headerTitle: () => <InterText fontSize={32} fontWeight={600} lineHeight={35}>Complete Registration</InterText>,
+				}} 
+			/>
+
+			<Stack.Screen 
+				name="registerCourse"
+				options={{
+					headerTintColor: colors.black,
+					headerBackTitle: "",
+					headerTitle: () => <InterText fontSize={32} fontWeight={600} lineHeight={35}>Course Registration</InterText>,
+				}} 
+			/>
+
+			<Stack.Screen 
+				name="changePin"
+				options={{
+					headerBackTitle: "",
+					headerTintColor: colors.black,
+					headerLeft: () => <View style={{marginRight: 6}}><MaterialIcons name="password" size={40} color={colors.primary} /></View>,
+					headerTitle: () => <InterText fontSize={32} fontWeight={600} lineHeight={35}>Change pin</InterText>,
+				}} 
+			/>
+
+			<Stack.Screen 
+				name="changeCard"
+				options={{
+					headerBackTitle: "",
+					headerTintColor: colors.black,
+					headerLeft: () => <View style={{marginRight: 6}}><AntDesign name="creditcard" size={40} color={colors.primary} /></View>,
+					headerTitle: () => <InterText fontSize={32} fontWeight={600} lineHeight={35}>Change card</InterText>,
 				}} 
 			/>
 		</Stack>

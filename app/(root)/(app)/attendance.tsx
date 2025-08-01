@@ -20,11 +20,14 @@ import * as Crypto from 'expo-crypto';
 import { useAuthStore } from '@/stores/useAuthStore';
 import * as Location from 'expo-location'
 import { Alert } from 'react-native';
-import { Region } from '@/types/general';
+import { AccountType, Region, Semester } from '@/types/general';
 import handleAttendanceSessions from '@/api/handleAttendanceSessions';
 import moment from 'moment';
 import MQTTService from '@/api/MQTTService';
 import * as LocalAuthentication from 'expo-local-authentication';
+import * as Device from 'expo-device';
+import handleAttendanceRecords from '@/api/handleAttendanceRecords';
+
 
 const Attendance = () => {
 
@@ -33,8 +36,10 @@ const Attendance = () => {
 		_course_title,
 		_course_id,
 		_academic_session,
+		_semester,
 		_attendance_session_id
 	} = useLocalSearchParams();
+		console.log("🚀 ~ Attendance ~ _attendance_session_id:", _attendance_session_id)
 
 	const pathname = usePathname();
 
@@ -49,6 +54,7 @@ const Attendance = () => {
 	const loadingPages = useAppStore(state => state.loadingPages)
 
 	const user = useAuthStore(state => state.user);
+	// console.log("🚀 ~ Attendance ~ user:", user?.rfid)
 
 	const scannedCard = useAppStore(state => state.scannedCard);
 	const scannedCardTopic = useAppStore(state => state.scannedCardTopic);
@@ -62,6 +68,9 @@ const Attendance = () => {
 	const [attendeaseDeviceId, setAttendeaseDeviceId] = useState<string>('');
 
 	const sheetRef = useRef<BottomSheetModal>(null);
+
+	const DEVICE_ID = Device.manufacturer+''+Device.brand+''+Device.modelName;
+	
 
 	const openBottomSheet = () => {
 		sheetRef.current?.present();
@@ -94,13 +103,48 @@ const Attendance = () => {
 			setLoadingPages([...loadingPages, pathname])
 		}
 	}, []);
+
+	const handleLogAttendance = async (session_id: string) => {
+		try {
+			setLoadingPages([...loadingPages, pathname])
+			const isEnrolled = await LocalAuthentication.isEnrolledAsync();
+
+			if (isEnrolled) {
+				const authenticate = await LocalAuthentication.authenticateAsync()
+
+				if (!authenticate.success) {
+					throw new Error("Authentication failed");
+				}
+			}
+			
+			console.log("🚀 ~ handleLogAttendance ~ userCoordinates:", userCoordinates)
+			if (!userCoordinates?.latitude || !userCoordinates?.latitude) {
+				throw new Error('Location not found')
+			}
+
+			await handleAttendanceRecords.create({
+				p_attendance_session_id: session_id,
+				p_student_id: user?.id!,
+				p_latitude: parseFloat(userCoordinates?.latitude?.toFixed(6)),
+				p_longitude: parseFloat(userCoordinates?.longitude?.toFixed(6)),
+			})
+
+			displayToast('SUCCESS', 'Attendance recorded')
+
+		} catch (error) {
+			throw error
+		} finally {
+			setLoadingPages(loadingPages.filter(item => item !== pathname))
+		}
+	}
+	
 	
 	
 	useEffect(() => {
 		if (!isFetchingCard) return;
 		const hanldePinVerification = async () => {
 			try {
-				if (scannedCardTopic === 'attendease/session' && scannedCard && scannedCard?.card_uid === user?.rfid) {
+				if (scannedCard && scannedCard?.card_uid === user?.rfid) {
 					console.log("🚀 ~ Attendance ~ user:", user?.rfid)
 					// console.log("🚀 ~ useEffect ~ scannedCardTopic:", scannedCardTopic)
 					// console.log("🚀 ~ Attendance ~ scannedCard:", scannedCard)
@@ -122,7 +166,16 @@ const Attendance = () => {
 						throw new Error('Invalid pin')
 					}
 
-					openBottomSheet()
+					if (user?.account_type === AccountType.Lecturer) {
+						openBottomSheet()
+					} else {
+						if (!scannedCard.session_id) {
+							throw new Error("No attendance session detected")
+						}
+
+						await handleLogAttendance(scannedCard?.session_id)
+					}
+
 
 					setTimeout(() => {
 						durationRef.current?.focus();
@@ -191,14 +244,19 @@ const Attendance = () => {
 				}
 			}
 
+			if (!userCoordinates?.latitude || !userCoordinates?.latitude) {
+				throw new Error('Location not found')
+			}
+
 			const createSessionResponse = await handleAttendanceSessions.create({
 				lecturer_id: user?.id!,
 				course_id: _course_id! as string,
 				started_at: moment().toISOString(true),
 				ended_at: moment().add(duration, 'hours').toISOString(true),
-				latitude: userCoordinates?.latitude!,
-				longitude: userCoordinates?.longitude!,
+				latitude: parseFloat(userCoordinates?.latitude?.toFixed(6)),
+				longitude: parseFloat(userCoordinates?.longitude?.toFixed(6)),
 				academic_session: _academic_session as string,
+				semester: parseInt(_semester as string) as Semester
 			})
 			console.log("🚀 ~ handleInitiateAttendance ~ createSessionResponse:", createSessionResponse)
 
@@ -225,6 +283,7 @@ const Attendance = () => {
 			>
 				<FlashList
 					data={[]}
+					// @ts-ignore
 					keyExtractor={item => item?.id}
 					contentContainerStyle={{
 						paddingHorizontal: 20
@@ -285,10 +344,20 @@ const Attendance = () => {
 					)}
 				/>
 			</Container>
-			<FixedButton
-				text={_attendance_session_id ? 'End attendance' : 'Start attendance'}
-				onPress={handleStartAttendance}
-			/>
+			{user?.account_type === AccountType.Lecturer && (
+				<FixedButton
+					text={_attendance_session_id ? 'End attendance' : 'Start attendance'}
+					onPress={handleStartAttendance}
+				/>
+			)}
+			{user?.account_type === AccountType.Student && _attendance_session_id && (
+				<FixedButton
+					text={'Log attendance'}
+					onPress={() => {
+						setIsFetchingCard(true)
+					}}
+				/>
+			)}
 			<CustomBottomSheet
 				ref={sheetRef}
 				closeBottomSheet={closeBottomSheet}

@@ -27,6 +27,16 @@ export type Course = {
     updated_at: string;
 };
 
+export type CourseRegistration = {
+    id: string,
+    student_id: string,
+    level: Level, 
+    course_ids: string[], 
+    session: string,
+    created_at: string,
+    updated_at: string,
+}
+
 export type AttendanceSession = {
     id: string;
     lecturer_id: string;
@@ -124,6 +134,7 @@ export type User = {
     full_name: string;
     is_active?: boolean | undefined;
     department_id?: string;
+    level?: Level,
     course_ids?: string[] | null;
     is_admin: boolean;
     rfid?: string | undefined;
@@ -139,3 +150,14 @@ export type Response<T> = {
     message: string;
     data: T;
 } 
+
+
+export type AttendanceRecord = {
+    id: string;
+    student_id: string;
+    attendance_session_id: string;
+    academic_session: string;
+    semester: Semester;
+    created_at: string;
+    updated_at: string;
+};

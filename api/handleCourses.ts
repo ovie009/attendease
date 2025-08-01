@@ -94,6 +94,29 @@ const getAll = async (): Promise<Response<Course[] | []>> => {
     }
 }
 
+const getByDepartmentIdAndLevels = async ({department_id, levels}: {department_id: string, levels: Level[]}): Promise<Response<Course[] | []>> => {
+    try {
+        const { data, error, status } = await supabase
+            .from(tableName)
+            .select('*')
+            .in('level', levels)
+            .eq('department_id', department_id)
+            .order('course_code', {ascending: true});
+
+        if (error && status !== 406) {
+            throw error;
+        }
+
+        return {
+            isSuccessful: true,
+            message: "Courses selected successfully",
+            data: data || [],
+        } 
+    } catch (error) {
+        throw error;
+    }
+}
+
 const getByDepartmentId = async (department_id: string): Promise<Response<Course[] | []>> => {
     try {
         const { data, error, status } = await supabase
@@ -175,4 +198,5 @@ export default {
     getByIds,
     addCourses,
     getByDepartmentId,
+    getByDepartmentIdAndLevels
 }

@@ -2,13 +2,13 @@ import { StyleSheet, TouchableOpacity, View } from 'react-native'
 import React, { FC, ReactNode } from 'react'
 import { colors } from '@/utilities/colors'
 import InterText from './InterText'
-import { RelativePathString, useRouter } from 'expo-router';
+import { Href, RelativePathString, useRouter } from 'expo-router';
 import RightArrowIcon from '../assets/svg/RIghtArrowIcon.svg';
 
 interface CollegeCardProps {
     name: string,
     Icon: ReactNode,
-    href: RelativePathString,
+    href: RelativePathString | Href,
 }
 
 const SettingsListItem: FC<CollegeCardProps> = ({name, Icon, href}) => {

@@ -4,26 +4,39 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Session } from '@supabase/supabase-js';
 import { User } from '@/types/api';
+import { Semester } from '@/types/general';
 
 interface AuthState {
-  session: Session | null;
-  user: User | null;
-  isFirstLaunch: boolean; // Defaults to true
-  initialized: boolean; // Track if initial auth check is done
-  setSession: (session: Session | null) => void;
-  setUser: (user: User | null) => void;
-  setIsFirstLaunch: (isFirst: boolean) => void;
-  setInitialized: (init: boolean) => void;
-  signOut: () => void;
+	session: Session | null;
+	semester: Semester,
+	numberOfSemesterWeeks: number;
+	academicSession: string,
+	user: User | null;
+	isFirstLaunch: boolean; // Defaults to true
+	initialized: boolean; // Track if initial auth check is done
+	setNumberOfSemesterWeeks: (value: number ) => void;
+	setSemester: (value: Semester ) => void;
+	setAcademicSession: (value: string ) => void;
+	setSession: (session: Session | null) => void;
+	setUser: (user: User | null) => void;
+	setIsFirstLaunch: (isFirst: boolean) => void;
+	setInitialized: (init: boolean) => void;
+	signOut: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
 		session: null,
+		semester: 1,
+		academicSession: '',
+		numberOfSemesterWeeks: 13,
 		user: null,
 		isFirstLaunch: true, // Initialize as true
 		initialized: false, // Start as false
+		setNumberOfSemesterWeeks: (value) => set(() => ({ numberOfSemesterWeeks: value })),
+		setSemester: (value) => set(() => ({ semester: value })),
+		setAcademicSession: (value) => set(() => ({ academicSession: value })),
 		setSession: (session) => set(() => ({ session })),
 		setUser: (user) => set(() => ({ user })),
 		setIsFirstLaunch: (isFirst) => set(() => ({ isFirstLaunch: isFirst })),
@@ -39,8 +52,10 @@ export const useAuthStore = create<AuthState>()(
 			// but rely on the listener for the most up-to-date state.
 			isFirstLaunch: state.isFirstLaunch,
 			session: state.session,
-      user: state.user,
-    }),
+      		user: state.user,
+			semester: state.semester,
+			academicSession: state.academicSession,
+   		 }),
 		onRehydrateStorage: () => (state) => {
 			// Set initialized to true once persisted state is loaded
 			// This happens AFTER the initial getSession call in _layout might run

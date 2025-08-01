@@ -111,7 +111,7 @@ const processSchedule = async (imageUri: string, courses: Array<{id: string, cou
     }
 }
 
-const processCourses = async (imageUri: string): Promise<Array<{course_title: string, course_code: string}> | null> => {
+const processCourses = async (imageUri: string): Promise<Array<{course_title: string, course_code: string, semester: number}> | null> => {
     try {
         const chatCompletion = await groq.chat.completions.create({
           "messages": [
@@ -120,7 +120,7 @@ const processCourses = async (imageUri: string): Promise<Array<{course_title: st
               "content": [
                 {
                   "type": "text",
-                  "text": `For the images provided, extract an array of course title and course code, reply with an array of JSON {course_title: string, course_code: string}[]
+                  "text": `For the images provided, extract an array of course title and course code, reply with an array of JSON {course_title: string, course_code: string, semester: 1 | 2}[]
                     Response format (JSON array only):
                     dont list steps or add any paragraph or text`
                 },
