@@ -30,7 +30,9 @@ import handleAttendanceSessions from '@/api/handleAttendanceSessions';
 import CustomButton from '@/components/CustomButton';
 import handleCourseRegistration from '@/api/handleCourseRegistration';
 import Container from '@/components/Container';
-import { FlashList } from '@shopify/flash-list';
+import { FlashList, ListRenderItem } from '@shopify/flash-list';
+import ScheduleListItem from '@/components/ScheduleListItem';
+import * as Device from 'expo-device';
 
 type DataLoading = {
 	colleges: boolean,
@@ -42,12 +44,32 @@ type DataLoading = {
 	courseRegistration: boolean,
 }
 
+type ScehduleListRenderItem = {
+	id: string,
+    is_loading?: boolean,
+    day: number,
+    schedules: Array<Schedule & {
+        course: Course | undefined,
+        is_active?: boolean, 
+        attendance_session_id?: string | null
+    }>,
+}
+
 const Home = () => {
+
 
 	const router = useRouter();
 	const pathname = usePathname();
 
 	const user = useAuthStore(state => state.user)
+	const semester = useAuthStore(state => state.semester)
+	const academicSession = useAuthStore(state => state.academicSession)
+	const numberOfSemesterWeeks = useAuthStore(state => state.numberOfSemesterWeeks)
+
+	const {
+		setSemester,
+		setAcademicSession,
+	} = useAuthStore.getState()
 	// console.log("🚀 ~ Home ~ user:", user?.rfid)
 
 	const {
@@ -88,9 +110,8 @@ const Home = () => {
 
 	const [courseRegistration, setCourseRegistration] = useState<CourseRegistration | null>(null)
 	const [schedules, setSchedules] = useState<Schedule[]>([])
-	const [attendanceSession, setAttendanceSession] = useState<AttendanceSession | null>(null)
-	console.log("🚀 ~ Home ~ attendanceSession:", attendanceSession)
-	const [studentAttendanceSession, setStudentAttendanceSession] = useState<AttendanceSession[]>([])
+	const [attendanceSession, setAttendanceSession] = useState<AttendanceSession[]>([])
+	// console.log("🚀 ~ Home ~ attendanceSession:", attendanceSession)
 	// console.log("🚀 ~ Home ~ attendanceSession:", attendanceSession)
 	// console.log("🚀 ~ Home ~ schedules:", schedules[0])
 
@@ -204,6 +225,9 @@ const Home = () => {
 
 				setSettings(settingsResponse.data);
 
+				setSemester(parseInt(settingsResponse.data.find(item => item.key === 'semester')?.value!) as Semester)
+				setAcademicSession(settingsResponse.data.find(item => item.key === 'academic_session')?.value!)
+
 				if (settingsResponse.data.length === 0) {
 					handleDisableDataLoading('schedules', setDataLoading)
 				}
@@ -223,7 +247,9 @@ const Home = () => {
 			try {
 				const attendanceSessionResponse = await handleAttendanceSessions.getActiveSessionByLecturerId({lecturer_id: user?.id!});
 
-				setAttendanceSession(attendanceSessionResponse.data);
+				if (attendanceSessionResponse.data) {
+					setAttendanceSession([attendanceSessionResponse.data]);
+				}
 
 				handleDisableDataLoading('attendanceSession', setDataLoading)
 			} catch (error: any) {
@@ -242,7 +268,7 @@ const Home = () => {
 				const attendanceSessionResponse = await handleAttendanceSessions.getActiveSessionByCourseIds({course_ids: courseRegistration?.course_ids});
 
 				console.log("🚀 ~ fetchAttendanceSession ~ attendanceSessionResponse:", attendanceSessionResponse)
-				setStudentAttendanceSession(attendanceSessionResponse.data);
+				setAttendanceSession(attendanceSessionResponse.data);
 
 				handleDisableDataLoading('attendanceSession', setDataLoading)
 			} catch (error: any) {
@@ -257,28 +283,15 @@ const Home = () => {
 		if (user?.account_type !== AccountType.Lecturer) return;
 		if (settings.length === 0) return;
 		if (courses.length === 0) return;
-
+		if (!academicSession) return;
+		if (!semester) return;
 
 		const fetchSchedule = async () => {
 			try {
-
-				const semester: Semester =  parseInt(settings.find(item => item.key === 'semester')?.value as string) as Semester;
-
-				const session = settings.find(item => item.key === 'academic_session')?.value as string;
-
-				if (!semester) {
-					throw new Error("Cannot find semester")
-				}
-
-				if (!session) {
-					throw new Error("Cannot find academic session")
-				}
-
-
 				const scheduleResponse = await handleSchedule.getBySessionSemesterAndCourseCode({
 					semester,
-					session: settings.find(item => item.key === 'academic_session')?.value as string,
-					course_codes: courses.map(item => item.course_code),
+					session: academicSession,
+					course_codes: courses.filter(item => item.semester === semester).map(item => item.course_code),
 				});
 				// console.log("🚀 ~ fetchSchedule ~ semester:", semester)
 				// console.log("🚀 ~ fetchSchedule ~ scheduleResponse:", scheduleResponse.data[0])
@@ -291,7 +304,7 @@ const Home = () => {
 			}
 		}
 		fetchSchedule();
-	}, [settings, courses, user]);
+	}, [settings, courses, user, academicSession, semester]);
 
 	// fetch student schedules
 	useEffect(() => {
@@ -318,7 +331,7 @@ const Home = () => {
 				const scheduleResponse = await handleSchedule.getBySessionSemesterAndCourseCode({
 					semester,
 					session,
-					course_codes: courses.map(item => item.course_code),
+					course_codes: courses.filter(item => item.semester === semester).map(item => item.course_code),
 				});
 
 				setSchedules(scheduleResponse.data);
@@ -352,7 +365,7 @@ const Home = () => {
 	const daysOfTheWeek = useMemo(() => {
 		const weekdays = [1, 2, 3, 4, 5];
 
-		if (dataLoading.schedules || dataLoading.courses) {
+		if (dataLoading.schedules || dataLoading.courses || dataLoading.attendanceSession) {
 			return getLoadingData(['day'], [''], 4);
 		}
 
@@ -364,13 +377,10 @@ const Home = () => {
 				.filter(item => item.days_of_the_week.includes(day))
 				.map(item => {
 					const course = courses.find(j => j.course_code === item.course_code);
-					const is_active = (user?.account_type === AccountType.Student && day === moment().day() && studentAttendanceSession.some(j => j.course_id === course?.id))
-						|| (user?.account_type === AccountType.Lecturer && day === moment().day() && attendanceSession?.course_id === course?.id);
+					const is_active = (day === moment().day() && attendanceSession.some(j => j.course_id === course?.id));
 					const attendance_session_id = (() => {
-						if (user?.account_type === AccountType.Student && day === moment().day() && studentAttendanceSession.some(j => j.course_id === course?.id)) {
-							return studentAttendanceSession.find(j => j.course_id === course?.id)?.id;
-						} else if (user?.account_type === AccountType.Lecturer && day === moment().day() && attendanceSession?.course_id === course?.id) {
-							return attendanceSession?.id
+						if (day === moment().day() && attendanceSession.some(j => j.course_id === course?.id)) {
+							return attendanceSession.find(j => j.course_id === course?.id)?.id;
 						}
 						return null
 					})();
@@ -399,148 +409,59 @@ const Home = () => {
 			});
 
 
-	}, [schedules, courses, settings, dataLoading.schedules, dataLoading.courses, attendanceSession])
+	}, [schedules, courses, settings, dataLoading.schedules, dataLoading.courses, dataLoading.attendanceSession])
 
-	const renderItem = useCallback(({item}: {item:any}) => (
-		<Flex
-			gap={10}
-			paddingBottom={20}
-		>
-			{!item.is_loading && (
-				<InterText
-					fontWeight={500}
-					// fontSize={16}
-					color={colors.subtext}
-				>
-					{moment().day(item.day).format('ddd')}
-				</InterText>
-			)}
-			<Flex
-				gap={10}
-			>
-				{item.is_loading && (
-					<Flex
-						gap={10}
-					>
-						<Skeleton
-							height={17}
-							width={50}
-						/>
-						<Skeleton
-							width={WIDTH - 40}
-							height={75}
-							borderRadius={12}	
-						/>
-					</Flex>
-				)}
-				{!item.is_loading &&
-				item?.schedules.some((i: Schedule & {course: Course | undefined}) => i.days_of_the_week.includes(item.day)) 
-				&& item?.schedules.filter((i: Schedule & {course: Course | undefined}) => i.days_of_the_week.includes(item.day)).map((i: Schedule & {course: Course | undefined, is_active: boolean, attendance_session_id: string | null}, index:number) => (
-					<TouchableOpacity
-						key={index}
-						onPress={() => {
-							if (!i.course) return;
+	const unscheduledClasses = useMemo((): Array<ScehduleListRenderItem> => {
+		if (dataLoading.schedules || dataLoading.courses || dataLoading.attendanceSession) {
+			return [];
+		}
 
-							router.push({
-								pathname: '/attendance',
-								params: {
-									_course_id: i?.course?.id as string,
-									_course_code: i.course_code,
-									_academic_session: settings.find(j => j.key === 'academic_session')?.value as string,
-									_semester: settings.find(j => j.key === 'semester')?.value,
-									_course_title: i?.course?.course_title as string,
-									_attendance_session_id: i?.attendance_session_id
-								}
-							})
-						}}
-					>
-						<Flex
-							borderRadius={12}
-							width={WIDTH - 40}
-							gap={10}
-							flexDirection='row'
-							alignItems='flex-start'
-							justifyContent='space-between'
-							backgroundColor={colors.lightBackground}
-							style={{
-								padding: 10,
-								borderColor: colors.border,
-								borderWidth: 1,
-							}}
-						>
-							<Flex>
-								<InterText
-									color={colors.subtext}
-								>
-									{moment().hour(i.lecture_start_time[i.days_of_the_week.findIndex(i => i === item.day)]).format('ha')} -&nbsp;
-									{moment().hour(i.lecture_start_time[i.days_of_the_week.findIndex(i => i === item.day)] + i.lecture_hours[i.days_of_the_week.findIndex(i => i === item.day)]).format('ha')}
-								</InterText>
-							</Flex>
-							<Flex 
-								width={3}
-								borderRadius={1.5}
-								height={'100%'}
-								backgroundColor={colors.primary}
-							/>
-							<Flex 
-								gap={8}
-								flex={1}
-							>
-								<Flex
-									flex={1}
-									alignSelf='stretch'
-									flexDirection='row'
-									alignItems='center'
-									justifyContent='space-between'
-								>
-									<InterText
-										fontSize={16}
-										lineHeight={19}
-										fontWeight={'500'}
-									>
-										{i.course_code}
-									</InterText>
-									{i.is_active && (
-										<Flex
-											paddingVertical={5}
-											paddingHorizontal={10}
-											backgroundColor="#27A55133"
-											borderRadius={10}
-										>
-											<InterText
-												color={"green"}
-											>
-												Active
-											</InterText>
-										</Flex>
-									)}
-								</Flex>
-								<InterText
-									lineHeight={19}
-									// fontWeight={'500'}
-								>
-									{i?.course?.course_title}
-								</InterText>
-								<InterText
-									lineHeight={12}
-									color={colors.subtext}
-									// fontWeight={'500'}
-								>
-									{i.level} level • {moment(i.semester, 'd').format('do')} semester • {i.venue}
-								</InterText>
-							</Flex>
-						</Flex>
-					</TouchableOpacity>
-				))}
-				{!item?.is_loading && !item?.schedules.some((i: Schedule) => i.days_of_the_week.includes(item.day)) && (
-					<InterText
-						color={colors.subtext}
-					>
-						Nill
-					</InterText>
-				)}
-			</Flex>
-		</Flex>
+		return attendanceSession.filter(item => {
+			return schedules.some(i => i.course_id === item.course_id && i.days_of_the_week.some(j => j !== moment().day()))
+		}).map(item => {
+			const course = courses.find(j => j.id === item.course_id);
+			const schedule = schedules[0]!;
+			return {
+				id: item.id,
+				day: moment().day(),
+				schedules: [
+					{
+						...schedule,
+						id: Math.random()?.toString(),
+						course_code: course?.course_code ?? '',
+						course_title: course?.course_title ?? '',
+						days_of_the_week: [moment().day()],
+						lecture_start_time: [moment(item.created_at).hour()],
+						lecture_hours: [moment(item.ended_at).diff(moment(item.created_at), 'hours')],
+						attendance_session_id: item.id,
+						course,
+						is_active: true
+					}
+				],
+			}
+		})
+	}, [schedules, courses, settings, dataLoading.schedules, dataLoading.courses])
+
+	const renderItem: ListRenderItem<ScehduleListRenderItem> = useCallback(({item}) => (
+		<ScheduleListItem
+			{...item}
+			isLoading={item?.is_loading}
+			onPress={(schedule) => {
+				if (!schedule.course) return;
+
+				router.push({
+					pathname: '/attendance',
+					params: {
+						_course_id: schedule?.course?.id as string,
+						_course_code: schedule.course_code,
+						_academic_session: settings.find(j => j.key === 'academic_session')?.value as string,
+						_semester: settings.find(j => j.key === 'semester')?.value,
+						_course_title: schedule?.course?.course_title as string,
+						_attendance_session_id: schedule?.attendance_session_id
+					}
+				})
+			}}
+		/>
 	), [settings])
 
 	return (
@@ -666,131 +587,41 @@ const Home = () => {
 									width={'100%'}
 									paddingBottom={30}
 								>
-									{(dataLoading.attendanceSession || dataLoading.courses || dataLoading.schedules) && (
+									{unscheduledClasses.length > 0 && (
 										<Flex
-											gap={20}
-											paddingBottom={10}
-										>
-											<Skeleton
-												width={100}
-												height={25}
-											/>
-											<Flex
-												gap={10}
-											>
-												<Skeleton
-													height={17}
-													width={50}
-												/>
-												<Skeleton
-													width={WIDTH - 40}
-													height={75}
-													borderRadius={12}	
-												/>
-											</Flex>
-										</Flex>
-									)}	
-									{!(dataLoading.attendanceSession || dataLoading.courses || dataLoading.schedules) && attendanceSession && (
-										<Flex
-											gap={20}
-											paddingBottom={10}
+											gap={30}
 										>
 											<InterText
 												fontSize={20}
 												fontWeight={500}
 											>
-												Unscheduled class
+												Un-scheduled class
 											</InterText>
-											<TouchableOpacity
-												onPress={() => {
-													const course = courses.find(course => course.id === attendanceSession?.course_id)!;
-													router.push({
-														pathname: '/attendance',
-														params: {
-															_course_id: course?.id,
-															_course_code: course?.course_code,
-															_academic_session: settings.find(item => item.key === 'academic_session')?.value as string,
-															_course_title: course?.course_title,
-															_attendance_session_id: attendanceSession?.id
-														}
-													})
-												}}
+											<Flex
 											>
-												<Flex
-													borderRadius={12}
-													width={WIDTH - 40}
-													gap={10}
-													flexDirection='row'
-													alignItems='flex-start'
-													justifyContent='space-between'
-													backgroundColor={colors.lightBackground}
-													style={{
-														padding: 10,
-														borderColor: colors.border,
-														borderWidth: 1,
-													}}
-												>
-													<Flex>
-														<InterText
-															color={colors.subtext}
-														>
-															{moment(attendanceSession?.started_at!).format('HH:mm')} - {moment(attendanceSession?.ended_at!).format('HH:mm')}
-														</InterText>
-													</Flex>
-													<Flex 
-														width={3}
-														borderRadius={1.5}
-														height={'100%'}
-														backgroundColor={colors.primary}
+												{unscheduledClasses.map(item => (
+													<ScheduleListItem
+														key={item.id}
+														{...item}
+														isLoading={item?.is_loading}
+														onPress={(schedule) => {
+															if (!schedule.course) return;
+
+															router.push({
+																pathname: '/attendance',
+																params: {
+																	_course_id: schedule?.course?.id as string,
+																	_course_code: schedule.course_code,
+																	_academic_session: settings.find(j => j.key === 'academic_session')?.value as string,
+																	_semester: settings.find(j => j.key === 'semester')?.value,
+																	_course_title: schedule?.course?.course_title as string,
+																	_attendance_session_id: schedule?.attendance_session_id
+																}
+															})
+														}}
 													/>
-													<Flex 
-														gap={8}
-														flex={1}
-													>
-														<Flex
-															flexDirection='row'
-															justifyContent='space-between'
-															alignItems='center'
-															alignSelf='stretch'
-														>
-															<InterText
-																fontSize={16}
-																lineHeight={19}
-																fontWeight={'500'}
-															>
-																{courses.find(item => item.id === attendanceSession?.course_id)?.course_code}
-															</InterText>
-															<Flex
-																paddingVertical={5}
-																paddingHorizontal={10}
-																backgroundColor="#27A55133"
-																borderRadius={10}
-															>
-																<InterText
-																	color={"green"}
-																>
-																	Active
-																</InterText>
-															</Flex>
-														</Flex>
-														<InterText
-															lineHeight={19}
-														>
-															{courses.find(item => item.id === attendanceSession?.course_id)?.course_title}
-														</InterText>
-														<InterText
-															lineHeight={12}
-															color={colors.subtext}
-														>
-															{(() => {
-																const course = courses.find(course => course.id === attendanceSession?.course_id)!;
-																const schedule = schedules.find(schedule => schedule.course_id === attendanceSession?.course_id)!;
-																return `${course?.level} level • ${moment(course?.semester, 'd').format('do')} semester • ${schedule?.venue}`
-															})()}
-														</InterText>
-													</Flex>
-												</Flex>
-											</TouchableOpacity>
+												))}
+											</Flex>
 										</Flex>
 									)}
 									<InterText
@@ -821,13 +652,13 @@ const Home = () => {
 											fontWeight={500}
 											textAlign='center'
 										>
-											You dount have any course register this session
+											You dount have any courses to lecture this semester
 										</InterText>
 										<InterText
 											textAlign={'center'}
 											color={colors.subtext}
 										>
-											Please quicky register your course to start logging your attendance
+											You would see the schedule for your assigned courses here
 										</InterText>
 									</Flex>
 									<CustomButton
@@ -862,6 +693,43 @@ const Home = () => {
 									width={'100%'}
 									paddingBottom={30}
 								>
+									{unscheduledClasses.length > 0 && (
+										<Flex
+											gap={30}
+										>
+											<InterText
+												fontSize={20}
+												fontWeight={500}
+											>
+												Un-scheduled class
+											</InterText>
+											<Flex
+											>
+												{unscheduledClasses.map(item => (
+													<ScheduleListItem
+														key={item.id}
+														{...item}
+														isLoading={item?.is_loading}
+														onPress={(schedule) => {
+															if (!schedule.course) return;
+
+															router.push({
+																pathname: '/attendance',
+																params: {
+																	_course_id: schedule?.course?.id as string,
+																	_course_code: schedule.course_code,
+																	_academic_session: settings.find(j => j.key === 'academic_session')?.value as string,
+																	_semester: settings.find(j => j.key === 'semester')?.value,
+																	_course_title: schedule?.course?.course_title as string,
+																	_attendance_session_id: schedule?.attendance_session_id
+																}
+															})
+														}}
+													/>
+												))}
+											</Flex>
+										</Flex>
+									)}
 									<InterText
 										fontSize={20}
 										fontWeight={500}

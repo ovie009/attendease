@@ -93,9 +93,49 @@ const getByCardUid = async (card_uid: string): Promise<Response<RfidCard | null>
     }
 }
 
+const update = async ({ card_uid, lecturer_id, student_id }: {card_uid: string, lecturer_id?: string | null, student_id?: string | null }):  Promise<Response<RfidCard>> => {
+    try {
+
+        const payload: {card_uid: string, lecturer_id?: string | null, student_id?: string | null } = { card_uid };
+
+        if (!card_uid) {
+            throw new Error('Card uid is required')
+        }
+
+        if (lecturer_id) {
+            payload.lecturer_id = lecturer_id;
+        }
+
+        if (student_id) {
+            payload.student_id = student_id;
+        }
+
+        const { data, error, status } = await supabase
+            .from(tableName)
+            .update(payload)
+            .eq("card_uid", card_uid)
+            .select('*')
+            .single();
+
+        if (error && status !== 406) {
+            throw error;
+        }
+
+        return {
+            isSuccessful: true,
+            message: "Lecturer created successfully",
+            data: data
+        }
+    } catch (error) {
+            console.error('Error in createLecturer function:', error);
+        throw error;
+    }
+}
+
 export default {
     create,
     getAll,
     getByCardUid,
+    update,
     getUnassignedLecturerCards,
 }

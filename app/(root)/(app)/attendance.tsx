@@ -213,7 +213,7 @@ const Attendance = () => {
                 }
 
                 // get location
-                const location = await Location.getCurrentPositionAsync({});
+                const location = await Location.getCurrentPositionAsync({accuracy: Location.LocationAccuracy.Highest});
 
                 // // // set initial coordinates
                 setUserCoordinates({

@@ -1,8 +1,11 @@
-import { StyleSheet, TextInput, TextInputProps, View } from 'react-native';
+import { StyleSheet, TextInput, TextInputProps, TouchableOpacity, View } from 'react-native';
+import Feather from '@expo/vector-icons/Feather';
 // Make sure React is imported
-import React, { forwardRef } from 'react';
+import React, { forwardRef, useState } from 'react';
 import { colors } from '@/utilities/colors';
 import InterText from './InterText';
+import Flex from './Flex';
+import { WIDTH } from '@/utilities/dimensions';
 
 export interface InputProps extends TextInputProps {
 	defaultValue: string;
@@ -36,6 +39,8 @@ const Input = forwardRef<TextInput, InputProps>(({
 	...rest
 }, ref) => { // Receive 'ref' as the second argument
 
+	const [isSecure, setIsSecure] = useState(isPasswordInput ? true : false);
+
 	const handleBlur = () => {
 		// Handle blur event
 	};
@@ -64,32 +69,45 @@ const Input = forwardRef<TextInput, InputProps>(({
 					{label}
 				</InterText>
 			)}
-			<TextInput
-				ref={ref} // <-- Pass the forwarded ref here
-				{...rest}
-				style={[
-					styles.input,
-					width !== undefined && {width},
-					height !== undefined && {height},
-					!editable && {backgroundColor: colors.lightGrey}
-				]} // Use combined style
-				defaultValue={defaultValue}
-				onChangeText={handleChangeText}
-				onBlur={handleBlur}
-				onFocus={handleFocus}
-				keyboardType={keyboardType}
-				secureTextEntry={isPasswordInput}
-				onSubmitEditing={onSubmitEditing}
-				editable={editable}
-				returnKeyType={returnKeyType}
-				placeholderTextColor={colors.placeholder} // Example: Add placeholder color
-			/>
-			{/* Optionally display the error message */}
-			{/* {error && (
-				<InterText style={styles.errorText}>
-					{error}
-				</InterText>
-			)} */}
+			<Flex
+				width={width || (WIDTH - 40)}
+				height={height || 40}
+				paddingHorizontal={9}
+				flexDirection='row'
+				gap={10}
+				alignItems='center'
+				style={{
+					borderWidth: 1,
+					borderColor: colors.inputBorder,
+					borderRadius: 9,
+				}}
+			>
+				<TextInput
+					ref={ref} // <-- Pass the forwarded ref here
+					{...rest}
+					style={[
+						styles.input,
+						!editable && {backgroundColor: colors.lightGrey}
+					]} // Use combined style
+					defaultValue={defaultValue}
+					onChangeText={handleChangeText}
+					onBlur={handleBlur}
+					onFocus={handleFocus}
+					keyboardType={keyboardType}
+					secureTextEntry={isSecure}
+					onSubmitEditing={onSubmitEditing}
+					editable={editable}
+					returnKeyType={returnKeyType}
+					placeholderTextColor={colors.placeholder} // Example: Add placeholder color
+				/>
+				{isPasswordInput && (
+					<TouchableOpacity
+						onPress={() => setIsSecure(!isSecure)}
+					>
+						<Feather name="eye-off" size={16} color={colors.subtext} />
+					</TouchableOpacity>
+				)}
+			</Flex>
 		</View>
 	);
 });
@@ -107,12 +125,8 @@ const styles = StyleSheet.create({
 		gap: 8,
 	},
 	input: {
-		width: '100%',
-		height: 40,
-		paddingHorizontal: 9,
-		borderWidth: 1,
-		borderColor: colors.inputBorder,
 		borderRadius: 9,
+		flex: 1,
 		color: colors.black
 	}
 });

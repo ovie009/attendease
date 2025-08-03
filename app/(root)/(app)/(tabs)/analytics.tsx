@@ -88,20 +88,21 @@ const Analytics = () => {
 		schedules: true,
 	})
 	// console.log("🚀 ~ Analytics ~ dataLoading:", dataLoading)
+	// console.log("🚀 ~ Analytics ~ dataLoading:", dataLoading)
 
 	const [settings, setSettings] = useState<Setting[]>([]);
 	const [courses, setCourses] = useState<Course[]>([])
-	const [courseIds, setCourseIds] = useState<string[]>([])
+	const [courseIds, setCourseIds] = useState<string[]>(user?.course_ids || [])
 
 	const [schedules, setSchedules] = useState<Schedule[]>([])
 
 	const [courseRegistration, setCourseRegistration] = useState<CourseRegistration | null>(null)
 
-	const [studentAttendanceSession, setStudentAttendanceSession] = useState<AttendanceSession[]>([])
-	// console.log("🚀 ~ Analytics ~ studentAttendanceSession:", studentAttendanceSession)
+	const [attendanceSession, setAttendanceSession] = useState<AttendanceSession[]>([])
+	// console.log("🚀 ~ Analytics ~ attendanceSession:", attendanceSession)
 
-	const [studentAttendanceRecords, setStudentAttendanceRecords] = useState<AttendanceRecord[]>([])
-	// console.log("🚀 ~ Analytics ~ studentAttendanceRecords:", studentAttendanceRecords)
+	const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([])
+	// console.log("🚀 ~ Analytics ~ attendanceRecords:", attendanceRecords)
 	
 	const [totalPercentage, setTotalPercentage] = useState(0)
 
@@ -291,7 +292,10 @@ const Analytics = () => {
 
 	// fetch course registration
 	useEffect(() => {
-		if (user?.account_type !== AccountType.Student) return;
+		if (user?.account_type !== AccountType.Student) {
+			handleDisableDataLoading('courseRegistration', setDataLoading)
+			return
+		}
 		if (!academicSession) return;
 
 		const fetchCourseRegistration = async () => {
@@ -331,6 +335,7 @@ const Analytics = () => {
 		const fetchLecturerCourses = async () => {
 			try {
 				const coursesResponse = await handleCourses.getByIds(courseIds)
+				console.log("🚀 ~ fetchLecturerCourses ~ coursesResponse:", coursesResponse)
 				setCourses(coursesResponse.data);
 
 				handleDisableDataLoading('courses', setDataLoading)
@@ -344,7 +349,6 @@ const Analytics = () => {
 
 	// fetch attendance session for student
 	useEffect(() => {
-		if (user?.account_type !== AccountType.Student) return;
 		if (courseIds.length === 0) return;
 		if (!academicSession || !semester) return;
 
@@ -355,8 +359,9 @@ const Analytics = () => {
 					semester,
 					session: academicSession
 				});
+				// console.log("🚀 ~ fetchAttendanceSession ~ attendanceSessionResponse:", attendanceSessionResponse)
 
-				setStudentAttendanceSession(attendanceSessionResponse.data);
+				setAttendanceSession(attendanceSessionResponse.data);
 
 				handleDisableDataLoading('attendanceSession', setDataLoading)
 			} catch (error: any) {
@@ -368,7 +373,10 @@ const Analytics = () => {
 
 	// fetch attendance records for student
 	useEffect(() => {
-		if (user?.account_type !== AccountType.Student) return;
+		if (user?.account_type !== AccountType.Student) {
+			handleDisableDataLoading('attendanceRecords', setDataLoading)
+			return
+		};
 		if (!semester || !academicSession || !user?.id) return;
 		const fetchAttendanceRecords = async () => {
 			try {
@@ -378,7 +386,7 @@ const Analytics = () => {
 					student_id: user?.id,
 				});
 
-				setStudentAttendanceRecords(attendanceRecordsResponse.data)
+				setAttendanceRecords(attendanceRecordsResponse.data)
 
 				handleDisableDataLoading('attendanceRecords', setDataLoading)
 			} catch (error: any) {
@@ -390,7 +398,6 @@ const Analytics = () => {
 
 	// fetch student schedules
 	useEffect(() => {
-		if (user?.account_type !== AccountType.Student) return;
 		if (!semester || !academicSession) return;
 		if (courses.length === 0) return;
 
@@ -401,7 +408,7 @@ const Analytics = () => {
 					session: academicSession,
 					course_codes: courses.map(item => item.course_code),
 				});
-				console.log("🚀 ~ fetchSchedule ~ scheduleResponse:", scheduleResponse)
+				// console.log("🚀 ~ fetchSchedule ~ scheduleResponse:", scheduleResponse)
 
 				setSchedules(scheduleResponse.data);
 
@@ -420,11 +427,24 @@ const Analytics = () => {
 
 		if (courseIds.length === 0) return []
 
+		if (user?.account_type === AccountType.Lecturer) {
+			return courseIds?.filter(id => courses.some(item => item.id === id && item.semester === semester)).map(id => {
+				return {
+					id,
+					course: courses.find(i => i.id === id)!,
+					total_classes: attendanceSession.filter(item => item.course_id === id)?.length,
+					classes_per_week: schedules.find(item => item.course_id === id || item?.course_code === courses.find(i => i.id === id)?.course_code)?.days_of_the_week?.length || 1,
+					total_weeks: numberOfSemesterWeeks,
+					// classes_per_week: 1,
+				}
+			})
+		}
+
 		return courseIds?.filter(id => courses.some(item => item.id === id && item.semester === semester)).map(id => {
 			return {
 				id,
 				course: courses.find(i => i.id === id)!,
-				total_classes: studentAttendanceRecords.filter(item => studentAttendanceSession.some(i => (i.course_id === id) && (i.id === item.attendance_session_id)))?.length,
+				total_classes: attendanceRecords.filter(item => attendanceSession.some(i => (i.course_id === id) && (i.id === item.attendance_session_id)))?.length,
 				classes_per_week: schedules.find(item => item.course_id === id || item?.course_code === courses.find(i => i.id === id)?.course_code)?.days_of_the_week?.length || 1,
 				total_weeks: numberOfSemesterWeeks,
 				// classes_per_week: 1,
@@ -438,9 +458,10 @@ const Analytics = () => {
 		dataLoading.courses,
 		dataLoading.attendanceRecords,
 		dataLoading.attendanceSession,
+		dataLoading.schedules,
 		numberOfSemesterWeeks,
-		studentAttendanceRecords,
-		studentAttendanceSession
+		attendanceRecords,
+		attendanceSession
 	])
 	
 	useEffect(() => {
@@ -534,7 +555,7 @@ const Analytics = () => {
 								fontSize={24}
 								lineHeight={30}
 							>
-								{courseRegistration?.course_ids?.length || 0}
+								{user?.account_type === AccountType.Student ? (courseRegistration?.course_ids?.length || 0) : (courseIds.filter(id => courses.some(item => item.id === id && item.semester === semester))?.length || 0)}
 							</InterText>
 						)}
 						<Flex>
@@ -542,7 +563,7 @@ const Analytics = () => {
 								fontWeight={600}
 								fontSize={12}
 							>
-								Registered courses
+								{user?.account_type === AccountType.Student ? "Registered courses" : "Courses offerred"}
 							</InterText>
 						</Flex>
 					</Flex>

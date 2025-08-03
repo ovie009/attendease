@@ -26,6 +26,7 @@ type UpdateLecturerPayload = {
     role?: Role,
     course_ids?: string[],
     pin?: string,
+    rfid?: string,
 }
 
 const create = async ({full_name, role, department_id}: {full_name: string, role: Role, department_id: string}): Promise<Response<Lecturer>> => {
@@ -215,7 +216,7 @@ const addLecturer = async ({ email, full_name, department_id, role, rfid, course
     }
 };
 
-const updateLecturer = async ({ id, full_name, department_id, role, course_ids, pin }: UpdateLecturerPayload):  Promise<Response<Lecturer>> => {
+const updateLecturer = async ({ id, full_name, department_id, role, course_ids, pin, rfid }: UpdateLecturerPayload):  Promise<Response<Lecturer>> => {
     try {
 
         const payload: Omit<UpdateLecturerPayload, 'id'> = {};
@@ -224,7 +225,7 @@ const updateLecturer = async ({ id, full_name, department_id, role, course_ids, 
             throw new Error('Id is required')
         }
 
-        if (!full_name && !department_id && !role && !course_ids && !pin) {
+        if (!full_name && !department_id && !role && !course_ids && !pin && !rfid) {
             throw new Error('Empty fields')
         }
 
@@ -242,6 +243,10 @@ const updateLecturer = async ({ id, full_name, department_id, role, course_ids, 
 
         if (pin) {
             payload.pin = pin;
+        }
+
+        if (rfid) {
+            payload.rfid = rfid;
         }
 
         if (course_ids) {

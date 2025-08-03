@@ -27,6 +27,8 @@ type AdminListItemProps = Admin & {
     is_loading?: boolean | undefined;
 };
 
+type Button = { name: string, href: Href, Icon: ReactNode }
+
 const Profile = () => {
 
     const {
@@ -37,6 +39,7 @@ const Profile = () => {
     const segments = useSegments();
 
     const user = useAuthStore((state) => state.user);
+    console.log("🚀 ~ Profile ~ user:", user)
 
     const handleLogout = async () => {
         // Optional: Show loading state
@@ -54,20 +57,50 @@ const Profile = () => {
     }); 
     // console.log("🚀 ~ Profile ~ dataLoading:", dataLoading)
 
-    const buttons: { name: string, href: Href, onPress: () => void, Icon: ReactNode }[] = [
-		{
-			name: "Change pin",
-			href: '/changePin',
-			onPress: () => {},
-			Icon: <MaterialIcons name="password" size={20} color={colors.primary} />
-		},
-		{
-			name: "Change card",
-			href: '/changeCard',
-			onPress: () => {},
-			Icon: <AntDesign name="creditcard" size={20} color={colors.primary} />
-		},
-	];
+    const buttons = useMemo((): Button[] => {
+        if (user?.account_type === AccountType.Student) {
+            return [
+                {
+                    name: "Change pin",
+                    href: '/changePin',
+                    Icon: <MaterialIcons name="password" size={20} color={colors.primary} />
+                },
+                {
+                    name: "Change card",
+                    href: '/changeCard',
+                    Icon: <AntDesign name="creditcard" size={20} color={colors.primary} />
+                },
+            ]
+        }
+
+        const buttons: Button[] = [
+            {
+                name: "Change pin",
+                href: '/changePin',
+                Icon: <MaterialIcons name="password" size={20} color={colors.primary} />
+            },
+            {
+                name: "Change card",
+                href: '/changeCard',
+                Icon: <AntDesign name="creditcard" size={20} color={colors.primary} />
+            },
+            {
+                name: "Authorise student card change",
+                href: '/authoriseStudent',
+                Icon: <AntDesign name="unlock" size={20} color={colors.primary} />
+            },
+        ]
+        
+        if (user?.role === 'Dean' || user?.role === 'HOD') {
+            buttons.push({
+                name: "View other lecturers in your"+""+ user?.role === 'Dean' ? "College" : "Department",
+                href: '/changeCard',
+                Icon: <AntDesign name="creditcard" size={20} color={colors.primary} />
+            })
+        }
+
+        return buttons;
+    }, []);
 
     useEffect(() => {
         const fetchAdmins = async () => {

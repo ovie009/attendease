@@ -86,7 +86,7 @@ export type Student = {
     device_id: string,
     pin: string,
     email: string;
-    level: number,
+    level: Level,
     rfid: string,
     is_active: boolean,
     created_at: string;
@@ -140,6 +140,7 @@ export type User = {
     rfid?: string | undefined;
     pin?: string | null | undefined;
     role?: Role | undefined;
+    device_id?: string,
     created_at: string;
     updated_at: string;
     account_type: AccountType;

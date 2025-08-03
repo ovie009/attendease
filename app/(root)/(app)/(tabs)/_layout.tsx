@@ -25,7 +25,7 @@ export default function TabLayout() {
 	const handleLogout = async () => {
 		try {
 			// Optional: Show loading state
-			const { error } = await supabase.auth.signOut();
+			const { error } = await supabase?.auth?.signOut();
 			if (error) {
 				console.error('Error logging out:', error);
 			}
