@@ -202,6 +202,7 @@ const Home = () => {
 				} else {
 					handleDisableDataLoading('courses', setDataLoading)
 					handleDisableDataLoading('schedules', setDataLoading)
+					handleDisableDataLoading('attendanceSession', setDataLoading)
 				}
 
 				handleDisableDataLoading('courseRegistration', setDataLoading)

@@ -46,6 +46,16 @@ export default function RootLayout() {
 	// Track connection status
 	const isConnected = useRef(false);
 
+	// useEffect(() => {
+	// 	const test = async () => {
+	// 		console.log(await supabase.auth.getSession())
+	// 	}
+
+	// 	test();
+		
+		
+	// }, [])
+
 	// --- Effect 1: Handle Supabase Auth Listener ---
 	useEffect(() => {
 		// console.log('Setting up Supabase auth listener...');

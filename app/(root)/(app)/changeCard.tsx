@@ -62,17 +62,6 @@ const ChangeCard = () => {
                         id: user?.id,
                         rfid: cardId,
                     });
-                    // console.log("🚀 ~ handleCompleteRegistration ~ updateUserResponse:", updateUserResponse)
-
-                    // await handleRfidCards.update({
-                    //     card_uid: user?.rfid!,
-                    //     lecturer_id: null,
-                    // })
-        
-                    // await handleRfidCards.update({
-                    //     card_uid: cardId,
-                    //     lecturer_id: user?.id,
-                    // })
                     
                     setUser({
                         ...user,
@@ -83,17 +72,7 @@ const ChangeCard = () => {
                         id: user?.id,
                         rfid: cardId,
                     });
-
-                    await handleRfidCards.update({
-                        card_uid: user?.rfid!,
-                        student_id: null,
-                    })
-        
-                    await handleRfidCards.update({
-                        card_uid: cardId,
-                        student_id: user?.id,
-                    })
-        
+                            
                     setUser({
                         ...user,
                         ...updateUserResponse.data,

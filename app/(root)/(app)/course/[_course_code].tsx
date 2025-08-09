@@ -22,6 +22,7 @@ import handleSchedule from '@/api/handleSchedule';
 import { Semester } from '@/types/general';
 import moment from 'moment';
 import EditableScheduleListItem from '@/components/EditableScheduleListItem';
+import { useRouteStore } from '@/stores/useRouteStore';
 
 
 type LecturersListItemProps = Lecturer & {
@@ -46,6 +47,10 @@ const CourseDetails = () => {
 		displayToast
 	} = useAppStore.getState();
 
+	const {
+		_setEditCourse,
+	} = useRouteStore()
+
 	const [dataLoading, setDataloading] = useState({
 		settings: true,
 		course: true,
@@ -61,6 +66,30 @@ const CourseDetails = () => {
 	const [settings, setSettings] = useState<Setting[]>([]);
 	const [schedule, setSchedule] = useState<Schedule | null>(null);
 	// console.log("🚀 ~ CourseDetails ~ settings:", settings)
+
+	const handleEditCourse = useCallback(() => {
+		if (!course) return;
+		_setEditCourse(course);
+		router.push('/EditCourse')
+	}, [course])
+	
+
+	useEffect(() => {
+        navigation.setOptions({
+            headerRight: () => (
+                <CustomButton
+                    onPress={handleEditCourse}
+                    text='Edit'
+                    buttonStyle={{
+                        width: 'auto', 
+                        borderRadius: 14,
+                        minHeight: 30,
+                    }}
+                    isSecondary={true}
+                />
+            )
+        });
+    }, [handleEditCourse]);
 
 	// fetch settings
 	useEffect(() => {

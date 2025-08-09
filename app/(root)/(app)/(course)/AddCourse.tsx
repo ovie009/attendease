@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, TextInput, View } from 'react-native'
+import { ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { colors } from '@/utilities/colors'
 import CustomButton from '@/components/CustomButton'
@@ -27,10 +27,12 @@ import { v4 as uuidv4 } from 'uuid'
 import getFileExtension from '@/utilities/getFileExtension'
 import EditableCourseListItem from '@/components/EditableCourseListItem'
 import Feather from '@expo/vector-icons/Feather';
-import AntDesign from '@expo/vector-icons/AntDesign';
 import Menu from '@/components/Menu'
 import Flex from '@/components/Flex'
-import handleCourses from '@/api/handleCourses'
+import handleCourses, { AddCoursePayload } from '@/api/handleCourses'
+import InterText from '@/components/InterText'
+import AddCircleLargeIcon from '@/assets/svg/AddCircleLargeIcon.svg';
+import AntDesign from '@expo/vector-icons/AntDesign'
 
 // Define the combined type for clarity
 type SelectableDepartment = Department & { is_selected: boolean };
@@ -53,7 +55,7 @@ type Course = {
 	course_code: string,
 }
 
-type BottomSheetContent = 'Select Department' | 'Select Level' | 'Update course' | 'Select Semester';
+type BottomSheetContent = 'Select Department' | 'Select Level' | 'Update course' | 'Select Semester' | 'Select other departments';
 
 const AddCourse = () => {
 
@@ -92,6 +94,8 @@ const AddCourse = () => {
 	const [courseCode, setCourseCode] = useState<string>('');
 	const courseCodeRef = useRef<TextInput>(null)
 	const [departments, setDepartments] = useState<SelectableDepartment[]>([]);
+	const [selectedDepartments, setSelectedDepartments] = useState<SelectableDepartment[]>([]);
+	console.log("🚀 ~ AddCourse ~ selectedDepartments:", selectedDepartments)
 	const [departmentName, setDepartmentName] = useState<string>('');
 	const [departmentId, setDepartmentId] = useState<string>('');
 	const [courses, setCourses] = useState<Course[]>([]);
@@ -189,8 +193,29 @@ const AddCourse = () => {
 		const listItemHieght = 60;
 
 		let height = 0;
-		if (content === 'Select Department') {
+		if (content === 'Select Department' || content === 'Select other departments') {
 			height = Math.min(HEIGHT, minHeight + listItemHieght*departments.length);
+
+			if (content === 'Select Department') {
+				setDepartments(prevState => {
+					return prevState.map(item => {
+						return {
+							...item,
+							is_selected: item.id === departmentId,
+						}
+					})
+				})
+			} else {
+				height += 50;
+				setDepartments(prevState => {
+					return prevState.map(item => {
+						return {
+							...item,
+							is_selected: selectedDepartments.some(department => department.id === item.id),
+						}
+					})
+				})
+			}
 		} else if (content === 'Select Semester') {
 			height = Math.min(HEIGHT, minHeight + listItemHieght*semesterOptions.length);
 		} else if (content === 'Select Level') {
@@ -212,7 +237,7 @@ const AddCourse = () => {
 		})
 
 		sheetRef?.current?.present();
-	}, [selectedCourseId, departments, semesterOptions, levelOptions, courses])
+	}, [selectedCourseId, departments, departmentId, selectedDepartments, setDepartments, semesterOptions, levelOptions, courses])
 
 	const closeBottomSheet = () => {
 		sheetRef?.current?.close();
@@ -258,33 +283,47 @@ const AddCourse = () => {
 		// console.log("🚀 ~ handleSelectDepartment ~ departments:", departments)
 		// This check ensures that 'find' below will succeed.
 		if (departments.some(item => item.id === id)) {
-			// Add '!' after find(...) to assert it's not null/undefined
-			const foundDepartment = departments.find((item) => item.id === id)!;
-			setDepartmentName(foundDepartment.department_name); // Now TypeScript knows foundLecturer is Lecturer, not Lecturer | undefined
-
-			setDepartmentId(id);
-
-			// update lecturer list
-			setDepartments(prevState => {
-				return prevState.map(item => {
-					if (item.id === id) {
+			if (sheetParameters.content === 'Select Department') {
+				// Add '!' after find(...) to assert it's not null/undefined
+				const foundDepartment = departments.find((item) => item.id === id)!;
+				setDepartmentName(foundDepartment.department_name); // Now TypeScript knows foundLecturer is Lecturer, not Lecturer | undefined
+	
+				setDepartmentId(id);
+	
+				// update lecturer list
+				setDepartments(prevState => {
+					return prevState.map(item => {
+						if (item.id === id) {
+							return {
+								...item,
+								is_selected: true,
+							}
+						}
 						return {
 							...item,
-							is_selected: true,
+							is_selected: false,
 						}
-					}
-					return {
-						...item,
-						is_selected: false,
-					}
+					})
 				})
-			})
+				closeBottomSheet()
+			} else {
+				setDepartments(prevState => {
+					return prevState.map(item => {
+						if (item.id === id) {
+							return {
+								...item,
+								is_selected: !item.is_selected,
+							}
+						}
+						return item
+					})
+				})
+			}
 
-			closeBottomSheet()
 		}
 		// Optional: Handle the else case if needed, though 'some' prevents it here.
 		// else { console.warn(`Lecturer with id ${id} not found unexpectedly.`); }
-	}, [departments]); // <-- Add setDean to dependencies
+	}, [departments, sheetParameters]); // <-- Add setDean to dependencies
 	
 	const handleSelectSemster = useCallback((id: string): void => {
 		// This check ensures that 'find' below will succeed.
@@ -403,13 +442,19 @@ const AddCourse = () => {
 					throw new Error("Enter course title and code")
 				}
 
-				const coursesResponse = await handleCourses.create({
+				const payload: AddCoursePayload = {
 					department_id: departmentId,
 					level,
 					semester,
 					course_code: courseCode,
 					course_title: courseTitle
-				});
+				};
+
+				if (selectedDepartments.length !== 0) {
+					payload['other_department_ids'] = selectedDepartments.map(item => item.id);
+				}
+
+				const coursesResponse = await handleCourses.create(payload);
 
 				if (coursesResponse.isSuccessful) {
 					displayToast('SUCCESS', 'Courses added successfully')
@@ -524,6 +569,17 @@ const AddCourse = () => {
 		handleDeleteCourse();
 	}, [handleDeleteCourse, openBottomSheet])
 
+	const handleSelectOtherDepartments = useCallback(() => {
+		setSelectedDepartments(departments.filter(item => item.is_selected));
+		closeBottomSheet()
+	}, [departments])
+
+	const handleRemoveSelectedDepartment = useCallback((id: string) => {
+		setSelectedDepartments(prevState => prevState.filter(department => department.id !== id))
+	}, [setSelectedDepartments]);
+	
+	
+
 	return (<>
 		<ScrollView
 			keyboardShouldPersistTaps={'handled'}
@@ -566,6 +622,83 @@ const AddCourse = () => {
 					onPress={() => openBottomSheet('Select Department')}
 					value={departmentName}
 				/>
+
+				{departmentId && (
+					<Flex
+						gap={10}
+					>
+						<InterText
+							fontSize={13}
+							lineHeight={15}
+							color={colors?.label}
+						>
+							Select other departments that offer this course (optional)
+						</InterText>
+						<Flex
+							flexDirection='row'
+							gap={20}
+							flexWrap='wrap'
+						>
+							{selectedDepartments.map(department => (
+								<Flex
+									key={department.id}
+									paddingHorizontal={12}
+									borderRadius={9}
+									height={40}
+									justifyContent='center'
+									alignItems='center'
+									flexDirection='row'
+									gap={10}
+									style={{
+										borderWidth: 1,
+										borderColor: colors.inputBorder,
+									}}
+								>
+									<InterText>
+										{department.department_name}
+									</InterText>
+									<TouchableOpacity
+										onPress={() => {
+											handleRemoveSelectedDepartment(department.id)
+										}}
+									>
+			                            <AntDesign name="close" size={16} color={colors.black} />
+									</TouchableOpacity>
+								</Flex>
+							))}
+							<TouchableOpacity
+								onPress={() => {
+									openBottomSheet('Select other departments')
+								}}
+							>
+								<Flex
+									paddingHorizontal={12}
+									borderRadius={9}
+									height={40}
+									justifyContent='center'
+									alignItems='center'
+									flexDirection='row'
+									gap={10}
+									style={{
+										borderWidth: 1,
+										borderStyle: 'dashed',
+										borderColor: colors.inputBorder,
+									}}
+									// backgroundColor={colors.lightBackground}
+								>
+									<AddCircleLargeIcon width={16} height={16} />
+									<InterText
+										fontSize={12.5}
+										lineHeight={15}
+										color={colors.placeholder}
+									>
+										Select {selectedDepartments?.length === 0 ? "department" : "other departments"}
+									</InterText>
+								</Flex>
+							</TouchableOpacity>
+						</Flex>
+					</Flex>
+				)}
 				{departmentId && <>
 					<SelectInput
 						label='Select Level'
@@ -620,6 +753,7 @@ const AddCourse = () => {
 			sheetTitle={sheetParameters.content}
 			snapPoints={sheetParameters.snapPoints}
 			closeBottomSheet={closeBottomSheet}
+			enableOverDrag={false}
 		>
 			{sheetParameters.content === 'Select Department' && (
 				<BottomSheetFlashList
@@ -629,6 +763,26 @@ const AddCourse = () => {
 					estimatedItemSize={81}
 					renderItem={renderDepartmentItem}
 				/>
+			)}
+			{sheetParameters.content === 'Select other departments' && (
+				<React.Fragment>
+					<BottomSheetFlashList
+						data={departments.filter(item => item.id !== departmentId)}
+						keyExtractor={(item) => item.id}
+						contentContainerStyle={{paddingTop: 50}}
+						estimatedItemSize={81}
+						renderItem={renderDepartmentItem}
+					/>
+					<Flex
+						paddingBottom={35}
+					>
+						<CustomButton
+							text='Select'
+							disabled={!departments.some(item => item.is_selected)}
+							onPress={handleSelectOtherDepartments}
+						/>
+					</Flex>
+				</React.Fragment>
 			)}
 			{sheetParameters.content === 'Select Semester' && (
 				<BottomSheetFlashList

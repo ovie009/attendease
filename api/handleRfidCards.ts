@@ -26,12 +26,14 @@ const create = async (payload: {card_uid: string, assigned_for: UserType}): Prom
     }
 }
 
-const getAll = async (): Promise<Response<RfidCard[] | []>> => {
+const getAll = async (limit: number = 20): Promise<Response<RfidCard[] | []>> => {
     try {
         const { data, error, status } = await supabase
             .from(tableName)
             .select('*')
-            .order('card_uid', {ascending: true});
+            .limit(limit)
+            .order('card_uid', {ascending: true})
+
 
         if (error && status !== 406) {
             throw error;

@@ -47,6 +47,27 @@ const getById = async (id: string): Promise<Response<Student | null>> => {
     }
 }
 
+const getByRfids = async (rfids: string[]): Promise<Response<Array<Student>>> => {
+    try {
+        const { data, error, status } = await supabase
+            .from(tableName)
+            .select('*')
+            .in('rfid', rfids)
+
+        if (error && status !== 406) {
+            throw error;
+        }
+
+        return {
+            isSuccessful: true,
+            message: "Student selected successfully",
+            data: data || [],
+        } 
+    } catch (error) {
+        throw error;
+    }
+}
+
 const updateStudent = async ({ id, pin, rfid }: {id: string, pin?: string, rfid?: string }):  Promise<Response<Student>> => {
     try {
 
@@ -116,6 +137,7 @@ const updateDeviceId = async (payload: UpdateDevicePayload): Promise<Response<St
 export default {
     getById,
     create,
+    getByRfids,
     updateStudent,
     updateDeviceId
 }

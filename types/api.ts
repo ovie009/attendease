@@ -23,6 +23,7 @@ export type Course = {
     semester: Semester;
     course_code: string;
     course_title: string;
+    other_department_ids: string[];
     created_at: string;
     updated_at: string;
 };
@@ -122,8 +123,6 @@ export type RfidCard = {
     id: string;
     card_uid: string;
     assigned_for: UserType;
-    lecturer_id?: string | null;
-    student_id?: string | null;
     created_at: string;
     updated_at: string;
 }

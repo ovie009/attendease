@@ -13,25 +13,32 @@ type AddCoursesPayload = {
     courses: Courses
 }
 
-type AddCoursePayload = {
+export type AddCoursePayload = {
     department_id: string,
     level: Level, 
     semester: Semester, 
     course_title: string,
     course_code: string,
+    other_department_ids?: string[]
 }
 
-const create = async ({department_id, level, semester, course_code, course_title}: AddCoursePayload): Promise<Response<Course>> => {
+const create = async ({department_id, level, semester, course_code, course_title, other_department_ids}: AddCoursePayload): Promise<Response<Course>> => {
     try {
+        const payload: AddCoursePayload = { 
+            department_id,
+            level,
+            semester,
+            course_code,
+            course_title
+        }
+
+        if (other_department_ids && other_department_ids?.length !== 0) {
+            payload['other_department_ids'] = other_department_ids;
+        }
+
         const { data, error, status } = await supabase
             .from(tableName)
-            .insert({ 
-                department_id,
-                level,
-                semester,
-                course_code,
-                course_title
-            })
+            .insert(payload)
             .select('*')
             .single();
 
@@ -42,6 +49,44 @@ const create = async ({department_id, level, semester, course_code, course_title
         return {
             isSuccessful: true,
             message: "Course created successfully",
+            data: data
+        }
+    } catch (error) {
+        throw error;
+    }
+}
+
+const update = async ({department_id, level, semester, course_code, course_title, other_department_ids = [], id}: AddCoursePayload & {id: string}): Promise<Response<Course>> => {
+    try {
+        const payload: AddCoursePayload = { 
+            department_id,
+            level,
+            semester,
+            course_code,
+            course_title,
+            other_department_ids
+        }
+
+        const { data, error, status } = await supabase
+            .from(tableName)
+            .update(payload)
+            .eq('id', id)
+            .select('*')
+            .single();
+            
+        console.log("🚀 ~ update ~ id:", id)
+        console.log("🚀 ~ update ~ status:", status)
+        console.log("🚀 ~ update ~ error:", error)
+        console.log("🚀 ~ update ~ data:", data)
+        console.log("")
+
+        if (error && status !== 406) {
+            throw error;
+        }
+
+        return {
+            isSuccessful: true,
+            message: "Course updated successfully",
             data: data
         }
     } catch (error) {
@@ -100,7 +145,7 @@ const getByDepartmentIdAndLevels = async ({department_id, levels}: {department_i
             .from(tableName)
             .select('*')
             .in('level', levels)
-            .eq('department_id', department_id)
+            .or(`department_id.eq.${department_id},other_department_ids.cs.{${department_id}}`)
             .order('course_code', {ascending: true});
 
         if (error && status !== 406) {
@@ -193,6 +238,7 @@ const getByIds = async (ids: string[]): Promise<Response<Course[] | []>> => {
 
 export default {
     create,
+    update,
     getAll,
     getById,
     getByIds,

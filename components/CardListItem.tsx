@@ -7,17 +7,19 @@ import InterText from './InterText'
 import { UserType } from '@/types/general';
 import StatusAssignedIcon from '@/assets/svg/StatusAssignedIcon.svg';
 import StatusUnassignedIcon from '@/assets/svg/StatusUnassignedIcon.svg';
+import { Lecturer, Student } from '@/types/api'
 
 type CardListItemProps = {
 	cardUid?: string | undefined;
 	assignedFor?: UserType | undefined;
+    student?: Student,
+    lecturer?: Lecturer,
 	status?: boolean | undefined;
     onPress?: () => void | undefined;
 	isLoading?: boolean | undefined;
 }
 
-const CardListItem: FC<CardListItemProps> = ({cardUid, assignedFor, status, isLoading, onPress}) => {
-    console.log("🚀 ~ status:", status)
+const CardListItem: FC<CardListItemProps> = ({cardUid, assignedFor, student, lecturer,  status, isLoading, onPress}) => {
     return (
         <TouchableOpacity 
             style={styles.container}
@@ -33,6 +35,11 @@ const CardListItem: FC<CardListItemProps> = ({cardUid, assignedFor, status, isLo
                 <Skeleton
                     height={13}
                     width={120}
+                    borderRadius={2.5}
+                />
+                <Skeleton
+                    height={13}
+                    width={100}
                     borderRadius={2.5}
                 />
                 <Skeleton
@@ -75,6 +82,17 @@ const CardListItem: FC<CardListItemProps> = ({cardUid, assignedFor, status, isLo
                 >
                     Type: {assignedFor}
                 </InterText>
+                
+                {!(student === undefined && lecturer  === undefined) && (
+                    <InterText
+                        fontSize={13}
+                        lineHeight={17}
+                        color={colors.subtext}
+                    >
+                        {student?.full_name ? student?.full_name : ""}
+                        {lecturer?.full_name ? lecturer?.full_name : ""}
+                    </InterText>
+                )}
             </>}
         </TouchableOpacity>
     )
