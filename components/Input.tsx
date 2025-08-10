@@ -87,6 +87,7 @@ const Input = forwardRef<TextInput, InputProps>(({
 					{...rest}
 					style={[
 						styles.input,
+						{height: height || 40},
 						!editable && {backgroundColor: colors.lightGrey}
 					]} // Use combined style
 					defaultValue={defaultValue}
@@ -97,6 +98,7 @@ const Input = forwardRef<TextInput, InputProps>(({
 					secureTextEntry={isSecure}
 					onSubmitEditing={onSubmitEditing}
 					editable={editable}
+					textAlignVertical={rest.multiline ? 'top' : 'center'}
 					returnKeyType={returnKeyType}
 					placeholderTextColor={colors.placeholder} // Example: Add placeholder color
 				/>
@@ -127,6 +129,7 @@ const styles = StyleSheet.create({
 	input: {
 		borderRadius: 9,
 		flex: 1,
+		// backgroundColor: 'pink',
 		color: colors.black
 	}
 });

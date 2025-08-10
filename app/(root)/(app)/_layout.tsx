@@ -291,6 +291,16 @@ export default function AppLayout() {
 				/>
 
 				<Stack.Screen 
+					name="support"
+					options={{
+						headerTintColor: colors.black,
+						headerBackTitle: "",
+						headerLeft: () => <View style={{marginRight: 6}}><MaterialIcons name="support-agent" size={40} color={colors.primary} /></View>,
+						headerTitle: () => <InterText fontSize={32} fontWeight={600} lineHeight={35}>Get Help</InterText>,
+					}} 
+				/>
+
+				<Stack.Screen 
 					name="completeRegistration"
 					options={{
 						headerTintColor: colors.black,

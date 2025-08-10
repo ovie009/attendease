@@ -70,6 +70,11 @@ const Profile = () => {
                     href: '/changeCard',
                     Icon: <AntDesign name="creditcard" size={20} color={colors.primary} />
                 },
+                {
+                    name: "Get help",
+                    href: '/support',
+                    Icon: <MaterialIcons name="support-agent" size={20} color={colors.primary} />
+                },
             ]
         }
 
@@ -85,7 +90,7 @@ const Profile = () => {
                 Icon: <AntDesign name="creditcard" size={20} color={colors.primary} />
             },
             {
-                name: "Authorise student card change",
+                name: "Authorise student device change",
                 href: '/authoriseStudent',
                 Icon: <AntDesign name="unlock" size={20} color={colors.primary} />
             },

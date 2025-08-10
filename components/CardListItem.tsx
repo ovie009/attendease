@@ -88,9 +88,10 @@ const CardListItem: FC<CardListItemProps> = ({cardUid, assignedFor, student, lec
                         fontSize={13}
                         lineHeight={17}
                         color={colors.subtext}
+                        fontWeight={500}
                     >
                         {student?.full_name ? student?.full_name : ""}
-                        {lecturer?.full_name ? lecturer?.full_name : ""}
+                        {lecturer?.full_name ? lecturer?.full_name +" • "+ lecturer?.role : ""}
                     </InterText>
                 )}
             </>}

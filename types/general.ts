@@ -73,4 +73,8 @@ export type FlatTab<T> = {
     translateX?: number | undefined;
 }
 
-
+export type Option<T = {}> = {
+    id: string | number,
+    name: string,
+    isSelected: boolean,
+} & T

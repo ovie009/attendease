@@ -161,3 +161,14 @@ export type AttendanceRecord = {
     created_at: string;
     updated_at: string;
 };
+
+export type Ticket = {
+    id: string,
+    title: string,
+    description: string,
+    student_id: string | null,
+    lecturer_id: string | null,
+    is_active: boolean,
+    created_at: string;
+    updated_at: string;
+}
