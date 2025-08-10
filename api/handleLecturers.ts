@@ -119,6 +119,27 @@ const getByRfids = async (rfids: string[]): Promise<Response<Array<Lecturer>>> =
     }
 }
 
+const getByIds = async (ids: string[]): Promise<Response<Array<Lecturer>>> => {
+    try {
+        const { data, error, status } = await supabase
+            .from(tableName)
+            .select('*')
+            .in('id', ids)
+
+        if (error && status !== 406) {
+            throw error;
+        }
+
+        return {
+            isSuccessful: true,
+            message: "Lecturers selected successfully",
+            data: data || [],
+        } 
+    } catch (error) {
+        throw error;
+    }
+}
+
 const getByDepartmentId = async (department_id: string): Promise<Response<Lecturer[] | []>> => {
     try {
         const { data, error, status } = await supabase
@@ -320,6 +341,7 @@ export default {
     create,
     getAll,
     getById,
+    getByIds,
     getByRfids,
     addLecturer,
     getByCourseId,

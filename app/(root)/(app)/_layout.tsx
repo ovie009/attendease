@@ -301,6 +301,16 @@ export default function AppLayout() {
 				/>
 
 				<Stack.Screen 
+					name="tickets"
+					options={{
+						headerTintColor: colors.black,
+						headerBackTitle: "",
+						headerLeft: () => <View style={{marginRight: 6}}><Ionicons name="ticket-outline" size={44} color={colors.primary} /></View>,
+						headerTitle: () => <InterText fontSize={32} fontWeight={600} lineHeight={35}>Tickets</InterText>,
+					}} 
+				/>
+
+				<Stack.Screen 
 					name="completeRegistration"
 					options={{
 						headerTintColor: colors.black,

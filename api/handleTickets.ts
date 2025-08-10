@@ -23,12 +23,32 @@ const create = async (ticketData: Omit<Ticket, 'id' | 'created_at' | 'updated_at
 }
 
 // Get tickets sorted by is_active, default limit = 20
-const select = async (limit: number = 20): Promise<Response<Ticket[] | []>> => {
+const getAll = async (limit: number = 20): Promise<Response<Ticket[] | []>> => {
     try {
         const { data, error, status } = await supabase
             .from(tableName)
             .select('*')
             .order('is_active', { ascending: false })
+            .limit(limit)
+
+        if (error && status !== 406) throw error
+
+        return {
+            isSuccessful: true,
+            message: "Tickets fetched successfully",
+            data: data || []
+        }
+    } catch (error) {
+        throw error
+    }
+}
+
+const getAllOpenTickets = async (limit: number = 20): Promise<Response<Ticket[] | []>> => {
+    try {
+        const { data, error, status } = await supabase
+            .from(tableName)
+            .select('*')
+            .eq('is_active', true)
             .limit(limit)
 
         if (error && status !== 406) throw error
@@ -67,6 +87,7 @@ const closeTicket = async (id: string): Promise<Response<Ticket>> => {
 
 export default {
     create,
-    select,
-    closeTicket
+    getAll,
+    closeTicket,
+    getAllOpenTickets
 }

@@ -94,6 +94,11 @@ const Profile = () => {
                 href: '/authoriseStudent',
                 Icon: <AntDesign name="unlock" size={20} color={colors.primary} />
             },
+            {
+                name: "Get help",
+                href: '/support',
+                Icon: <MaterialIcons name="support-agent" size={20} color={colors.primary} />
+            },
         ]
         
         if (user?.role === 'Dean' || user?.role === 'HOD') {

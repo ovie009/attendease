@@ -22,7 +22,7 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import handleAuth from '@/api/handleAuth';
 import { AccountType, Semester } from '@/types/general';
 import handleCourses from '@/api/handleCourses';
-import { AttendanceSession, Course, CourseRegistration, Schedule, Setting } from '@/types/api';
+import { AttendanceSession, Course, CourseRegistration, Schedule, Setting, Ticket } from '@/types/api';
 import handleSchedule from '@/api/handleSchedule';
 import handleSettings from '@/api/handleSettings';
 import { getLoadingData } from '@/utilities/getLoadingData';
@@ -33,8 +33,10 @@ import Container from '@/components/Container';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import ScheduleListItem from '@/components/ScheduleListItem';
 import * as Device from 'expo-device';
+import handleTickets from '@/api/handleTickets';
 
 type DataLoading = {
+	tickets: boolean,
 	colleges: boolean,
 	departments: boolean,
 	courses: boolean,
@@ -76,20 +78,7 @@ const Home = () => {
 		displayToast
 	} = useAppStore.getState()
 
-	const [tickets, setTickets] = useState([
-		{
-			id: '1',
-			title: 'Card change',
-			ticket_id: 1234,
-			created_at: moment().subtract(200, 'minutes').toISOString(),
-		},
-		{
-			id: '2',
-			title: 'Access issues',
-			ticket_id: 1234,
-			created_at: moment().subtract(270, 'minutes').toISOString(),
-		},
-	]);
+	const [tickets, setTickets] = useState<Ticket[]>([]);
 
 	const [dataLoading, setDataLoading] = useState<DataLoading>({
 		colleges: true,
@@ -97,6 +86,7 @@ const Home = () => {
 		courses: true,
 		schedules: true,
 		settings: true,
+		tickets: true,
 		attendanceSession: true,
 		courseRegistration: true,
 	})
@@ -345,6 +335,23 @@ const Home = () => {
 		fetchSchedule();
 	}, [settings, courses, user, courseRegistration]);
 
+	useEffect(() => {
+		const fetchTickets = async () => {
+			try {
+				const ticketResponse = await handleTickets.getAllOpenTickets(2);
+				// console.log("🚀 ~ fetchTickets ~ ticketResponse:", ticketResponse)
+
+				setTickets(ticketResponse.data);
+
+				handleDisableDataLoading('tickets', setDataLoading)
+			} catch (error:any) {
+				displayToast('ERROR', error?.message)
+			}
+		}
+		
+		fetchTickets()
+	}, [pathname])
+
 	const stats = useMemo((): Array<{stat_name: string, value: number | null, is_loading: boolean, Icon: ReactNode}> => {
 		return [
 			{
@@ -528,13 +535,20 @@ const Home = () => {
 											key={item.id}
 											index={index}
 											title={item?.title}
-											ticketId={item?.ticket_id}
+											description={item?.description}
 											timestamp={item?.created_at}
 										/>
 									))}
+									{!dataLoading.tickets && tickets.length === 0 && (
+										<InterText>
+											Yopu have no pending tickets
+										</InterText>
+									)}
 								</View>
 								<LinkText
-									onPress={() => {}}
+									onPress={() => {
+										router.push('/tickets')
+									}}
 								>
 									View all
 								</LinkText>

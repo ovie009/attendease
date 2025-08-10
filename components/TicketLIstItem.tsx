@@ -8,14 +8,14 @@ import moment from 'moment';
 export interface TicketListItemProps extends TouchableOpacityProps {
     index: number,
     title: string,
-    ticketId: number,
+    description: string,
     timestamp: string, 
 }
 
 const TicketListItem: FC<TicketListItemProps> = ({
     index,
     title,
-    ticketId,
+    description,
     timestamp,
 	...rest
 }) => {
@@ -49,7 +49,7 @@ const TicketListItem: FC<TicketListItemProps> = ({
                         lineHeight={16}
                         numberOfLines={1}
                     >
-                        {title} - ID{ticketId}
+                        {title} - {description}
                     </InterText>
                 </Flex>
                 <Flex>
