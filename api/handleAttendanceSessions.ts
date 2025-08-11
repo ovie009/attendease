@@ -6,13 +6,6 @@ const tableName = "attendance_sessions"
 
 type Courses = Array<{course_title: string, course_code: string}>
 
-type AddCoursesPayload = {
-    department_id: string,
-    level: Level, 
-    semester: Semester, 
-    courses: Courses
-}
-
 type CreateAcademicSessionPayload = {
     lecturer_id: string,
     course_id: string, 
@@ -30,6 +23,31 @@ const create = async (payload: CreateAcademicSessionPayload): Promise<Response<A
         const { data, error, status } = await supabase
             .from(tableName)
             .insert(payload)
+            .select('*')
+            .single();
+
+        if (error && status !== 406) {
+            throw error;
+        }
+
+        return {
+            isSuccessful: true,
+            message: "Course created successfully",
+            data: data
+        }
+    } catch (error) {
+        throw error;
+    }
+}
+
+const endSession = async (id: string): Promise<Response<AttendanceSession>> => {
+    try {
+        const { data, error, status } = await supabase
+            .from(tableName)
+            .update({
+                is_active: false,
+            })
+            .eq('id', id)
             .select('*')
             .single();
 
@@ -92,14 +110,24 @@ const getActiveSessionByCourseIds = async ({course_ids}: {course_ids: string[]})
     }
 }
 
-const getAttendanceSessionBySemesterAcademicSesssionAndCourseIds = async ({course_ids, semester, session}: {course_ids: string[], semester: Semester, session: string}): Promise<Response<AttendanceSession[]>> => {
+const getAttendanceSessionBySemesterAcademicSesssionAndCourseIds = async ({course_ids, semester, session, limit}: {course_ids: string[], semester: Semester, session: string, limit?: number}): Promise<Response<AttendanceSession[]>> => {
     try {
-        const { data, error, status } = await supabase
+        const { data, error, status } = limit === undefined 
+        ? await supabase
             .from(tableName)
             .select('*')
             .in('course_id', course_ids)
             .eq('semester', semester)
             .eq('academic_session', session)
+            .order('created_at', {ascending: false})
+        : await supabase
+            .from(tableName)
+            .select('*')
+            .in('course_id', course_ids)
+            .eq('semester', semester)
+            .eq('academic_session', session)
+            .order('created_at', {ascending: false})
+            .limit(limit)
 
         if (error && status !== 406) {
             throw error;
@@ -117,6 +145,7 @@ const getAttendanceSessionBySemesterAcademicSesssionAndCourseIds = async ({cours
 
 export default {
     create,
+    endSession,
     getActiveSessionByLecturerId,
     getActiveSessionByCourseIds,
     getAttendanceSessionBySemesterAcademicSesssionAndCourseIds,

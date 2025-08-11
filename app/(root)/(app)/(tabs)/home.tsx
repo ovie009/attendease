@@ -62,11 +62,11 @@ const Home = () => {
 
 	const router = useRouter();
 	const pathname = usePathname();
+	// console.log("🚀 ~ Home ~ pathname:", pathname)
 
 	const user = useAuthStore(state => state.user)
 	const semester = useAuthStore(state => state.semester)
 	const academicSession = useAuthStore(state => state.academicSession)
-	const numberOfSemesterWeeks = useAuthStore(state => state.numberOfSemesterWeeks)
 
 	const {
 		setSemester,
@@ -101,9 +101,6 @@ const Home = () => {
 	const [courseRegistration, setCourseRegistration] = useState<CourseRegistration | null>(null)
 	const [schedules, setSchedules] = useState<Schedule[]>([])
 	const [attendanceSession, setAttendanceSession] = useState<AttendanceSession[]>([])
-	// console.log("🚀 ~ Home ~ attendanceSession:", attendanceSession)
-	// console.log("🚀 ~ Home ~ attendanceSession:", attendanceSession)
-	// console.log("🚀 ~ Home ~ schedules:", schedules[0])
 
 	useEffect(() => {
 		setCourseIds(user?.course_ids || [])
@@ -258,7 +255,7 @@ const Home = () => {
 			try {
 				const attendanceSessionResponse = await handleAttendanceSessions.getActiveSessionByCourseIds({course_ids: courseRegistration?.course_ids});
 
-				console.log("🚀 ~ fetchAttendanceSession ~ attendanceSessionResponse:", attendanceSessionResponse)
+				// console.log("🚀 ~ fetchAttendanceSession ~ attendanceSessionResponse:", attendanceSessionResponse)
 				setAttendanceSession(attendanceSessionResponse.data);
 
 				handleDisableDataLoading('attendanceSession', setDataLoading)
@@ -384,7 +381,7 @@ const Home = () => {
 				const daySchedules = schedules
 				.filter(item => item.days_of_the_week.includes(day))
 				.map(item => {
-					const course = courses.find(j => j.course_code === item.course_code);
+					const course = courses.find(j => j.id === item.course_id);
 					const is_active = (day === moment().day() && attendanceSession.some(j => j.course_id === course?.id));
 					const attendance_session_id = (() => {
 						if (day === moment().day() && attendanceSession.some(j => j.course_id === course?.id)) {
@@ -417,15 +414,17 @@ const Home = () => {
 			});
 
 
-	}, [schedules, courses, settings, dataLoading.schedules, dataLoading.courses, dataLoading.attendanceSession])
+	}, [schedules, attendanceSession, courses, settings, dataLoading.schedules, dataLoading.courses, dataLoading.attendanceSession])
+	// console.log("🚀 ~ daysOfTheWeek:", daysOfTheWeek)
 
 	const unscheduledClasses = useMemo((): Array<ScehduleListRenderItem> => {
 		if (dataLoading.schedules || dataLoading.courses || dataLoading.attendanceSession) {
 			return [];
 		}
 
+			// console.log("🚀 ~ schedules:", schedules)
 		return attendanceSession.filter(item => {
-			return schedules.some(i => i.course_id === item.course_id && i.days_of_the_week.some(j => j !== moment().day()))
+			return schedules.some(i => i.course_id === item.course_id && i.days_of_the_week.every(j => j !== moment().day()))
 		}).map(item => {
 			const course = courses.find(j => j.id === item.course_id);
 			const schedule = schedules[0]!;
@@ -448,14 +447,17 @@ const Home = () => {
 				],
 			}
 		})
-	}, [schedules, courses, settings, dataLoading.schedules, dataLoading.courses])
+	}, [schedules, attendanceSession, courses, settings, dataLoading.schedules, dataLoading.courses, dataLoading.attendanceSession])
+	console.log("🚀 ~ unscheduledClasses:", unscheduledClasses)
 
 	const renderItem: ListRenderItem<ScehduleListRenderItem> = useCallback(({item}) => (
 		<ScheduleListItem
 			{...item}
 			isLoading={item?.is_loading}
 			onPress={(schedule) => {
+				// console.log("🚀 ~ schedule:", schedule)
 				if (!schedule.course) return;
+				// return;
 
 				router.push({
 					pathname: '/attendance',

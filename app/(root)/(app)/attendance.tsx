@@ -1,6 +1,6 @@
 import CardIcon from '@/assets/svg/CardIcon.svg';
-import { Linking, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native'
-import React, { useEffect, useRef, useState } from 'react'
+import { Linking, StyleSheet, TextInput } from 'react-native'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Flex from '@/components/Flex'
 import { router, useLocalSearchParams, usePathname } from 'expo-router'
 import InterText from '@/components/InterText'
@@ -8,7 +8,7 @@ import { colors } from '@/utilities/colors'
 import CustomButton from '@/components/CustomButton'
 import Container from '@/components/Container'
 import { HEIGHT, WIDTH } from '@/utilities/dimensions'
-import { FlashList } from '@shopify/flash-list'
+import { FlashList, ListRenderItem } from '@shopify/flash-list'
 import FixedButton from '@/components/FixedButton'
 import EmptyAttendanceIcon from '@/assets/svg/EmptyAttendanceIcon.svg'
 import { BottomSheetModal } from '@gorhom/bottom-sheet'
@@ -25,8 +25,23 @@ import handleAttendanceSessions from '@/api/handleAttendanceSessions';
 import moment from 'moment';
 import MQTTService from '@/api/MQTTService';
 import * as LocalAuthentication from 'expo-local-authentication';
-import * as Device from 'expo-device';
 import handleAttendanceRecords from '@/api/handleAttendanceRecords';
+import { handleDisableDataLoading } from '@/utilities/handleDisableDataLoading';
+import { AttendanceRecord, AttendanceSession, Lecturer, Student } from '@/types/api';
+import handleLecturers from '@/api/handleLecturers';
+import { getLoadingData } from '@/utilities/getLoadingData';
+import ClassAttendedListItem from '@/components/ClassAttendedListItem';
+import Skeleton from '@/components/Skeleton';
+import handleStudents from '@/api/handleStudents';
+import StudentAttendancRecord, { StudentAttendancRecordProps } from '@/components/StudentAttendancRecord';
+import { supabase } from '@/lib/supabase';
+
+type DataLoading = {
+	attendanceSession: boolean,
+	attendanceRecords: boolean,
+	lecturers: boolean,
+	students: boolean,
+}
 
 
 const Attendance = () => {
@@ -40,6 +55,7 @@ const Attendance = () => {
 		_attendance_session_id
 	} = useLocalSearchParams();
 		console.log("🚀 ~ Attendance ~ _attendance_session_id:", _attendance_session_id)
+		console.log("🚀 ~ Attendance ~ _course_id:", _course_id)
 
 	const pathname = usePathname();
 
@@ -52,6 +68,9 @@ const Attendance = () => {
 	const isLoading = useAppStore(state => state.isLoading);
 	const keyboardHeight = useAppStore(state => state.keyboardHeight);
 	const loadingPages = useAppStore(state => state.loadingPages)
+
+	const semester = useAuthStore(state => state.semester)
+	const academicSession = useAuthStore(state => state.academicSession)
 
 	const user = useAuthStore(state => state.user);
 	// console.log("🚀 ~ Attendance ~ user:", user?.rfid)
@@ -69,8 +88,20 @@ const Attendance = () => {
 
 	const sheetRef = useRef<BottomSheetModal>(null);
 
-	const DEVICE_ID = Device.manufacturer+''+Device.brand+''+Device.modelName;
-	
+	const [attendanceSession, setAttendanceSession] = useState<AttendanceSession[]>([])
+	const [lecturers, setLecturers] = useState<Lecturer[]>([]);
+	const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([])	
+	const [students, setStudents] = useState<Student[]>([]);
+
+	const [isEnded, setIsEnded] = useState<boolean>(false);
+
+	const [dataLoading, setDataLoading] = useState<DataLoading>({
+		attendanceSession: true,
+		attendanceRecords: true,
+		lecturers: true,
+		students: true
+	})
+
 
 	const openBottomSheet = () => {
 		sheetRef.current?.present();
@@ -80,9 +111,263 @@ const Attendance = () => {
 		sheetRef.current?.present();
 	}
 
+	// fetch attendance session for student
+	useEffect(() => {
+		if (user?.account_type !== AccountType.Student) return;
+		const fetchAttendanceSession = async () => {
+			try {
+				const attendanceSessionResponse = await handleAttendanceSessions.getAttendanceSessionBySemesterAcademicSesssionAndCourseIds({
+					course_ids: [_course_id as string],
+					semester: parseInt(_semester as string) as Semester,
+					session: _academic_session as string,
+					limit: 1,
+				});
+				// console.log("🚀 ~ fetchAttendanceSession ~ attendanceSessionResponse:", attendanceSessionResponse)
+
+				setAttendanceSession(attendanceSessionResponse.data);
+
+				if (attendanceSessionResponse.data.length === 0) {
+					handleDisableDataLoading('attendanceRecords', setDataLoading)
+					handleDisableDataLoading('lecturers', setDataLoading)
+				}
+
+				handleDisableDataLoading('attendanceSession', setDataLoading)
+			} catch (error: any) {
+				displayToast('ERROR', error?.message)
+			}
+		}
+		fetchAttendanceSession();
+	}, []);
+
+	// fetch attendance records for lecturers
+	useEffect(() => {
+		if (user?.account_type !== AccountType.Student) return;
+		if (attendanceSession.length === 0) return;
+		const fetchAttendanceRecords = async () => {
+			try {
+				const attendanceRecordsResponse = await handleAttendanceRecords.getAttendanceRecordsByAttendanceSessionSemesterSessionAndStudent({
+					semester: parseInt(_semester as string) as Semester,
+					academic_session: _academic_session as string,
+					student_id: user?.id!,
+					attendance_session_ids: attendanceSession.map(item => item.id),
+				});
+				setAttendanceRecords(attendanceRecordsResponse.data)
+
+				handleDisableDataLoading('attendanceRecords', setDataLoading)
+			} catch (error: any) {
+				displayToast('ERROR', error?.message)
+			}
+		}
+		fetchAttendanceRecords();
+	}, [attendanceSession]);
+
+	// fetch attendance records for lecturers
+	useEffect(() => {
+		if (user?.account_type !== AccountType.Lecturer) return;
+		if (!_attendance_session_id) return;
+		const fetchAttendanceRecords = async () => {
+			try {
+				const attendanceRecordsResponse = await handleAttendanceRecords.getRecordsForAttendanceSession({
+					semester: parseInt(_semester as string) as Semester,
+					academic_session: _academic_session as string,
+					attendance_session_ids: [_attendance_session_id as string],
+				});
+				// console.log("🚀 ~ fetchAttendanceRecords ~ attendanceRecordsResponse:", attendanceRecordsResponse)
+				setAttendanceRecords(attendanceRecordsResponse.data)
+
+				if (attendanceRecordsResponse?.data?.length === 0) {
+					handleDisableDataLoading('students', setDataLoading)
+				}
+
+				handleDisableDataLoading('attendanceRecords', setDataLoading)
+			} catch (error: any) {
+				displayToast('ERROR', error?.message)
+			}
+		}
+		fetchAttendanceRecords();
+	}, [attendanceSession]);
+
+	const handleRealtimeMessages = async (newRecord: AttendanceRecord) => {
+        // if data is updated
+        try {
+            // update item at designated id
+            setAttendanceRecords(prevValue => {
+                if (prevValue.some(item => item.id === newRecord?.id)) {
+                    return prevValue.map(item => {
+                        if (newRecord?.id === item.id) {
+                            return newRecord;
+                        } 
+                        return item;
+                    })
+                }
+                return [
+                    ...prevValue,
+                    newRecord,
+                ]
+            });
+
+
+        } catch (error:any) {
+            displayToast('ERROR', error?.message)                
+        }
+    }
+
+	// get realtime records
+    useEffect(() => {
+		if (user?.account_type === AccountType.Student) return;
+		if (!_attendance_session_id) return;
+        const newAttendance = supabase
+            .channel('records')
+            .on(
+                'postgres_changes',
+                {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'attendance_records',
+                    filter: `attendance_session_id=eq.${_attendance_session_id}`,
+                },
+                (payload) => {
+                    console.log("🚀 ~ Attendance ~ payload:", payload)
+                    // get messages data
+					const newRecord = payload.new;
+					console.log("🚀 ~ Attendance ~ newRecord:", newRecord)
+					// Type guard to ensure newRecord is AttendanceRecord
+					if (
+						newRecord &&
+						typeof newRecord === 'object' &&
+						'id' in newRecord &&
+						'student_id' in newRecord &&
+						'attendance_session_id' in newRecord &&
+						'academic_session' in newRecord &&
+						'created_at' in newRecord &&
+						'updated_at' in newRecord
+					) {
+						// handle messages newRecord
+						handleRealtimeMessages(newRecord as AttendanceRecord)
+					}
+                }
+            )
+            .subscribe();
+
+            // console.log('chat messsages', newAttendance)
+
+        // Cleanup function to unsubscribe
+        return () => {
+            supabase.removeChannel(newAttendance);
+        };
+    }, [user, _attendance_session_id]);
+
+	useEffect(() => {
+		if (attendanceRecords.length === 0) return;
+		if (user?.account_type !== AccountType.Lecturer) return;
+		const fetchStudents = async (): Promise<void> => {
+			try {
+				const ids = attendanceRecords.map(item => item.student_id);
+				const uniqueIds = Array.from(new Set(ids));
+
+				if (ids.length !== 0) {
+					const studentsResponse = await handleStudents.getByIds(uniqueIds)
+					console.log("🚀 ~ fetchStudents ~ studentsResponse:", studentsResponse)
+					setStudents(studentsResponse.data)
+				}
+
+				handleDisableDataLoading('students', setDataLoading)
+			} catch (error:any) {
+				displayToast('ERROR', error?.message)
+			}
+		}
+		
+		fetchStudents()
+	}, [attendanceRecords])
+
+	useEffect(() => {
+		if (attendanceSession.length === 0) return;
+		if (user?.account_type !== AccountType.Student) return;
+		const fetchLecturers = async (): Promise<void> => {
+			try {
+				const ids = attendanceSession.map(item => item.lecturer_id);
+				const uniqueIds = Array.from(new Set(ids));
+				if (ids.length !== 0) {
+					const lecturersResponse = await handleLecturers.getByIds(uniqueIds)
+					setLecturers(lecturersResponse.data)
+				}
+
+				handleDisableDataLoading('lecturers', setDataLoading)
+			} catch (error:any) {
+				displayToast('ERROR', error?.message)
+			}
+		}
+		
+		fetchLecturers()
+	}, [attendanceSession])
+
+	const data = useMemo(() => {
+		if (dataLoading.attendanceRecords || dataLoading.attendanceSession || dataLoading.lecturers) {
+			return getLoadingData([''], [''], 1);
+		}
+
+		return attendanceRecords.map(item => {
+			return {
+				id: item.id,
+				created_at: item.created_at,
+				attendance_session: attendanceSession.find(i => i.id === item.attendance_session_id),
+				lecturer: lecturers.find(j => j.id === attendanceSession.find(i => i.id === item.attendance_session_id)?.lecturer_id),
+			}
+		})
+	}, [attendanceRecords, attendanceSession, lecturers])
+
+	const dataMissedClasses = useMemo(() => {
+		if (dataLoading.attendanceRecords || dataLoading.attendanceSession || dataLoading.lecturers) {
+			return getLoadingData([''], [''], 1);
+		}
+
+		return attendanceSession
+		.filter(item => attendanceRecords.every(record => record.attendance_session_id !== item.id))
+		.map(item => {
+			return {
+				attendance_session: item,
+				lecturer: lecturers.find(j => j.id === item.lecturer_id),
+			}
+		})
+	}, [attendanceRecords, attendanceSession, lecturers])
+
+	const dataStudents = useMemo((): Array<StudentAttendancRecordProps & {is_loading?: boolean, id: string}> => {
+		if (dataLoading.attendanceRecords || dataLoading.students) {
+			if (!_attendance_session_id) return []
+			return getLoadingData([''], [''], 1);
+		}
+
+		return attendanceRecords.map(item => {
+			return {
+				id: item.id,
+				created_at: item.created_at,
+				student: students.find(i => i.id === item.student_id)!,
+			}
+		})
+	}, [attendanceRecords, students, dataLoading.attendanceRecords, dataLoading.students, _attendance_session_id])
+	console.log("🚀 ~ Attendance ~ dataStudents:", dataStudents)
+	// console.log("🚀 ~ Attendance ~ dataStudents:", dataStudents)
+
+	const renderStudents: ListRenderItem<StudentAttendancRecordProps & {is_loading?: boolean}> = useCallback(({item}) => (
+		<StudentAttendancRecord
+			{...item}
+		/>
+	), []);
+
 	const handleStartAttendance = () => {
 		if (_attendance_session_id) return;
 		setIsFetchingCard(true)
+	}
+
+	const handleEndAttendance = async () => {
+		try {
+			setIsLoading(true);
+			await handleAttendanceSessions.endSession(_attendance_session_id as string);
+		} catch (error:any) {
+			displayToast('ERROR', error?.message)
+		} finally {
+			setIsLoading(false);
+		}
 	}
 	
 	const hashPin = async (pin: string): Promise<string> => {
@@ -93,10 +378,6 @@ const Attendance = () => {
 
 		return hashedPin;
 	}
-
-	// useEffect(() => {
-	// 	hashPin()
-	// }, [])
 
 	useEffect(() => {
 		if (pathname && !_attendance_session_id) {
@@ -137,8 +418,6 @@ const Attendance = () => {
 			setLoadingPages(loadingPages.filter(item => item !== pathname))
 		}
 	}
-	
-	
 	
 	useEffect(() => {
 		if (!isFetchingCard) return;
@@ -277,85 +556,196 @@ const Attendance = () => {
 	return (
 		<React.Fragment>
 			<Container
-				height={HEIGHT - 100}
+				height={HEIGHT}
 				width={WIDTH}
 				backgroundColor={colors.white}
 			>
-				<FlashList
-					data={[]}
-					// @ts-ignore
-					keyExtractor={item => item?.id}
-					contentContainerStyle={{
-						paddingHorizontal: 20
-					}}
-					ListHeaderComponent={
-						<Flex
-							gap={8}
-							paddingTop={30}
-						>
+				{user?.account_type === AccountType.Lecturer && (
+					<FlashList
+						data={dataStudents}
+						// @ts-ignore
+						keyExtractor={item => item?.id}
+						contentContainerStyle={{
+							paddingHorizontal: 20
+						}}
+						ListHeaderComponent={
 							<Flex
-								alignSelf='stretch'
-								flexDirection={'row'}
-								justifyContent='space-between'
+								gap={8}
+								paddingTop={30}
+								paddingBottom={40}
+							>
+								<Flex
+									alignSelf='stretch'
+									flexDirection={'row'}
+									justifyContent='space-between'
+									alignItems='center'
+								>
+									<InterText
+										fontSize={24}
+										lineHeight={30}
+										fontWeight={600}
+									>
+										{_course_code}
+									</InterText>
+									{_attendance_session_id && (
+										<Flex
+											paddingVertical={5}
+											paddingHorizontal={10}
+											backgroundColor="#27A55133"
+											borderRadius={10}
+										>
+											<InterText
+												color={"green"}
+											>
+												Active
+											</InterText>
+										</Flex>
+									)}
+								</Flex>
+								<InterText
+									fontSize={16}
+									lineHeight={19}
+									color={colors.subtext}
+								>
+									{_course_title}
+								</InterText>
+							</Flex>
+						}
+						estimatedItemSize={100}
+						renderItem={renderStudents}
+						ListEmptyComponent={(
+							<Flex
+								height={HEIGHT/2}
+								width={'100%'}
+								justifyContent='center'
 								alignItems='center'
 							>
-								<InterText
-									fontSize={24}
-									lineHeight={30}
-									fontWeight={600}
+								<EmptyAttendanceIcon />
+							</Flex>
+						)}
+					/>
+				)}
+				{user?.account_type === AccountType.Student && (
+					<Flex
+						flex={1}
+						paddingHorizontal={20}
+					>
+						<Flex
+							flex={1}
+							gap={20}
+						>
+							<Flex
+								gap={8}
+								paddingTop={30}
+							>
+								<Flex
+									alignSelf='stretch'
+									flexDirection={'row'}
+									justifyContent='space-between'
+									alignItems='center'
 								>
-									{_course_code}
-								</InterText>
-								{_attendance_session_id && (
-									<Flex
-										paddingVertical={5}
-										paddingHorizontal={10}
-										backgroundColor="#27A55133"
-										borderRadius={10}
+									<InterText
+										fontSize={24}
+										lineHeight={30}
+										fontWeight={600}
 									>
-										<InterText
-											color={"green"}
+										{_course_code}
+									</InterText>
+									{_attendance_session_id && (
+										<Flex
+											paddingVertical={5}
+											paddingHorizontal={10}
+											backgroundColor="#27A55133"
+											borderRadius={10}
 										>
-											Active
+											<InterText
+												color={"green"}
+											>
+												Active
+											</InterText>
+										</Flex>
+									)}
+								</Flex>
+								<InterText
+									fontSize={16}
+									lineHeight={19}
+									color={colors.subtext}
+								>
+									{_course_title}
+								</InterText>
+							</Flex>
+							<Flex
+								gap={16}
+							>
+								{data.some(item => item?.is_loading) && (
+									<Skeleton
+										width={100}
+										height={20}
+									/>
+								)}
+								{!data.some(item => item?.is_loading) && data.length !== 0 && (
+									<InterText
+										fontWeight={500}
+										fontSize={16}
+										lineHeight={20}
+									>
+										{data[0]?.attendance_session?.id === _attendance_session_id ? "Current lecture" : "Attended previous lecture"}
+									</InterText>
+								)}
+								{data.map((item, index) => (
+									<ClassAttendedListItem 
+										key={index}
+										{...item}
+									/>
+								))}
+								{!dataMissedClasses.some(item => item?.is_loading) && dataMissedClasses.length !== 0 && (
+									<InterText
+										fontWeight={500}
+										fontSize={16}
+										lineHeight={20}
+									>
+										{dataMissedClasses[0]?.attendance_session?.id === _attendance_session_id ? "Current lecture" : "Missed last class"}
+									</InterText>
+								)}
+								{!dataMissedClasses.some(item => item?.is_loading) && dataMissedClasses.map((item, index) => (
+									<ClassAttendedListItem 
+										key={index}
+										{...item}
+									/>
+								))}
+								{dataMissedClasses.length === 0 && data.length === 0 && (
+									<Flex
+										height={HEIGHT/2}
+										width={WIDTH - 40}
+										justifyContent='center'
+										alignItems='center'
+										gap={20}
+									>
+										<EmptyAttendanceIcon />
+										<InterText>
+											No records of previous classes found
 										</InterText>
 									</Flex>
 								)}
 							</Flex>
-							<InterText
-								fontSize={16}
-								lineHeight={19}
-								color={colors.subtext}
-							>
-								{_course_title}
-							</InterText>
 						</Flex>
-					}
-					estimatedItemSize={80}
-					renderItem={({item}) => <></>}
-					ListEmptyComponent={(
-						<Flex
-							height={HEIGHT/2}
-							width={'100%'}
-							justifyContent='center'
-							alignItems='center'
-						>
-							<EmptyAttendanceIcon />
-						</Flex>
-					)}
-				/>
+					</Flex>
+				)}
 			</Container>
-			{user?.account_type === AccountType.Lecturer && (
-				<FixedButton
-					text={_attendance_session_id ? 'End attendance' : 'Start attendance'}
-					onPress={handleStartAttendance}
-				/>
-			)}
 			{user?.account_type === AccountType.Student && _attendance_session_id && (
 				<FixedButton
 					text={'Log attendance'}
+
 					onPress={() => {
 						setIsFetchingCard(true)
 					}}
+				/>
+			)}
+			{user?.account_type === AccountType.Lecturer && (
+				<FixedButton
+					text={_attendance_session_id ? 'End attendance' : 'Start attendance'}
+					isLoading={isLoading}
+					onPress={!_attendance_session_id ? handleStartAttendance : handleEndAttendance}
 				/>
 			)}
 			<CustomBottomSheet

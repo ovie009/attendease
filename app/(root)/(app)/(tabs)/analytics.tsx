@@ -8,7 +8,7 @@ import SelectInput from '@/components/SelectInput'
 import Container from '@/components/Container'
 import { FlashList, ListRenderItem, ListRenderItemInfo } from '@shopify/flash-list'
 import CourseAttendanceRecordListItem from '@/components/CourseAttendanceRecordListItem'
-import { usePathname } from 'expo-router'
+import { router, usePathname } from 'expo-router'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { useAppStore } from '@/stores/useAppStore'
 import { AttendanceRecord, AttendanceSession, Course, CourseRegistration, Schedule, Setting } from '@/types/api'
@@ -335,7 +335,7 @@ const Analytics = () => {
 		const fetchLecturerCourses = async () => {
 			try {
 				const coursesResponse = await handleCourses.getByIds(courseIds)
-				console.log("🚀 ~ fetchLecturerCourses ~ coursesResponse:", coursesResponse)
+				// console.log("🚀 ~ fetchLecturerCourses ~ coursesResponse:", coursesResponse)
 				setCourses(coursesResponse.data);
 
 				handleDisableDataLoading('courses', setDataLoading)
@@ -499,6 +499,20 @@ const Analytics = () => {
 			totalClasses={item?.total_classes}
 			totalWeeks={item?.total_weeks}
 			classesPerWeek={item?.classes_per_week}
+			onPress={() => {
+				if (!item?.course?.course_code) return;
+				if (!item?.course?.id) return;
+
+				router.push({
+					pathname: '/records/[_course_code]',
+					params: {
+						_course_code: item?.course?.course_code,
+						_course_id: item?.course?.id,
+						_academic_session: academicSession,
+						_semester: semester,
+					}
+				})
+			}}
 		/>
 	), [])
 
