@@ -60,6 +60,16 @@ const Profile = () => {
     // console.log("🚀 ~ Profile ~ dataLoading:", dataLoading)
 
     const buttons = useMemo((): Button[] => {
+        if (user?.account_type === AccountType.Admin) {
+            return [
+                {
+                    name: "Change password",
+                    href: '/changePassword',
+                    Icon: <MaterialIcons name="password" size={20} color={colors.primary} />
+                },
+            ]
+        }
+
         if (user?.account_type === AccountType.Student) {
             return [
                 {
@@ -200,6 +210,14 @@ const Profile = () => {
                                 </InterText>
                             </View>
                         </View>
+                        <Flex>
+                            {buttons.map((button) => (
+                                <SettingsListItem
+                                    key={button?.name}
+                                    {...button}
+                                />
+                            ))}
+                        </Flex>
                         {user?.account_type === AccountType.Admin && (dataLoading.admins) && (
                             <View style={styles.adminHeaderBar}>
                                 <Skeleton
@@ -243,16 +261,6 @@ const Profile = () => {
                                     </LinkText>
                                 )}
                             </React.Fragment>
-                        )}
-                        {user?.account_type !== AccountType.Admin && (
-                            <Flex>
-                                {buttons.map((button) => (
-                                    <SettingsListItem
-                                        key={button?.name}
-                                        {...button}
-                                    />
-                                ))}
-                            </Flex>
                         )}
                     </View>
                 )}

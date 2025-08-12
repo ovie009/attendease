@@ -52,10 +52,7 @@ const getAll = async (limit: number = 20): Promise<Response<RfidCard[] | []>> =>
 const getUnassignedLecturerCards = async (): Promise<Response<RfidCard[] | []>> => {
     try {
         const { data, error, status } = await supabase
-            .from(tableName)
-            .select('*')
-            .eq('assigned_for', 'Lecturer')
-            .order('card_uid', {ascending: true});
+            .rpc('get_unassigned_lecturer_cards');
 
         if (error && status !== 406) {
             throw error;
