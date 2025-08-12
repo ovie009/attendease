@@ -363,6 +363,10 @@ const Attendance = () => {
 		try {
 			setIsLoading(true);
 			await handleAttendanceSessions.endSession(_attendance_session_id as string);
+
+			displayToast('SUCCESS', "Attendance session ended")
+
+			setIsEnded(true)
 		} catch (error:any) {
 			displayToast('ERROR', error?.message)
 		} finally {
@@ -741,7 +745,7 @@ const Attendance = () => {
 					}}
 				/>
 			)}
-			{user?.account_type === AccountType.Lecturer && (
+			{!isEnded && user?.account_type === AccountType.Lecturer && (
 				<FixedButton
 					text={_attendance_session_id ? 'End attendance' : 'Start attendance'}
 					isLoading={isLoading}

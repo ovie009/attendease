@@ -1,7 +1,9 @@
 // app/college/_layout.tsx
 import React from 'react';
-import { Stack, useLocalSearchParams } from 'expo-router'; // Import Stack (or Tabs, etc.) and the hook
+import { router, Stack, useLocalSearchParams } from 'expo-router'; // Import Stack (or Tabs, etc.) and the hook
 import InterText from '@/components/InterText';
+import { TouchableOpacity } from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 // Optional: Define the type for parameters expected in this segment
 type CollegeLayoutParams = {
@@ -21,7 +23,18 @@ export default function DepartmentLayout() {
             name="[_course_code]" // Matches the file name
             options={{
                 title: decodedDepartmentName, // Set the title dynamically using the param!
-                headerLeft: () => <></>,
+                headerLeft: () => (
+                    <TouchableOpacity
+                        onPress={() => {
+                            router.back()
+                        }}
+                        style={{
+                            marginRight: 20
+                        }}
+                    >
+                        <Ionicons name="arrow-back" size={24} color="black" />
+                    </TouchableOpacity>
+                ),
                 headerShadowVisible: false,
 
                 headerTitle: () => (

@@ -57,3 +57,5 @@ npm i react-native-calendars
 
 # encrypt pin
 npx expo install expo-crypto
+
+npx expo install xlsx expo-file-system expo-sharing

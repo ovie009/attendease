@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native'
+import { ScrollView, StyleSheet } from 'react-native'
 import React, { useState } from 'react'
 import { colors } from '@/utilities/colors'
 import InterText from '@/components/InterText'
@@ -8,44 +8,30 @@ import { WIDTH } from '@/utilities/dimensions'
 import CustomButton from '@/components/CustomButton'
 import { useAppStore } from '@/stores/useAppStore'
 import { useAuthStore } from '@/stores/useAuthStore'
-import handleLecturers from '@/api/handleLecturers'
 import { router } from 'expo-router'
-import * as Crypto from 'expo-crypto';
-import { AccountType } from '@/types/general'
-import handleStudents from '@/api/handleStudents'
 import * as LocalAuthentication from 'expo-local-authentication';
+import handleAuth from '@/api/handleAuth'
 
-const ChangePin = () => {
+const ChangePassword = () => {
 
     const keyboardHeight = useAppStore(state => state.keyboardHeight)
     const isLoading = useAppStore(state => state.isLoading)
     const user = useAuthStore(state => state.user)
 
     const {
-        setUser
-    } = useAuthStore.getState()
-
-    const {
         setIsLoading,
         displayToast,
     } = useAppStore.getState()
 
-    const [pin, setPin] = useState<string>('');
-    const [verifyPin, setVerifyPin] = useState<string>('');
+    const [currentPassword, setCurrentPassword] = useState<string>('')
+    const [newPassword, setNewPassword] = useState<string>('')
+    const [retypeNewPassword, setRetypeNewPassword] = useState<string>('')
 
     const handleCompleteRegistration = async () => {
         try {
             setIsLoading(true);
 
             if (!user) return;
-
-            if (pin.length !== 4) {
-                throw new Error('Pin must be 4 digits')
-            }
-
-            if (pin !== verifyPin) {
-                throw new Error('Pin does not match')
-            }
 
             const isEnrolled = await LocalAuthentication.isEnrolledAsync();
 
@@ -57,35 +43,14 @@ const ChangePin = () => {
                 }
             }
 
-            const hashedPin = await Crypto.digestStringAsync(
-                Crypto.CryptoDigestAlgorithm.SHA256,
-                pin
-            );
+            await handleAuth.changePassword({
+                current_password: currentPassword,
+                new_password: newPassword,
+                retype_new_password: retypeNewPassword,
+                email: user?.email,
+            })
 
-            if (user?.account_type === AccountType.Lecturer) {
-                const updateUserResponse = await handleLecturers.updateLecturer({
-                    id: user?.id,
-                    pin: hashedPin,
-                });
-                // console.log("🚀 ~ handleCompleteRegistration ~ updateUserResponse:", updateUserResponse)
-    
-                setUser({
-                    ...user,
-                    ...updateUserResponse.data,
-                })
-            } else {
-                const updateUserResponse = await handleStudents.updateStudent({
-                    id: user?.id,
-                    pin: hashedPin,
-                });
-    
-                setUser({
-                    ...user,
-                    ...updateUserResponse.data,
-                })
-            }
-
-            displayToast('SUCCESS', "Pin changed successfully")
+            displayToast('SUCCESS', "Password changed successfully")
 
             router.replace('/profile');
         } catch (error:any) {
@@ -109,33 +74,37 @@ const ChangePin = () => {
                     gap={20}
                 >
                     <InterText>
-                        Update your attendease device authorization pin
+                        Please fill in the form to change to a new password
                     </InterText>
                     <Input
-                        label='Pin'
-                        defaultValue={pin}
-                        onChangeText={setPin}
+                        label='Current Password'
+                        defaultValue={currentPassword}
+                        onChangeText={setCurrentPassword}
                         width={WIDTH - 40}
                         isPasswordInput={true}
-                        placeholder='Enter pin'
-                        maxLength={4}
-                        keyboardType='numeric'
+                        placeholder='Enter password'
                     />
                     <Input
-                        label='Verify Pin'
-                        defaultValue={verifyPin}
-                        onChangeText={setVerifyPin}
+                        label='New password'
+                        defaultValue={newPassword}
+                        onChangeText={setNewPassword}
                         width={WIDTH - 40}
                         isPasswordInput={true}
-                        placeholder='Enter pin'
-                        maxLength={4}
-                        keyboardType='numeric'
+                        placeholder='Enter password'
+                    />
+                    <Input
+                        label='Retype new password'
+                        defaultValue={retypeNewPassword}
+                        onChangeText={setRetypeNewPassword}
+                        width={WIDTH - 40}
+                        isPasswordInput={true}
+                        placeholder='Enter password'
                     />
                 </Flex>
                 <CustomButton
                     text='Continue'
                     isLoading={isLoading}
-                    disabled={!pin || !verifyPin}
+                    disabled={!currentPassword || !newPassword || !retypeNewPassword || newPassword !== retypeNewPassword}
                     onPress={handleCompleteRegistration}
                 />
             </Flex>
@@ -143,7 +112,7 @@ const ChangePin = () => {
     )
 }
 
-export default ChangePin
+export default ChangePassword
 
 const styles = StyleSheet.create({
     container: {

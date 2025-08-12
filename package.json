@@ -41,6 +41,7 @@
     "expo-crypto": "~14.1.5",
     "expo-dev-client": "~5.2.0",
     "expo-device": "~7.1.4",
+    "expo-file-system": "~18.1.11",
     "expo-font": "~13.3.1",
     "expo-haptics": "~14.1.4",
     "expo-image": "~2.3.0",
@@ -51,6 +52,7 @@
     "expo-location": "~18.1.6",
     "expo-navigation-bar": "~4.2.5",
     "expo-router": "~5.1.0",
+    "expo-sharing": "~13.1.5",
     "expo-splash-screen": "~0.30.9",
     "expo-status-bar": "~2.2.3",
     "expo-symbols": "~0.4.5",
@@ -78,6 +80,7 @@
     "react-native-webview": "13.13.5",
     "react-test-renderer": "^19.0.0",
     "uuid": "^11.1.0",
+    "xlsx": "^0.18.5",
     "zustand": "^5.0.3"
   },
   "devDependencies": {

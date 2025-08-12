@@ -23,6 +23,7 @@ import { CameraView } from 'expo-camera';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as LocalAuthentication from 'expo-local-authentication';
 import handleStudents from '@/api/handleStudents';
+import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 
 
 export default function AppLayout() {
@@ -210,7 +211,7 @@ export default function AppLayout() {
 					name="records" 
 					options={{ 
 						title: "", 
-						headerShown: true, 
+						headerShown: false, 
 						headerShadowVisible: false,
 					}}
 				/>
@@ -293,8 +294,18 @@ export default function AppLayout() {
 					options={{
 						headerTintColor: colors.black,
 						headerBackTitle: "",
-						headerLeft: () => <View style={{marginRight: 6}}><MaterialIcons name="password" size={40} color={colors.primary} /></View>,
+						headerLeft: () => <View style={{marginRight: 6}}><FontAwesome5 name="key" size={20} color={colors.primary} /></View>,
 						headerTitle: () => <InterText fontSize={32} fontWeight={600} lineHeight={35}>Change Pin</InterText>,
+					}} 
+				/>
+
+				<Stack.Screen 
+					name="changePassword"
+					options={{
+						headerTintColor: colors.black,
+						headerBackTitle: "",
+						headerLeft: () => <View style={{marginRight: 6}}><MaterialIcons name="password" size={40} color={colors.primary} /></View>,
+						headerTitle: () => <InterText fontSize={32} fontWeight={600} lineHeight={35}>Change Password</InterText>,
 					}} 
 				/>
 

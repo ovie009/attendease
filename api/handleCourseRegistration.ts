@@ -57,7 +57,30 @@ const getByStudentIdAndSession = async ({student_id, session}: {student_id: stri
     }
 }
 
+const getByCourseIdAndSession = async ({course_id, session}: {course_id: string, session: string}): Promise<Response<Array<CourseRegistration>>> => {
+    try {
+        const { data, error, status } = await supabase
+            .from(tableName)
+            .select('*')
+            .eq('session', session)
+            .contains('course_ids', [course_id])
+
+        if (error && status !== 406) {
+            throw error;
+        }
+
+        return {
+            isSuccessful: true,
+            message: "Courses selected successfully",
+            data: data || [],
+        } 
+    } catch (error) {
+        throw error;
+    }
+}
+
 export default {
     create,
+    getByCourseIdAndSession,
     getByStudentIdAndSession,
 }

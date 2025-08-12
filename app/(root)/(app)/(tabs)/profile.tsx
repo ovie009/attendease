@@ -22,6 +22,7 @@ import Flex from '@/components/Flex';
 import SettingsListItem from '@/components/SettingsListItem';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import AntDesign from '@expo/vector-icons/AntDesign';
+import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 
 type AdminListItemProps = Admin & {
     is_loading?: boolean | undefined;
@@ -61,9 +62,14 @@ const Profile = () => {
         if (user?.account_type === AccountType.Student) {
             return [
                 {
+                    name: "Change password",
+                    href: '/changePassword',
+                    Icon: <MaterialIcons name="password" size={20} color={colors.primary} />
+                },
+                {
                     name: "Change pin",
                     href: '/changePin',
-                    Icon: <MaterialIcons name="password" size={20} color={colors.primary} />
+                    Icon: <FontAwesome5 name="key" size={20} color={colors.primary} />
                 },
                 {
                     name: "Change card",
@@ -80,9 +86,14 @@ const Profile = () => {
 
         const buttons: Button[] = [
             {
+                name: "Change password",
+                href: '/changePassword',
+                Icon: <MaterialIcons name="password" size={20} color={colors.primary} />
+            },
+            {
                 name: "Change pin",
                 href: '/changePin',
-                Icon: <MaterialIcons name="password" size={20} color={colors.primary} />
+                Icon: <FontAwesome5 name="key" size={20} color={colors.primary} />
             },
             {
                 name: "Change card",

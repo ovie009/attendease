@@ -1,5 +1,6 @@
-import { AuthResponse, EmailOtpType, Session, SignUpWithPasswordCredentials, User } from "@supabase/supabase-js";
+import { AuthResponse, EmailOtpType, Session, SignUpWithPasswordCredentials, User, UserResponse } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase"
+import { Response } from "@/types/api";
 
 interface authParams {
     email: string, 
@@ -182,12 +183,58 @@ const signupTeamMember = async (email: string) => {
     }
 }
 
+export type ChangePasswordPayload = {
+    current_password: string,
+    new_password: string,
+    retype_new_password: string,
+    email: string,
+}
+
+const changePassword = async ({current_password, new_password, retype_new_password, email}: ChangePasswordPayload): Promise<Response<User>> => {
+    try {
+
+        // Input validation
+        if (!retype_new_password || !new_password) {
+            throw new Error("New password and retype password are required");
+        }
+
+        // new password must not match old password
+        if (current_password && current_password === new_password) {
+            throw new Error("New password cannot be the same as the current password");
+        }
+
+        // new password and retype password must match
+        if (retype_new_password !== new_password) {
+            throw new Error("New password and retype password do not match");
+        }
+
+        // Update password using Supabase auth API
+        const { data, error } = await supabase.auth.updateUser({
+            password: new_password,
+            email,
+        });
+
+        if (error) {
+            throw error;
+        }
+
+        return {
+            isSuccessful: true,
+            message: "Password updated successfully",
+            data: data.user,
+        };
+    } catch (error) {
+        throw error;
+    }
+};
+
 export default {
     signup,
     login,
     signout,
     verifyOTP,
     updateUser,
+    changePassword,
     signupTeamMember,
     resendVerificationOTP,
 }
