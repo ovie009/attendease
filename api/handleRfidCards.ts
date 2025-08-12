@@ -55,8 +55,6 @@ const getUnassignedLecturerCards = async (): Promise<Response<RfidCard[] | []>> 
             .from(tableName)
             .select('*')
             .eq('assigned_for', 'Lecturer')
-            .is('lecturer_id', null)
-            .is('student_id', null)
             .order('card_uid', {ascending: true});
 
         if (error && status !== 406) {

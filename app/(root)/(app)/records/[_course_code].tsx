@@ -44,6 +44,8 @@ const CourseCode = () => {
 		_academic_session,
 		_semester,
 		_course_code,
+		_lecturer_id,
+		_lecturer_fullname,
 	} = useLocalSearchParams()
 
 	const {
@@ -112,53 +114,6 @@ const CourseCode = () => {
 			return object;
 		})
 	}, [students, attendanceSession, attendanceRecords, dataLoading.students, dataLoading.attendanceRecords, dataLoading.attendanceSession])
-	console.log("🚀 ~ CourseCode ~ exportedData:", exportedData)
-
-	const exportToExcel = async (data: Array<any>, filename = 'export.xlsx') => {
-		try {
-			setIsExporting(true);
-
-			// Create a new workbook
-			const workbook = XLSX.utils.book_new();
-
-			// Convert array of objects to worksheet
-			const worksheet = XLSX.utils.json_to_sheet(data);
-
-			// Add worksheet to workbook
-			XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
-
-			// Generate Excel file as base64
-			const excelBuffer = XLSX.write(workbook, {
-				type: 'base64',
-				bookType: 'xlsx'
-			});
-
-			// Create file URI
-			const uri = FileSystem.documentDirectory + filename;
-
-			// Write file to device
-			await FileSystem.writeAsStringAsync(uri, excelBuffer, {
-				encoding: FileSystem.EncodingType.Base64
-			});
-
-			// Share the file
-			if (await Sharing.isAvailableAsync()) {
-				await Sharing.shareAsync(uri, {
-				mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-				dialogTitle: 'Export Excel File'
-				});
-			} else {
-				Alert.alert('Success', `Excel file saved to: ${uri}`);
-			}
-
-			Alert.alert('Success', 'Excel file exported successfully!');
-		} catch (error:any) {
-			console.error('Export error:', error);
-			Alert.alert('Error', 'Failed to export Excel file: ' + error.message);
-		} finally {
-			setIsExporting(false);
-		}
-	};
 
 	// Export with custom formatting
 	const exportToExcelWithFormatting = async (data:Array<any>, filename = `${_course_code as string}_attendance_record.xlsx`) => {
@@ -215,64 +170,6 @@ const CourseCode = () => {
 		}
 	};
 
-	// Export multiple sheets
-	const exportMultipleSheets = async () => {
-		try {
-			setIsExporting(true);
-
-			const workbook = XLSX.utils.book_new();
-
-			// Sheet 1: All employees
-			const allEmployees = XLSX.utils.json_to_sheet(sampleData);
-			XLSX.utils.book_append_sheet(workbook, allEmployees, 'All Employees');
-
-			// Sheet 2: Engineering department only
-			const engineeringData = sampleData.filter(emp => emp.department === 'Engineering');
-			const engineeringSheet = XLSX.utils.json_to_sheet(engineeringData);
-			XLSX.utils.book_append_sheet(workbook, engineeringSheet, 'Engineering');
-
-			// Sheet 3: Summary statistics
-			const departments = [...new Set(sampleData.map(emp => emp.department))];
-			const summaryData = departments.map(dept => ({
-				Department: dept,
-				'Employee Count': sampleData.filter(emp => emp.department === dept).length,
-				'Average Age': Math.round(
-				sampleData
-					.filter(emp => emp.department === dept)
-					.reduce((sum, emp) => sum + emp.age, 0) / 
-				sampleData.filter(emp => emp.department === dept).length
-				)
-			}));
-			
-			const summarySheet = XLSX.utils.json_to_sheet(summaryData);
-			XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary');
-
-			const excelBuffer = XLSX.write(workbook, {
-				type: 'base64',
-				bookType: 'xlsx'
-			});
-
-			const uri = FileSystem.documentDirectory + 'multi_sheet_export.xlsx';
-			await FileSystem.writeAsStringAsync(uri, excelBuffer, {
-				encoding: FileSystem.EncodingType.Base64
-			});
-
-			if (await Sharing.isAvailableAsync()) {
-				await Sharing.shareAsync(uri, {
-				mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-				dialogTitle: 'Export Multi-Sheet Excel File'
-				});
-			}
-
-			Alert.alert('Success', 'Multi-sheet Excel file exported successfully!');
-		} catch (error:any) {
-			console.error('Export error:', error);
-			Alert.alert('Error', 'Failed to export Excel file: ' + error.message);
-		} finally {
-			setIsExporting(false);
-		}
-	};
-
 
 	// fetch attendance session for student
 	useEffect(() => {
@@ -298,29 +195,6 @@ const CourseCode = () => {
 		}
 		fetchAttendanceSession();
 	}, []);
-
-	// fetch attendance records for student
-	useEffect(() => {
-		if (user?.account_type !== AccountType.Student) return;
-		if (attendanceSession.length === 0) return;
-
-		const fetchAttendanceRecords = async () => {
-			try {
-				const attendanceRecordsResponse = await handleAttendanceRecords.getAttendanceRecordsByAttendanceSessionSemesterSessionAndStudent({
-					semester: parseInt(_semester as string) as Semester,
-					academic_session: _academic_session as string,
-					student_id: user?.id!,
-					attendance_session_ids: attendanceSession.map(item => item.id),
-				});
-				setAttendanceRecords(attendanceRecordsResponse.data)
-
-				handleDisableDataLoading('attendanceRecords', setDataLoading)
-			} catch (error: any) {
-				displayToast('ERROR', error?.message)
-			}
-		}
-		fetchAttendanceRecords();
-	}, [attendanceSession]);
 	
 	// fetch attendance records for lecturer
 	useEffect(() => {
@@ -418,35 +292,6 @@ const CourseCode = () => {
 		fetchLecturers()
 	}, [attendanceSession])
 
-	const data = useMemo(() => {
-		if (dataLoading.attendanceRecords || dataLoading.attendanceSession || dataLoading.lecturers) {
-			return getLoadingData([''], [''], 3);
-		}
-
-		return attendanceRecords.map(item => {
-			return {
-				created_at: item.created_at,
-				attendance_session: attendanceSession.find(i => i.id === item.attendance_session_id),
-				lecturer: lecturers.find(j => j.id === attendanceSession.find(i => i.id === item.attendance_session_id)?.lecturer_id),
-			}
-		})
-	}, [attendanceRecords, attendanceSession, lecturers])
-
-	const dataMissedClasses = useMemo(() => {
-		if (dataLoading.attendanceRecords || dataLoading.attendanceSession || dataLoading.lecturers) {
-			return getLoadingData([''], [''], 3);
-		}
-
-		return attendanceSession
-		.filter(item => attendanceRecords.every(record => record.attendance_session_id !== item.id))
-		.map(item => {
-			return {
-				attendance_session: item,
-				lecturer: lecturers.find(j => j.id === item.lecturer_id),
-			}
-		})
-	}, [attendanceRecords, attendanceSession, lecturers])
-
 	const dataStudents = useMemo((): Array<StudentAttendancRecordProps & {is_loading?: boolean, id: string}> => {
 		if (dataLoading.attendanceRecords || dataLoading.students) {
 			return getLoadingData([''], [''], 4);
@@ -487,76 +332,6 @@ const CourseCode = () => {
 	
 	return (
 		<React.Fragment>
-			{user?.account_type === AccountType.Student && (
-				<ScrollView
-					showsVerticalScrollIndicator={false}
-					contentContainerStyle={styles.container}
-				>
-					<Flex
-						gap={20}
-						style={{
-							marginBottom: 50,
-						}}
-					>
-						<InterText
-							fontSize={16}
-							lineHeight={20}
-							fontWeight={500}
-						>
-							Lectures attended
-						</InterText>
-						<Flex
-							gap={20}
-						>
-							{data.map((item, index) => (
-								<ClassAttendedListItem 
-									key={index}
-									{...item}
-								/>
-							))}
-							{data.length === 0 && (
-								<Flex
-									justifyContent='center'
-									alignItems='center'
-									gap={20}
-									height={HEIGHT/3}
-									width={WIDTH - 40}
-								>
-									<InterText
-										lineHeight={20}
-										color={colors.subtext}
-									>
-										No attendance records for this course
-									</InterText>
-								</Flex>
-							)}
-						</Flex>
-					</Flex>
-					{dataMissedClasses.length !== 0 && dataMissedClasses.some(item => !item.is_loading) && (
-						<Flex
-							gap={20}
-						>
-							<InterText
-								fontSize={16}
-								lineHeight={20}
-								fontWeight={500}
-							>
-								Missed lecturers
-							</InterText>
-							<Flex
-								gap={20}
-							>
-								{dataMissedClasses.map((item, index) => (
-									<ClassAttendedListItem 
-										key={index}
-										{...item}
-									/>
-								))}
-							</Flex>
-						</Flex>
-					)}
-				</ScrollView>
-			)}
 			{user?.account_type === AccountType.Lecturer && (
 				<Container
 					height={HEIGHT}

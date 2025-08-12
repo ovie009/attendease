@@ -18,6 +18,9 @@ import handleDepartments from '@/api/handleDepartments'
 import handleLecturers from '@/api/handleLecturers'
 import LecturerListItem from '@/components/LecturerListItem'
 import InterText from '@/components/InterText'
+import { useAuthStore } from '@/stores/useAuthStore'
+import { AccountType } from '@/types/general'
+import { useRouteStore } from '@/stores/useRouteStore'
 
 // Let's stick with 'is_loading' as used in useMemo annotation.
 type LecturersListItemProps = Lecturer & {
@@ -40,11 +43,14 @@ const Lecturers = () => {
 		departments: true,
 		lecturers: true,
 	});
+
+	const {
+		_setLecturer
+	} = useRouteStore.getState()
+	// console.log("🚀 ~ Lecturers ~ dataLoading:", dataLoading)
 	// console.log("🚀 ~ Lecturers ~ dataLoading:", dataLoading)
 
-	useEffect(() => {
-
-	})
+	const user = useAuthStore(state => state.user);
 
 	// list of collegs
 	const [colleges, setColleges] = useState<College[]>([]);
@@ -52,6 +58,7 @@ const Lecturers = () => {
 	const [departmentIds, setDepartmentIds] = useState<string[]>([]);
 	const [searchInput, setSearchInput] = useState<string>("");
 	const [departments, setDepartments] = useState<Department[]>([])
+	const [deanDepartment, setDeanDepartment] = useState<Department | null>(null)
 	const [lecturers, setLecturers] = useState<Lecturer[]>([])
 
 	const data = useMemo<any>(() => {
@@ -61,6 +68,7 @@ const Lecturers = () => {
 
 		if (searchInput) {
 			return lecturers
+				.filter(item => item.id !== user?.id)
 				.map(item => {
 					const department = departments.find(i => i.id === item.department_id);
 					const college = colleges.find(i => i.id === department?.college_id);
@@ -79,6 +87,7 @@ const Lecturers = () => {
 		}
 
 		return lecturers
+			.filter(item => item.id !== user?.id)
 			.map(item => {
 				const department = departments.find(i => i.id === item.department_id);
 				const college = colleges.find(i => i.id === department?.college_id);
@@ -88,13 +97,11 @@ const Lecturers = () => {
 					department_name: department?.department_name,
 					college_name: college?.college_name
 				}
-			});
+			})
 	}, [colleges, dataLoading.colleges, dataLoading.departments, searchInput, lecturers, dataLoading.lecturers]);
-	console.log("🚀 ~ Lecturers ~ data:", data[0])
 
-
+	// fetch departments
 	useEffect(() => {
-		// (async () => )
 		const fetchColleges = async () => {
 			if (collegeIds.length === 0) return;
 			try {
@@ -113,6 +120,7 @@ const Lecturers = () => {
 		fetchColleges();	
 	}, [collegeIds])
 
+	// fetch departments
 	useEffect(() => {
 		const fetchDepartments = async () => {
 			if (departmentIds.length === 0) return;
@@ -132,8 +140,33 @@ const Lecturers = () => {
 
 		fetchDepartments();
 	}, [departmentIds]);
-
+	
+	// fetch department for dean
 	useEffect(() => {
+		if (user?.role !== 'Dean') return;
+		const fetchDepartments = async () => {
+			try {
+				const departmentResponse = await handleDepartments.getById(user?.department_id!);
+
+				if (departmentResponse.data) {
+					const collegeDepartmentsResponse = await handleDepartments.getByCollegeId(departmentResponse.data.college_id) 
+					setDepartments(collegeDepartmentsResponse.data)
+					setDeanDepartment(departmentResponse.data)
+					setCollegeIds([departmentResponse.data?.college_id])
+				}
+			} catch (error: any) {
+				displayToast('ERROR', error?.message)
+			} finally {
+				handleDisableDataLoading('departments', setDataloading);
+			}
+		}
+
+		fetchDepartments();
+	}, []);
+
+	// fetch lecturers for admins
+	useEffect(() => {
+		if (user?.account_type !== AccountType.Admin) return;
 		const fetchLecturers = async () => {
 			try {
 				const lecturersResponse = await handleLecturers.getAll();
@@ -158,6 +191,54 @@ const Lecturers = () => {
 		fetchLecturers();
 	}, [segments]);
 
+	// fetch lecturers for hods
+	useEffect(() => {
+		if (user?.role !== 'HOD') return;
+		const fetchLecturers = async () => {
+			try {
+				const lecturersResponse = await handleLecturers.getByDepartmentId(user?.department_id!);
+				// console.log("🚀 ~ fetchLecturers ~ lecturersResponse:", lecturersResponse)
+
+				if (lecturersResponse.isSuccessful) {
+					setLecturers(lecturersResponse.data)
+					setDepartmentIds(lecturersResponse.data.map(item => item.department_id))
+
+					if (lecturersResponse.data.length === 0) {
+						handleDisableDataLoading('departments', setDataloading)
+						handleDisableDataLoading('colleges', setDataloading)
+					}
+				}
+			} catch (error: any) {
+				displayToast('ERROR', error?.message)
+			} finally {
+				handleDisableDataLoading('lecturers', setDataloading)
+			}
+		}
+
+		fetchLecturers();
+	}, [segments]);
+
+	// fetch lecturers for deans
+	useEffect(() => {
+		if (user?.role !== 'Dean') return;
+		if (departments.length === 0) return;
+		const fetchLecturers = async () => {
+			try {
+				const ids = departments.map(item => item.id);
+				const lecturersResponse = await handleLecturers.getByDepartmentIds(ids);
+				// console.log("🚀 ~ fetchLecturers ~ lecturersResponse:", lecturersResponse)
+
+				if (lecturersResponse.data) {
+					setLecturers(lecturersResponse.data)
+				}
+			} catch (error: any) {
+				displayToast('ERROR', error?.message)
+			} finally {
+				handleDisableDataLoading('lecturers', setDataloading)
+			}
+		}
+		fetchLecturers();
+	}, [departments]);
 
 
 	const RenderItem = useCallback(({item}: {item: LecturersListItemProps}) => (
@@ -169,6 +250,19 @@ const Lecturers = () => {
 			courseIds={item?.course_ids}
 			role={item?.role}
 			onPress={() => {
+				if (user?.account_type === AccountType.Lecturer) {
+					_setLecturer(item);
+
+					router.push({
+						pathname: '/lecturer/[_lecturer_fullname]',
+						params: {
+							_lecturer_fullname: item.full_name,
+						}
+					})
+
+					return;
+				}
+
 				router.push({
 					pathname: '/(root)/(app)/(lecturer)/EditLecturer',
 					params: {
@@ -226,13 +320,18 @@ const Lecturers = () => {
 				) : <></>}
 			/> 
 		</View>
-		{(!dataLoading.colleges && data.length !== 0) && (
+		{(!dataLoading.colleges && data.length !== 0) && user?.account_type === AccountType.Admin && (
 			<FixedButton
 				onPress={() => {
 					router.push('/(root)/(app)/(lecturer)/AddLecturer')				
 				}}
 				text={"Add Lecturer"}
-				Icon={<AddCircleIcon width={22.5} height={22.5} />}
+				Icon={
+					<AddCircleIcon 
+						width={22.5} 
+						height={22.5} 
+					/>
+				}
 			/>
 		)}
 	</>)
@@ -279,7 +378,6 @@ const styles = StyleSheet.create({
 		backgroundColor: colors.grey,
 		height: 100,
 	},
-	// BOTTOM SHEEET
 	// BOTTOM SHEEET
 	// BOTTOM SHEEET
 	sheetWrapper: {

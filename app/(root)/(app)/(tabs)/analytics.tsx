@@ -156,6 +156,25 @@ const Analytics = () => {
 					});
 				}
 				setSessionOptions(sessionArray);
+			} else {
+				const currentSession = activeAcademicSession;
+                const [startYearStr, endYearStr] = currentSession.split('/');
+                const startYear = parseInt(startYearStr, 10);
+                const endYear = parseInt(endYearStr, 10);
+                const numSessions = Math.floor(500 / 100);
+
+                const sessionArray: SelectableAcademicSession[] = [];
+                for (let i = 0; i < numSessions; i++) {
+                    const sessionStart = startYear - i;
+                    const sessionEnd = endYear - i;
+                    const sessionValue = `${sessionStart}/${sessionEnd}`;
+                    sessionArray.push({
+                        id: `${i + 1}`,
+                        value: sessionValue,
+                        is_selected: sessionValue === academicSession,
+                    });
+                }
+                setSessionOptions(sessionArray);
 			}
 		}
 	}, [settings])

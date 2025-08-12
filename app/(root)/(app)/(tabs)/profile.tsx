@@ -15,7 +15,7 @@ import { handleDisableDataLoading } from '@/utilities/handleDisableDataLoading';
 import { HEIGHT } from '@/utilities/dimensions';
 import AdminListItem from '@/components/AdminListItem';
 import { useAppStore } from '@/stores/useAppStore';
-import { Href, RelativePathString, useRouter, useSegments } from 'expo-router';
+import { Href, useRouter, useSegments } from 'expo-router';
 import Skeleton from '@/components/Skeleton';
 import { AccountType } from '@/types/general';
 import Flex from '@/components/Flex';
@@ -23,6 +23,7 @@ import SettingsListItem from '@/components/SettingsListItem';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
+import LecturerIcon from '@/assets/svg/LecturerIcon.svg';
 
 type AdminListItemProps = Admin & {
     is_loading?: boolean | undefined;
@@ -114,12 +115,12 @@ const Profile = () => {
         
         if (user?.role === 'Dean' || user?.role === 'HOD') {
             buttons.push({
-                name: "View other lecturers in your"+""+ user?.role === 'Dean' ? "College" : "Department",
-                href: '/changeCard',
-                Icon: <AntDesign name="creditcard" size={20} color={colors.primary} />
+                name: "View other lecturers in your "+""+ (user?.role === 'Dean' ? "College" : "Department"),
+                href: '/lecturers',
+                Icon: <LecturerIcon width={20} height={20} />
             })
         }
-
+        
         return buttons;
     }, []);
 

@@ -207,6 +207,16 @@ export default function AppLayout() {
 						headerShadowVisible: false,
 					}}
 				/>
+
+				<Stack.Screen 
+					name="lecturer" 
+					options={{ 
+						title: "", 
+						headerShown: false, 
+						headerShadowVisible: false,
+					}}
+				/>
+				
 				<Stack.Screen 
 					name="records" 
 					options={{ 

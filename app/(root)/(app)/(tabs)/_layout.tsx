@@ -60,9 +60,6 @@ export default function TabLayout() {
 					headerTitle: () => <InterText fontSize={32} fontWeight={600} lineHeight={35} numberOfLines={2}>Welcome,{`\n`}{user?.full_name}</InterText>,
 					tabBarLabel: ({focused}) => <InterText color={focused ? colors.primary : colors.grey}>Home</InterText>,
 					tabBarIcon: ({focused}) => <Entypo name="home" size={20} color={focused ? colors.primary : colors.grey} />,
-					headerRight: () => <TouchableOpacity style={styles.notificationButton}>
-						<Ionicons name="notifications" size={20} color={colors.primary} />
-					</TouchableOpacity>,
 					headerStyle: {
 						height: 120,
 					}
