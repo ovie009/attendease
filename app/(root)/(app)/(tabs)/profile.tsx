@@ -43,15 +43,6 @@ const Profile = () => {
     const user = useAuthStore((state) => state.user);
     console.log("🚀 ~ Profile ~ user:", user)
 
-    const handleLogout = async () => {
-        // Optional: Show loading state
-        const { error } = await supabase.auth.signOut();
-        if (error) {
-            console.error('Error logging out:', error);
-        }
-         // Auth listener in root layout will handle redirect
-    };
-
     const [admins, setAdmins] = useState<Admin[]>([]);
 
     const [dataLoading, setDataLoading] = useState<{admins: boolean}>({

@@ -17,6 +17,8 @@ interface CourseAttendanceRecordListItemProps {
 }
 
 const CourseAttendanceRecordListItem: FC<CourseAttendanceRecordListItemProps> = ({ course, isLoading, totalWeeks, totalClasses, classesPerWeek, onPress }) => {
+    const progress = Math.min((totalClasses/(totalWeeks*classesPerWeek)) * 100, 100);
+    
     return (
         <TouchableOpacity
             onPress={onPress}
@@ -81,10 +83,10 @@ const CourseAttendanceRecordListItem: FC<CourseAttendanceRecordListItemProps> = 
                             backgroundColor={colors.recordBackground}
                         >
                             <Flex
-                                width={Math.min((totalClasses/(totalWeeks*classesPerWeek)) * 100, 100)}
+                                width={progress}
                                 height={15}
                                 // borderRadius={10}
-                                backgroundColor={colors.green}
+                                backgroundColor={progress >= 70 ? colors.green : colors.secondary}
                                 style={{
                                     borderTopLeftRadius: 10,
                                     borderBottomLeftRadius: 10,

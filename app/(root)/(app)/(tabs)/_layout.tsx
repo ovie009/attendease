@@ -6,7 +6,7 @@ import FontAwesome5 from '@expo/vector-icons/FontAwesome5'
 import { colors } from '@/utilities/colors';
 import InterText from '@/components/InterText';
 import { useAuthStore } from '@/stores/useAuthStore';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons'
 import { supabase } from '@/lib/supabase';
 import { useAppStore } from '@/stores/useAppStore';
@@ -17,23 +17,25 @@ import CourseInactiveIcon from '@/assets/svg/CourseInactiveIcon.svg';
 export default function TabLayout() {
 
 	const {
+		setIsLoading,
 		displayToast,
 	} = useAppStore.getState()
 
+	const isLoading = useAppStore(state => state.isLoading);
+
 	const user = useAuthStore((state) => state.user);
+	const signOut = useAuthStore((state) => state.signOut);
 
 	const handleLogout = async () => {
 		try {
+			setIsLoading(true)
 			// Optional: Show loading state
-			const { error } = await supabase?.auth?.signOut();
-			if (error) {
-				console.error('Error logging out:', error);
-			}
-			
-			// Auth listener in root layout will handle redirect
+			await signOut();
 		} catch (error: any) {
 			displayToast('ERROR', error?.message)
-		}	
+		} finally {
+			setIsLoading(false)
+		}
 	};
 
 	return (
@@ -100,6 +102,7 @@ export default function TabLayout() {
 					</View>,
 					headerRight: () => (
 						<TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+							{isLoading && <ActivityIndicator color={colors.primary} />}
                             <Ionicons name="exit-outline" size={24} color={colors.error} />
                             <InterText
                                 fontSize={16}

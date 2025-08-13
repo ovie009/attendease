@@ -24,18 +24,22 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import * as LocalAuthentication from 'expo-local-authentication';
 import handleStudents from '@/api/handleStudents';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
+import { supabase } from '@/lib/supabase';
 
 
 export default function AppLayout() {
 
     const session = useAuthStore((state) => state.session);
     const user = useAuthStore((state) => state.user);
+    const signOut = useAuthStore((state) => state.signOut);
     const setUser = useAuthStore((state) => state.setUser);
     const isFirstLaunch = useAuthStore((state) => state.isFirstLaunch);
 	const isLoading = useAppStore(state => state.isLoading);
+	const isLoadingSecondary = useAppStore(state => state.isLoadingSecondary);
 
 	const {
 		setIsLoading,
+		setIsLoadingSecondary,
 		displayToast
 	} = useAppStore.getState();
 
@@ -48,6 +52,25 @@ export default function AppLayout() {
 	}
 
 	const [scannedData, setScannedData] = useState<string>('');
+
+	const handleLogout = async () => {
+		try {
+			setIsLoadingSecondary(true)
+
+			// Optional: Show loading state
+			// const { error } = await supabase.auth.signOut();
+			// if (error) {
+			// 	console.error('Error logging out:', error);
+			// 	throw error;
+			// }
+			await signOut()
+				// Auth listener in root layout will handle redirect
+		} catch (error:any) {
+			displayToast('ERROR', error?.message)
+		} finally {
+			setIsLoadingSecondary(false)
+		}
+	};
 
 	useEffect(() => {
 		if (!scannedData) return;
@@ -419,6 +442,7 @@ export default function AppLayout() {
 							<Flex
 								paddingHorizontal={20}
 								width={'100%'}
+								gap={20}
 							>
 								<CustomButton
 									text='Authorise device'
@@ -426,6 +450,12 @@ export default function AppLayout() {
 									onPress={() => {
 										setIsScanning(true)
 									}}
+								/>
+								<CustomButton
+									text='Logout'
+									isSecondary={true}
+									isLoading={isLoadingSecondary}
+									onPress={handleLogout}
 								/>
 							</Flex>
 						</React.Fragment>

@@ -5,6 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Session } from '@supabase/supabase-js';
 import { User } from '@/types/api';
 import { Semester } from '@/types/general';
+import { supabase } from '@/lib/supabase';
 
 interface AuthState {
 	session: Session | null;
@@ -21,7 +22,7 @@ interface AuthState {
 	setUser: (user: User | null) => void;
 	setIsFirstLaunch: (isFirst: boolean) => void;
 	setInitialized: (init: boolean) => void;
-	signOut: () => void;
+	signOut: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -41,7 +42,17 @@ export const useAuthStore = create<AuthState>()(
 		setUser: (user) => set(() => ({ user })),
 		setIsFirstLaunch: (isFirst) => set(() => ({ isFirstLaunch: isFirst })),
 		setInitialized: (init) => set({ initialized: init }),
-		signOut: () => set(() => ({ session: null, user: null })), // Clear session/user on sign out
+		signOut: async () => {
+			try {
+				const {error} = await supabase.auth.signOut();
+				if (error) {
+					throw error
+				}
+			} catch (error) {
+				throw error;				
+			}
+		}
+		// signOut: () => set(() => ({ session: null, user: null })), // Clear session/user on sign out
     }),
     {
 		name: 'auth-storage', // Unique name for storage

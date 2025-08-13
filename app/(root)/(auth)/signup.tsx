@@ -302,10 +302,6 @@ const Signup = () => {
 					throw new Error('card doesn\'t exist');
 				}
 
-				if (cardResponse.data?.lecturer_id || cardResponse.data?.student_id) {
-					throw new Error('card already in use');
-				}
-
 				if (!level) {
 					throw new Error('Please select a level');
 				}
@@ -554,6 +550,11 @@ const Signup = () => {
 					<Flex
 						width={WIDTH}
 						height={'100%'}
+						justifyContent='center'
+						alignItems='center'
+						style={{
+							position: 'relative'
+						}}
 					>
 						{step === 3 && (
 							<CameraView
@@ -584,9 +585,15 @@ const Signup = () => {
 									barcodeTypes: ["qr"],
 								}}
 							>
-								<Ionicons name="scan-outline" size={400} color="white" />
 							</CameraView>
 						)}
+						<Flex
+							style={{
+								position: 'absolute'
+							}}
+						>
+							<Ionicons name="scan-outline" size={400} color="white" />
+						</Flex>
 					</Flex>
 				</Flex>
 			</ScrollView>

@@ -19,7 +19,6 @@ import { handleDisableDataLoading } from '@/utilities/handleDisableDataLoading';
 import Skeleton from '@/components/Skeleton';
 import handleDepartments from '@/api/handleDepartments';
 import { useAuthStore } from '@/stores/useAuthStore';
-import handleAuth from '@/api/handleAuth';
 import { AccountType, Semester } from '@/types/general';
 import handleCourses from '@/api/handleCourses';
 import { AttendanceSession, Course, CourseRegistration, Schedule, Setting, Ticket } from '@/types/api';
@@ -32,7 +31,6 @@ import handleCourseRegistration from '@/api/handleCourseRegistration';
 import Container from '@/components/Container';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import ScheduleListItem from '@/components/ScheduleListItem';
-import * as Device from 'expo-device';
 import handleTickets from '@/api/handleTickets';
 
 type DataLoading = {

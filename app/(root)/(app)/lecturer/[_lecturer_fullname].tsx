@@ -495,7 +495,7 @@ const Analytics = () => {
                                 fontWeight={600}
                                 fontSize={12}
                             >
-                                {user?.account_type === AccountType.Student ? "Registered courses" : "Courses offerred"}
+                                {user?.account_type === AccountType.Student ? "Registered courses" : "Courses taught"}
                             </InterText>
                         </Flex>
                     </Flex>
