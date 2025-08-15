@@ -28,7 +28,7 @@ const Login = () => {
 	const handleLogin = async (): Promise<void> => {
 		try {
 			setIsLoading(true);
-			const { error } = await supabase.auth.signInWithPassword({ email, password });
+			const { error } = await supabase.auth.signInWithPassword({ email: email.toLowerCase(), password });
 			if (error) throw error;
 		} catch (error: any) {
 			// Alert.alert('Login Error', error.message);

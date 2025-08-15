@@ -96,7 +96,7 @@ const getRecordsForAttendanceSession = async ({semester, academic_session, atten
             .eq('semester', semester)
             .eq('academic_session', academic_session)
             .in('attendance_session_id', attendance_session_ids)
-            .order('created_at', {ascending: true})
+            .order('created_at', {ascending: false})
 
         if (error && status !== 406) {
             throw error;

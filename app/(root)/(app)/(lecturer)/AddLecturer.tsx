@@ -382,7 +382,7 @@ const AddLecturer = () => {
 			setIsLoading(true);
 
             const lecturerResponse = await handleLecturers.addLecturer({
-                email,
+                email: email.toLowerCase(),
                 full_name: fullName,
                 department_id: departmentId,
                 role,

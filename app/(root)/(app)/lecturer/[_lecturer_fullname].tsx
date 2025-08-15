@@ -42,6 +42,7 @@ type RecordListItem = {
     classes_per_week: number,
     total_weeks: number,
     is_loading?: boolean
+	settings?: Array<Setting>
 } 
 
 type SelectableSemester = {
@@ -354,7 +355,7 @@ const Analytics = () => {
     }, [semester, academicSession, user, courses]);
     
     const data = useMemo((): Array<RecordListItem> => {
-        if (dataLoading.courses || dataLoading.attendanceSession || dataLoading.schedules) {
+        if (dataLoading.courses || dataLoading.attendanceSession || dataLoading.schedules || dataLoading.settings) {
             return getLoadingData(['course'], [''], 5)
         }
 
@@ -367,13 +368,15 @@ const Analytics = () => {
                 total_classes: attendanceSession.filter(item => item.course_id === id)?.length,
                 classes_per_week: schedules.find(item => item.course_id === id || item?.course_code === courses.find(i => i.id === id)?.course_code)?.days_of_the_week?.length || 1,
                 total_weeks: numberOfSemesterWeeks,
-                // classes_per_week: 1,
+                settings,
             }
         })
     }, [
         semester,
         courseIds,
+		settings,
         courses,
+		dataLoading.settings,
         dataLoading.courses,
         dataLoading.attendanceSession,
         dataLoading.schedules,
@@ -426,6 +429,8 @@ const Analytics = () => {
                         _course_id: item?.course?.id,
                         _academic_session: academicSession,
                         _semester: semester,
+                        _start_of_semester: item.settings?.find(item => item.key === 'start_of_semester')?.value,
+						_end_of_semester: item.settings?.find(item => item.key === 'end_of_semester')?.value,
                         _lecturer_id: _lecturer?.id,
                         _full_name: _lecturer?.full_name,
                     }

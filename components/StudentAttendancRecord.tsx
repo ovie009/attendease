@@ -15,10 +15,19 @@ export interface StudentAttendancRecordProps {
     created_at?: string,
     is_loading?: boolean,
     attendancd_session?: AttendanceSession,
+    total_classes?: number,
+    classes_per_week?: number,
+    total_weeks?: number,
 }
 
-const StudentAttendancRecord: FC<StudentAttendancRecordProps> = ({student, created_at, attendancd_session, is_loading}) => {
-    console.log("🚀 ~ StudentAttendancRecord ~ attendancd_session:", attendancd_session)
+const StudentAttendancRecord: FC<StudentAttendancRecordProps> = ({student, created_at, attendancd_session, total_classes, total_weeks, classes_per_week, is_loading}) => {
+    // console.log("🚀 ~ StudentAttendancRecord ~ classes_per_week:", classes_per_week)
+    // console.log("🚀 ~ StudentAttendancRecord ~ total_weeks:", total_weeks)
+    // console.log("🚀 ~ StudentAttendancRecord ~ total_classes:", total_classes)
+
+    const progress = (classes_per_week && total_weeks && total_classes) ? Math.min((total_classes/(total_weeks*classes_per_week)) * 100, 100) : 0;
+
+    // console.log("🚀 ~ StudentAttendancRecord ~ attendancd_session:", attendancd_session)
     return (
         <Flex
             width={WIDTH - 40}
@@ -40,7 +49,7 @@ const StudentAttendancRecord: FC<StudentAttendancRecordProps> = ({student, creat
                         >
                             {moment(attendancd_session?.started_at).format('h:mma')} -&nbsp;
                             {moment(attendancd_session?.ended_at).format('h:mma')}&nbsp;
-                            ({moment(attendancd_session?.created_at).format('ddd MM, YYYY')})
+                            ({moment(attendancd_session?.created_at).format('ddd, Do MM, YYYY')})
                         </InterText>
                     </InterText>
                 </Flex>
@@ -108,14 +117,38 @@ const StudentAttendancRecord: FC<StudentAttendancRecordProps> = ({student, creat
                 )}
                 
                 {!is_loading && created_at && (
-                    <InterText
-                        color={colors.subtext}
+                    <Flex
+                        flexDirection='row'
+                        alignItems='center'
+                        width={'100%'}
+                        justifyContent='space-between'
                     >
-                        Logged at:&nbsp;
-                        <InterText>
-                            {moment(created_at).format('h:mma')}
+                        <InterText
+                            color={colors.subtext}
+                        >
+                            Logged at:&nbsp;
+                            <InterText>
+                                {moment(created_at).format('h:mma')}
+                            </InterText>
                         </InterText>
-                    </InterText>
+                        <Flex
+                            width={100}
+                            height={15}
+                            borderRadius={10}
+                            backgroundColor={colors.recordBackground}
+                        >
+                            <Flex
+                                width={progress}
+                                height={15}
+                                // borderRadius={10}
+                                backgroundColor={progress >= 70 ? colors.green : 'red'}
+                                style={{
+                                    borderTopLeftRadius: 10,
+                                    borderBottomLeftRadius: 10,
+                                }}
+                            />
+                        </Flex>
+                    </Flex>
                 )}
             </OutlinedContainer>
         </Flex>

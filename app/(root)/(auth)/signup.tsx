@@ -334,7 +334,7 @@ const Signup = () => {
 				const createStudentResponse = await handleStudents.create({
 					id: createUserResponse?.data?.user?.id,
 					level,
-					email,
+					email: email.toLowerCase(),
 					full_name: fullName,
 					matric_number: matricNumber,
 					department_id: departmentId,

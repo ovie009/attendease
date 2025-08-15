@@ -86,7 +86,7 @@ const CourseAttendanceRecordListItem: FC<CourseAttendanceRecordListItemProps> = 
                                 width={progress}
                                 height={15}
                                 // borderRadius={10}
-                                backgroundColor={progress >= 70 ? colors.green : colors.secondary}
+                                backgroundColor={progress >= 70 ? colors.green : 'red'}
                                 style={{
                                     borderTopLeftRadius: 10,
                                     borderBottomLeftRadius: 10,

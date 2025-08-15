@@ -13,7 +13,7 @@ import { useAuthStore } from '@/stores/useAuthStore'
 import { useAppStore } from '@/stores/useAppStore'
 import { AttendanceRecord, AttendanceSession, Course, CourseRegistration, Schedule, Setting } from '@/types/api'
 import { AccountType, Semester } from '@/types/general'
-import handleSettings from '@/api/handleSettings'
+import handleSettings, { SettingPayload } from '@/api/handleSettings'
 import { handleDisableDataLoading } from '@/utilities/handleDisableDataLoading'
 import handleCourseRegistration from '@/api/handleCourseRegistration'
 import handleCourses from '@/api/handleCourses'
@@ -42,7 +42,8 @@ type RecordListItem = {
 	total_classes: number,
 	classes_per_week: number,
 	total_weeks: number,
-	is_loading?: boolean
+	is_loading?: boolean,
+	settings?: Array<Setting>
 } 
 
 type SelectableSemester = {
@@ -87,7 +88,7 @@ const Analytics = () => {
 		attendanceRecords: true,
 		schedules: true,
 	})
-	// console.log("🚀 ~ Analytics ~ dataLoading:", dataLoading)
+	console.log("🚀 ~ Analytics ~ dataLoading:", dataLoading)
 	// console.log("🚀 ~ Analytics ~ dataLoading:", dataLoading)
 
 	const [settings, setSettings] = useState<Setting[]>([]);
@@ -440,7 +441,7 @@ const Analytics = () => {
 	}, [semester, academicSession, user, courses]);
 	
 	const data = useMemo((): Array<RecordListItem> => {
-		if (dataLoading.courseRegistration || dataLoading.courses || dataLoading.attendanceRecords || dataLoading.attendanceSession || dataLoading.schedules) {
+		if (dataLoading.courseRegistration || dataLoading.courses || dataLoading.attendanceRecords || dataLoading.attendanceSession || dataLoading.schedules || dataLoading.settings) {
 			return getLoadingData(['course'], [''], 5)
 		}
 
@@ -454,11 +455,12 @@ const Analytics = () => {
 					total_classes: attendanceSession.filter(item => item.course_id === id)?.length,
 					classes_per_week: schedules.find(item => item.course_id === id || item?.course_code === courses.find(i => i.id === id)?.course_code)?.days_of_the_week?.length || 1,
 					total_weeks: numberOfSemesterWeeks,
+					settings,
 					// classes_per_week: 1,
 				}
 			})
 		}
-
+		
 		return courseIds?.filter(id => courses.some(item => item.id === id && item.semester === semester)).map(id => {
 			return {
 				id,
@@ -466,6 +468,7 @@ const Analytics = () => {
 				total_classes: attendanceRecords.filter(item => attendanceSession.some(i => (i.course_id === id) && (i.id === item.attendance_session_id)))?.length,
 				classes_per_week: schedules.find(item => item.course_id === id || item?.course_code === courses.find(i => i.id === id)?.course_code)?.days_of_the_week?.length || 1,
 				total_weeks: numberOfSemesterWeeks,
+				settings,
 				// classes_per_week: 1,
 			}
 		})
@@ -473,8 +476,10 @@ const Analytics = () => {
 		semester,
 		courseIds,
 		courses,
+		settings,
 		dataLoading.courseRegistration,
 		dataLoading.courses,
+		dataLoading.settings,
 		dataLoading.attendanceRecords,
 		dataLoading.attendanceSession,
 		dataLoading.schedules,
@@ -503,8 +508,8 @@ const Analytics = () => {
 		setTotalPercentage(parseFloat(((totalClasses / totalScheduledClasses) * 100)?.toFixed(2)))
 	}, [
 		data,
-		dataLoading.courseRegistration,
 		dataLoading.courses,
+		dataLoading.courseRegistration,
 		dataLoading.attendanceRecords,
 		dataLoading.attendanceSession,
 	])
@@ -529,6 +534,8 @@ const Analytics = () => {
 						_course_id: item?.course?.id,
 						_academic_session: academicSession,
 						_semester: semester,
+						_start_of_semester: item.settings?.find(item => item.key === 'start_of_semester')?.value,
+						_end_of_semester: item.settings?.find(item => item.key === 'end_of_semester')?.value,
 					}
 				})
 			}}

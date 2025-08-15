@@ -34,7 +34,7 @@ const AddAdmin = () => {
 			}
 
 			await handleAdmin.addAdmin({
-				email,
+				email: email.toLowerCase(),
 				full_name: fullName
 			})
 
