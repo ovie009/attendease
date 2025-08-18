@@ -9,7 +9,7 @@ import InterText from '@/components/InterText'
 import SelectInput from '@/components/SelectInput'
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { router, usePathname } from 'expo-router'
-import { CameraView } from 'expo-camera'
+import { CameraView, useCameraPermissions } from 'expo-camera'
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useAppStore } from '@/stores/useAppStore'
 import * as Device from 'expo-device';
@@ -65,7 +65,12 @@ const Signup = () => {
 
 	const scrollRef = useRef<ScrollView>(null)
 
-	
+	const [permission, requestPermission] = useCameraPermissions();
+
+	useEffect(() => {
+		requestPermission()
+	}, [])
+
 	const [email, setEmail] = useState<string>('');
 	const emailRef = useRef<TextInput>(null)
 	
@@ -188,11 +193,11 @@ const Signup = () => {
 	}, [])
 
 	useEffect(() => {
-		if (!dataLoading.departments) {
+		if (!dataLoading.departments && permission?.granted) {
 			// disable loading pages
 			setLoadingPages(loadingPages.filter(item => item !== pathname))
 		}
-	}, [dataLoading.departments])
+	}, [dataLoading.departments, permission])
 
 	const handleSelectDepartment = useCallback((id: string): void => {
 		// console.log("🚀 ~ handleSelectDepartment ~ id:", id)
@@ -559,8 +564,8 @@ const Signup = () => {
 						{step === 3 && (
 							<CameraView
 								style={{
-									width: '100%',
-									height: '100%',
+									width: WIDTH,
+									height: HEIGHT,
 									justifyContent: 'center',
 									alignItems: 'center',
 								}}
@@ -584,8 +589,7 @@ const Signup = () => {
 								barcodeScannerSettings={{
 									barcodeTypes: ["qr"],
 								}}
-							>
-							</CameraView>
+							/>
 						)}
 						<Flex
 							style={{
