@@ -50,6 +50,7 @@ const RegisterCourse = () => {
 
     // list of collegs
     const [courses, setCourses] = useState<SelectableCourse[]>([]);
+    console.log("🚀 ~ RegisterCourse ~ courses:", courses)
     const [otherCourse, setOtherCourse] = useState<SelectableCourse[]>([]);
     const [level, setLevel] = useState<Level | null>(null)
     const [settings, setSettings] = useState<Setting[]>([])
@@ -59,6 +60,7 @@ const RegisterCourse = () => {
         otherCourses: false,
         settings: true,
     })
+    console.log("🚀 ~ RegisterCourse ~ dataLoading:", dataLoading)
 
     const [levelOptions, setLevelOptions] = useState<SelectableLevel[]>(() => {
         if (user?.level === 100) return [];
@@ -107,6 +109,7 @@ const RegisterCourse = () => {
                     department_id: user?.department_id!,
                     levels: [user?.level!]
                 });
+                console.log("🚀 ~ fetchCourses ~ courseResponse:", courseResponse)
                 
                 setCourses(courseResponse.data.map(item => ({...item, is_selected: false})))
 
@@ -331,7 +334,7 @@ const RegisterCourse = () => {
                         contentContainerStyle={{paddingTop: 50, paddingBottom: 180}}
                         estimatedItemSize={81}
                         renderItem={renderCourseItem}
-                        ListEmptyComponent={(
+                        ListEmptyComponent={(dataLoading.courses && courses.length === 0) ? (
                             <Flex
                                 gap={20}
                             >
@@ -343,6 +346,20 @@ const RegisterCourse = () => {
                                         key={item}
                                     />
                                 ))}
+                            </Flex>
+                        ) : (
+                            <Flex
+                                height={HEIGHT/2}
+                                width={'100%'}
+                                justifyContent='center'
+                                alignItems='center'
+                            >
+                                <InterText
+                                    fontWeight={600}
+                                    fontSize={16}
+                                >
+                                    No courses found for your departments and level
+                                </InterText>
                             </Flex>
                         )}
                         ListFooterComponent={(!dataLoading.courses && user?.level !== 100) ? (
@@ -388,12 +405,14 @@ const RegisterCourse = () => {
                     />
                 </Container>
             </Flex>
-            <FixedButton
-                text='Register'
-                isLoading={isLoading}
-                disabled={!courses.some(item => item.is_selected)}
-                onPress={handleRegisterCourse}
-            />
+            {courses.length !== 0 && !dataLoading.courses && (
+                <FixedButton
+                    text='Register'
+                    isLoading={isLoading}
+                    disabled={!courses.some(item => item.is_selected)}
+                    onPress={handleRegisterCourse}
+                />
+            )}
             <CustomBottomSheet
                 ref={sheetRef}
                 sheetTitle={sheetParameters.content}

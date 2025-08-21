@@ -1,5 +1,5 @@
 // ./app/(app)/(tabs)/profile.tsx
-import { StyleSheet, View } from 'react-native'
+import { ActivityIndicator, StyleSheet, View } from 'react-native'
 import React, { ReactNode, use, useCallback, useEffect, useMemo, useState } from 'react'
 import { useAuthStore } from '@/stores/useAuthStore';
 import { supabase } from '@/lib/supabase';
@@ -8,7 +8,7 @@ import { FlashList } from '@shopify/flash-list';
 import InterText from '@/components/InterText';
 import LinkText from '@/components/LinkText';
 import Avatar from '@/components/Avatar';
-import { Admin } from '@/types/api';
+import { Admin, Department } from '@/types/api';
 import handleAdmin from '@/api/handleAdmin';
 import { getLoadingData } from '@/utilities/getLoadingData';
 import { handleDisableDataLoading } from '@/utilities/handleDisableDataLoading';
@@ -24,6 +24,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import LecturerIcon from '@/assets/svg/LecturerIcon.svg';
+import handleDepartments from '@/api/handleDepartments';
 
 type AdminListItemProps = Admin & {
     is_loading?: boolean | undefined;
@@ -41,13 +42,36 @@ const Profile = () => {
     const segments = useSegments();
 
     const user = useAuthStore((state) => state.user);
-    console.log("🚀 ~ Profile ~ user:", user)
+    // console.log("🚀 ~ Profile ~ user:", user)
 
     const [admins, setAdmins] = useState<Admin[]>([]);
+    const [department, setDepartment] = useState<Department | null>(null);
+    console.log("🚀 ~ Profile ~ department:", department)
 
-    const [dataLoading, setDataLoading] = useState<{admins: boolean}>({
+    const [dataLoading, setDataLoading] = useState<{admins: boolean, departments: boolean}>({
         admins: true,
-    }); 
+        departments: true
+    });
+
+    useEffect(() => {
+        if (user?.account_type === AccountType.Admin) return;
+        const fetchDepartment = async () => {
+            try {
+                const departmentResponse = await handleDepartments.getById(user?.department_id!);
+                // console.log("🚀 ~ fetchDepartment ~ departmentResponse:", departmentResponse)
+
+                if (departmentResponse.data) {
+                    setDepartment(departmentResponse.data)
+                }
+
+                handleDisableDataLoading('departments', setDataLoading)
+            } catch (error:any) {
+                displayToast('ERROR', error?.message)
+            }
+        }
+        
+        fetchDepartment()
+    }, [user])
     // console.log("🚀 ~ Profile ~ dataLoading:", dataLoading)
 
     const buttons = useMemo((): Button[] => {
@@ -199,6 +223,27 @@ const Profile = () => {
                                 >
                                     {user?.email}
                                 </InterText>
+                                {user?.account_type === AccountType.Student && (
+                                    <InterText
+                                        fontSize={12}
+                                        lineHeight={14}
+                                        color={colors.subtext}
+                                    >
+                                        {user?.level} level
+                                    </InterText>
+                                )}
+                                {dataLoading.departments && (
+                                    <ActivityIndicator color={colors.primary} />
+                                )}
+                                {!dataLoading.departments && department && (
+                                    <InterText
+                                        fontSize={12}
+                                        lineHeight={14}
+                                        color={colors.subtext}
+                                    >
+                                        {department?.department_name}
+                                    </InterText>
+                                )}
                             </View>
                         </View>
                         <Flex>

@@ -414,7 +414,8 @@ export default function AppLayout() {
 						position: 'absolute',
 						top: 0,
 						left: 0,
-						zIndex: 100
+						zIndex: 100,
+						display: 'none'
 					}}
 				>
 					{!isScanning ? (
