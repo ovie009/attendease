@@ -32,6 +32,7 @@ export default function TabLayout() {
 			// Optional: Show loading state
 			await signOut();
 		} catch (error: any) {
+			console.log("🚀 ~ handleLogout ~ error:", error)
 			displayToast('ERROR', error?.message)
 		} finally {
 			setIsLoading(false)

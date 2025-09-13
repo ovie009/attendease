@@ -14,7 +14,8 @@ import Toast from '@/components/Toast';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import PageLoader from '@/components/PageLoader';
-import { StatusBar } from 'expo-status-bar';
+import { AppState } from 'react-native';
+import { supabase } from '@/lib/supabase';
 
 const theme = {
 	...DefaultTheme,
@@ -25,6 +26,15 @@ const theme = {
 };
 
 SplashScreen.preventAutoHideAsync();
+
+// Auto refresh setup for Supabase
+AppState.addEventListener('change', (state) => {
+    if (state === 'active') {
+      supabase.auth.startAutoRefresh()
+    } else {
+      supabase.auth.stopAutoRefresh()
+    }
+})
 
 export default function RootLayout() {
 

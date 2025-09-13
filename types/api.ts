@@ -45,6 +45,7 @@ export type AttendanceSession = {
     started_at: string;
     ended_at: string;
     latitude: number;
+    is_active: boolean;
     longitude: number;
     academic_session: string;
     created_at: string;

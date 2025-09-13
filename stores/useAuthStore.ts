@@ -45,10 +45,12 @@ export const useAuthStore = create<AuthState>()(
 		signOut: async () => {
 			try {
 				const {error} = await supabase.auth.signOut();
+				console.log("🚀 ~ error:", error)
 				if (error) {
 					throw error
 				}
 			} catch (error) {
+				console.log("🚀 ~ error:", error)
 				throw error;				
 			}
 		}

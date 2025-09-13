@@ -1,5 +1,5 @@
 // ./app/(app)/(tabs)/home.tsx
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { AppState, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React, { ReactNode, useCallback, useEffect, useMemo, useState } from 'react'
 import { colors } from '@/utilities/colors'
 import InterText from '@/components/InterText'
@@ -21,7 +21,7 @@ import handleDepartments from '@/api/handleDepartments';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { AccountType, Semester } from '@/types/general';
 import handleCourses from '@/api/handleCourses';
-import { AttendanceSession, Course, CourseRegistration, Schedule, Setting, Ticket } from '@/types/api';
+import { AttendanceSession, Course, CourseRegistration, Department, Schedule, Setting, Ticket } from '@/types/api';
 import handleSchedule from '@/api/handleSchedule';
 import handleSettings from '@/api/handleSettings';
 import { getLoadingData } from '@/utilities/getLoadingData';
@@ -32,6 +32,8 @@ import Container from '@/components/Container';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import ScheduleListItem from '@/components/ScheduleListItem';
 import handleTickets from '@/api/handleTickets';
+import { supabase } from '@/lib/supabase';
+import { RealtimeChannel } from '@supabase/supabase-js';
 
 type DataLoading = {
 	tickets: boolean,
@@ -60,7 +62,6 @@ const Home = () => {
 
 	const router = useRouter();
 	const pathname = usePathname();
-	// console.log("🚀 ~ Home ~ pathname:", pathname)
 
 	const user = useAuthStore(state => state.user)
 	const semester = useAuthStore(state => state.semester)
@@ -99,6 +100,43 @@ const Home = () => {
 	const [courseRegistration, setCourseRegistration] = useState<CourseRegistration | null>(null)
 	const [schedules, setSchedules] = useState<Schedule[]>([])
 	const [attendanceSession, setAttendanceSession] = useState<AttendanceSession[]>([])
+
+	const [department, setDepartment] = useState<Department | null>(null);
+
+	// 1. State to track the app's focus (foreground/background)
+	const [appState, setAppState] = useState(AppState.currentState);
+
+	// Effect to listen for app focus changes
+	useEffect(() => {
+		const subscription = AppState.addEventListener('change', nextAppState => {
+			setAppState(nextAppState);
+		});
+
+		// Cleanup the listener on component unmount
+		return () => {
+			subscription.remove();
+		};
+	}, []);
+
+	useEffect(() => {
+		if (user?.account_type === AccountType.Admin) return;
+		const fetchDepartment = async () => {
+			try {
+				const departmentResponse = await handleDepartments.getById(user?.department_id!);
+				// console.log("🚀 ~ fetchDepartment ~ departmentResponse:", departmentResponse)
+
+				if (departmentResponse.data) {
+					setDepartment(departmentResponse.data)
+				}
+
+				handleDisableDataLoading('departments', setDataLoading)
+			} catch (error:any) {
+				displayToast('ERROR', error?.message)
+			}
+		}
+		
+		fetchDepartment()
+	}, [user])
 
 	useEffect(() => {
 		setCourseIds(user?.course_ids || [])
@@ -244,6 +282,87 @@ const Home = () => {
 		}
 		fetchAttendanceSession();
 	}, [user, pathname]);
+
+	useEffect(() => {
+		if (!department?.department_name) return;
+
+		let channel: RealtimeChannel | null = null
+
+		const setupChannel = async () => {
+			await supabase.realtime.setAuth()
+			channel = supabase
+				.channel(`topic:${department?.department_name}`, {
+					config: {
+						private: true
+					}
+				})
+				.on(
+					'broadcast',
+					{
+						event: '*',
+					},
+					(data) => {
+						const record = data?.payload?.record as AttendanceSession;
+						console.log("🚀 ~ setupChannel ~ data:", data)
+						console.log("🚀 ~ setupChannel ~ record:", record)
+						if (record) {
+							setAttendanceSession(prevState => {
+								console.log("🚀 ~ setupChannel ~ prevState:", prevState)
+								if (prevState.some(item => item.id === record.id) && record?.is_active === false) {
+									return prevState.filter(item => item.id !== record.id)
+								}
+								return [...prevState, record]
+							})
+						}
+						// console.log("🚀 ~ setupChannel ~ payload:", payload)
+					}
+				)
+				.subscribe((status, err) => {
+					console.log("🚀 ~ Home ~ err:", err)
+					console.log("🚀 ~ Home ~ status:", status)
+				});
+		}
+		
+		setupChannel()
+
+		return () => {
+			if (channel) {
+				supabase.removeChannel(channel)
+			}
+		}
+	}, [department, appState])
+
+	// useEffect(() => {
+	// 	const scheduleSubscription = supabase
+	// 		.channel(`student_schedule_${user?.id}`)
+	// 		.on(
+	// 			'postgres_changes',
+	// 			{
+	// 				event: '*',
+	// 				schema: 'public',
+	// 				table: 'attendance_sessions',
+	// 				filter: `lecturer_id=eq.${user?.id}})`,
+	// 			},
+	// 			(payload) => {
+	// 				// console.log('waybill_processing_date_sub:', payload);
+
+	// 				const data = payload.new;
+	// 				console.log("🚀 ~ Home ~ payload.new:", payload.new)
+	// 				// console.log("🚀 ~ Home ~ data:", data)
+
+	// 				// handle waybill data
+	// 				// handleRealtimeWaybills(data)
+	// 			}
+	// 		)
+	// 		.subscribe((status, err) => {
+	// 			console.log("🚀 ~ Home ~ err:", err)
+	// 			console.log("🚀 ~ Home ~ status:", status)
+	// 		});
+
+	// 	return () => {
+	// 		supabase.removeChannel(scheduleSubscription)
+	// 	}
+	// }, [])
 	
 	// fetch attendance session for student
 	useEffect(() => {
@@ -365,14 +484,14 @@ const Home = () => {
 	}, [dataLoading, numberOfColleges, numberOfDepartments]);
 
 
-	const daysOfTheWeek = useMemo(() => {
+	const daysOfTheWeek = useMemo((): Array<ScehduleListRenderItem> => {
 		const weekdays = [1, 2, 3, 4, 5];
 
 		if (dataLoading.schedules || dataLoading.courses || dataLoading.attendanceSession) {
 			return getLoadingData(['day'], [''], 4);
 		}
 
-		return weekdays
+		const array: ScehduleListRenderItem[] = weekdays
 			.filter(day => schedules.some(item => item.days_of_the_week.includes(day)))
 			.map(day => {
 				// Get all schedules for this day
@@ -405,12 +524,13 @@ const Home = () => {
 				});
 
 				return {
-					id: day,
+					id: day?.toString(),
 					day,
 					schedules: daySchedules,
 				};
 			});
 
+		return array;
 
 	}, [schedules, attendanceSession, courses, settings, dataLoading.schedules, dataLoading.courses, dataLoading.attendanceSession])
 	// console.log("🚀 ~ daysOfTheWeek:", daysOfTheWeek)
@@ -446,7 +566,6 @@ const Home = () => {
 			}
 		})
 	}, [schedules, attendanceSession, courses, settings, dataLoading.schedules, dataLoading.courses, dataLoading.attendanceSession])
-	console.log("🚀 ~ unscheduledClasses:", unscheduledClasses)
 
 	const renderItem: ListRenderItem<ScehduleListRenderItem> = useCallback(({item}) => (
 		<ScheduleListItem
@@ -593,7 +712,7 @@ const Home = () => {
 						<FlashList
 							data={daysOfTheWeek}
 							keyExtractor={item => item.id}
-							contentContainerStyle={{paddingBottom: 150, paddingTop: 20}}
+							contentContainerStyle={{paddingBottom: 250, paddingTop: 20}}
 							estimatedItemSize={100}
 							renderItem={renderItem}
 							ListHeaderComponent={(
@@ -699,7 +818,7 @@ const Home = () => {
 						<FlashList
 							data={daysOfTheWeek}
 							keyExtractor={item => item.id}
-							contentContainerStyle={{paddingBottom: 150, paddingTop: 20}}
+							contentContainerStyle={{paddingBottom: 250, paddingTop: 20}}
 							estimatedItemSize={100}
 							showsVerticalScrollIndicator={false}
 							ListHeaderComponent={daysOfTheWeek.length !== 0 ? (

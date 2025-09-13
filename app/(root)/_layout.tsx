@@ -75,25 +75,26 @@ export default function RootLayout() {
 	useEffect(() => {
 		const { data: authListener } = supabase.auth.onAuthStateChange(
 			async (event, supabaseSession) => {
-				console.log("🚀 ~ RootLayout ~ supabaseSession:", supabaseSession)
-				console.log('[AuthStateChange]', event);
+				// console.log("🚀 ~ RootLayout ~ supabaseSession:", supabaseSession)
+				// console.log('[AuthStateChange]', event);
 
-				if (event === 'SIGNED_IN' && supabaseSession) {
+				if (supabaseSession) {
 					setSession(supabaseSession);
 					await loadUserProfile(supabaseSession);
 					setInitialized(true);
-				}
-
-				if (event === 'SIGNED_OUT') {
-					setSession(null);
+				} else {
 					setUser(null);
 					setInitialized(true);
+					setSession(null);
 				}
 
-				if (!supabaseSession) {
-					setSession(null);
-					setUser(null);
-				}
+				// if (event === 'SIGNED_OUT') {
+				// }
+
+				// if (!supabaseSession) {
+				// 	setSession(null);
+				// 	setUser(null);
+				// }
 			}
 		);
 

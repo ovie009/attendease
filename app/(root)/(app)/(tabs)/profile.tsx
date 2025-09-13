@@ -46,7 +46,6 @@ const Profile = () => {
 
     const [admins, setAdmins] = useState<Admin[]>([]);
     const [department, setDepartment] = useState<Department | null>(null);
-    console.log("🚀 ~ Profile ~ department:", department)
 
     const [dataLoading, setDataLoading] = useState<{admins: boolean, departments: boolean}>({
         admins: true,

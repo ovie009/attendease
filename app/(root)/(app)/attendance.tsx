@@ -217,7 +217,7 @@ const Attendance = () => {
 		if (user?.account_type === AccountType.Student) return;
 		if (!_attendance_session_id) return;
         const newAttendance = supabase
-            .channel('records')
+            .channel(`-records-${user?.id}`)
             .on(
                 'postgres_changes',
                 {
@@ -247,8 +247,10 @@ const Attendance = () => {
 					}
                 }
             )
-            .subscribe();
-
+			.subscribe((status, err) => {
+				console.log("🚀 ~ Home ~ err:", err)
+				console.log("🚀 ~ Home ~ status:", status)
+			});
             // console.log('chat messsages', newAttendance)
 
         // Cleanup function to unsubscribe
