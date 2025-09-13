@@ -1,4 +1,3 @@
-import { StyleSheet, Text, View } from 'react-native'
 import React, { FC } from 'react'
 import Flex from './Flex';
 import OutlinedContainer from './OutlinedContainer';

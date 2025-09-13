@@ -52,6 +52,7 @@ export default function RootLayout() {
 		const { id } = supabaseSession.user;
 		const type = supabaseSession.user.user_metadata.account_type;
 
+		if (!id) return;
 		try {
 			if (type === AccountType.Admin) {
 				const res = await handleAdmin.getAdminById(id);

@@ -1,5 +1,5 @@
 import CardIcon from '@/assets/svg/CardIcon.svg';
-import { Linking, StyleSheet, TextInput } from 'react-native'
+import { AppState, Linking, StyleSheet, TextInput } from 'react-native'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Flex from '@/components/Flex'
 import { router, useLocalSearchParams, usePathname } from 'expo-router'
@@ -35,6 +35,7 @@ import Skeleton from '@/components/Skeleton';
 import handleStudents from '@/api/handleStudents';
 import StudentAttendancRecord, { StudentAttendancRecordProps } from '@/components/StudentAttendancRecord';
 import { supabase } from '@/lib/supabase';
+import { RealtimeChannel } from '@supabase/supabase-js';
 
 type DataLoading = {
 	attendanceSession: boolean,
@@ -83,6 +84,7 @@ const Attendance = () => {
 	const [isFetchingCard, setIsFetchingCard] = useState<boolean>(false);
 
 	const [userCoordinates, setUserCoordinates] = useState<Region | null>(null)
+	console.log("🚀 ~ Attendance ~ userCoordinates:", userCoordinates)
 
 	const [attendeaseDeviceId, setAttendeaseDeviceId] = useState<string>('');
 
@@ -101,6 +103,21 @@ const Attendance = () => {
 		lecturers: true,
 		students: true
 	})
+
+	// 1. State to track the app's focus (foreground/background)
+	const [appState, setAppState] = useState(AppState.currentState);
+
+	// Effect to listen for app focus changes
+	useEffect(() => {
+		const subscription = AppState.addEventListener('change', nextAppState => {
+			setAppState(nextAppState);
+		});
+
+		// Cleanup the listener on component unmount
+		return () => {
+			subscription.remove();
+		};
+	}, []);
 
 
 	const openBottomSheet = () => {
@@ -212,52 +229,57 @@ const Attendance = () => {
         }
     }
 
-	// get realtime records
-    useEffect(() => {
-		if (user?.account_type === AccountType.Student) return;
+	useEffect(() => {
 		if (!_attendance_session_id) return;
-        const newAttendance = supabase
-            .channel(`-records-${user?.id}`)
-            .on(
-                'postgres_changes',
-                {
-                    event: 'INSERT',
-                    schema: 'public',
-                    table: 'attendance_records',
-                    filter: `attendance_session_id=eq.${_attendance_session_id}`,
-                },
-                (payload) => {
-                    console.log("🚀 ~ Attendance ~ payload:", payload)
-                    // get messages data
-					const newRecord = payload.new;
-					console.log("🚀 ~ Attendance ~ newRecord:", newRecord)
-					// Type guard to ensure newRecord is AttendanceRecord
-					if (
-						newRecord &&
-						typeof newRecord === 'object' &&
-						'id' in newRecord &&
-						'student_id' in newRecord &&
-						'attendance_session_id' in newRecord &&
-						'academic_session' in newRecord &&
-						'created_at' in newRecord &&
-						'updated_at' in newRecord
-					) {
-						// handle messages newRecord
-						handleRealtimeMessages(newRecord as AttendanceRecord)
-					}
-                }
-            )
-			.subscribe((status, err) => {
-				console.log("🚀 ~ Home ~ err:", err)
-				console.log("🚀 ~ Home ~ status:", status)
-			});
-            // console.log('chat messsages', newAttendance)
 
-        // Cleanup function to unsubscribe
-        return () => {
-            supabase.removeChannel(newAttendance);
-        };
-    }, [user, _attendance_session_id]);
+		let channel: RealtimeChannel | null = null
+
+		const setupChannel = async () => {
+			await supabase.realtime.setAuth()
+			channel = supabase
+				.channel(`topic:${_attendance_session_id}`, {
+					config: {
+						private: true
+					}
+				})
+				.on(
+					'broadcast',
+					{
+						event: '*',
+					},
+					(data) => {
+						const record = data?.payload?.record as AttendanceRecord;
+						console.log("🚀 ~ setupChannel ~ record:", record)
+						if (record) {
+							setAttendanceRecords(prevState => {
+								if (prevState.some(item => item.id === record.id)) {
+									return prevState.map(item => {
+										if (item.id === record.id) {
+											return record;
+										}
+										return item
+									})
+								}
+								return [...prevState, record]
+							})
+						}
+					}
+				)
+				.subscribe((status, err) => {
+					console.log("🚀 ~ Home ~ err:", err)
+					console.log("🚀 ~ Home ~ status:", status)
+				});
+		}
+		
+		setupChannel()
+
+		return () => {
+			if (channel) {
+				supabase.removeChannel(channel)
+			}
+		}
+	}, [_attendance_session_id, appState])
+
 
 	useEffect(() => {
 		if (attendanceRecords.length === 0) return;
@@ -419,6 +441,7 @@ const Attendance = () => {
 			displayToast('SUCCESS', 'Attendance recorded')
 
 		} catch (error) {
+			console.log("🚀 ~ handleLogAttendance ~ error:", error)
 			throw error
 		} finally {
 			setLoadingPages(loadingPages.filter(item => item !== pathname))

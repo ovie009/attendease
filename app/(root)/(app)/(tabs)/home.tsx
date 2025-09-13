@@ -271,9 +271,7 @@ const Home = () => {
 			try {
 				const attendanceSessionResponse = await handleAttendanceSessions.getActiveSessionByLecturerId({lecturer_id: user?.id!});
 
-				if (attendanceSessionResponse.data) {
-					setAttendanceSession([attendanceSessionResponse.data]);
-				}
+				setAttendanceSession(attendanceSessionResponse.data ? [attendanceSessionResponse.data] : []);
 
 				handleDisableDataLoading('attendanceSession', setDataLoading)
 			} catch (error: any) {
