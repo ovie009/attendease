@@ -552,7 +552,20 @@ const Attendance = () => {
 				}
 			}
 
-			if (!userCoordinates?.latitude || !userCoordinates?.latitude) {
+			let latitude = userCoordinates?.latitude
+			let longitude = userCoordinates?.longitude
+
+			if (latitude || latitude) {
+				// throw new Error('Location not found')
+				                // get location
+                const location = await Location.getCurrentPositionAsync({accuracy: Location.LocationAccuracy.Highest});
+
+				// // // set initial coordinates
+				latitude = location.coords.latitude
+				longitude = location.coords.longitude
+			}
+
+			if (!latitude || !longitude) {
 				throw new Error('Location not found')
 			}
 
@@ -561,8 +574,8 @@ const Attendance = () => {
 				course_id: _course_id! as string,
 				started_at: moment().toISOString(true),
 				ended_at: moment().add(duration, 'hours').toISOString(true),
-				latitude: parseFloat(userCoordinates?.latitude?.toFixed(6)),
-				longitude: parseFloat(userCoordinates?.longitude?.toFixed(6)),
+				latitude: parseFloat(latitude?.toFixed(6)),
+				longitude: parseFloat(longitude?.toFixed(6)),
 				academic_session: _academic_session as string,
 				semester: parseInt(_semester as string) as Semester
 			})
@@ -640,7 +653,6 @@ const Attendance = () => {
 								</InterText>
 							</Flex>
 						}
-						estimatedItemSize={100}
 						renderItem={renderStudents}
 						ListEmptyComponent={(
 							<Flex

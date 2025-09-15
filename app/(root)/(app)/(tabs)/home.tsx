@@ -119,6 +119,7 @@ const Home = () => {
 	}, []);
 
 	useEffect(() => {
+		if (!user?.department_id) return; 
 		if (user?.account_type === AccountType.Admin) return;
 		const fetchDepartment = async () => {
 			try {
@@ -329,38 +330,6 @@ const Home = () => {
 			}
 		}
 	}, [department, appState])
-
-	// useEffect(() => {
-	// 	const scheduleSubscription = supabase
-	// 		.channel(`student_schedule_${user?.id}`)
-	// 		.on(
-	// 			'postgres_changes',
-	// 			{
-	// 				event: '*',
-	// 				schema: 'public',
-	// 				table: 'attendance_sessions',
-	// 				filter: `lecturer_id=eq.${user?.id}})`,
-	// 			},
-	// 			(payload) => {
-	// 				// console.log('waybill_processing_date_sub:', payload);
-
-	// 				const data = payload.new;
-	// 				console.log("🚀 ~ Home ~ payload.new:", payload.new)
-	// 				// console.log("🚀 ~ Home ~ data:", data)
-
-	// 				// handle waybill data
-	// 				// handleRealtimeWaybills(data)
-	// 			}
-	// 		)
-	// 		.subscribe((status, err) => {
-	// 			console.log("🚀 ~ Home ~ err:", err)
-	// 			console.log("🚀 ~ Home ~ status:", status)
-	// 		});
-
-	// 	return () => {
-	// 		supabase.removeChannel(scheduleSubscription)
-	// 	}
-	// }, [])
 	
 	// fetch attendance session for student
 	useEffect(() => {

@@ -385,7 +385,7 @@ export default function AppLayout() {
 					options={{
 						headerBackTitle: "",
 						headerTintColor: colors.black,
-						headerLeft: () => <View style={{marginRight: 6}}><AntDesign name="creditcard" size={40} color={colors.primary} /></View>,
+						headerLeft: () => <View style={{marginRight: 6}}><AntDesign name='creditcard' size={40} color={colors.primary} /></View>,
 						headerTitle: () => <InterText fontSize={32} fontWeight={600} lineHeight={35}>Change card</InterText>,
 					}} 
 				/>

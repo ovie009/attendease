@@ -63,6 +63,7 @@ type BottomSheetContent = 'Select Session' | 'Select Semester';
 const Analytics = () => {
 
 	const pathname = usePathname();
+	console.log("🚀 ~ Analytics ~ pathname:", pathname)
 
 	const user = useAuthStore(state => state.user)
 	// console.log("🚀 ~ Analytics ~ user:", user?.level)
@@ -88,8 +89,6 @@ const Analytics = () => {
 		attendanceRecords: true,
 		schedules: true,
 	})
-	console.log("🚀 ~ Analytics ~ dataLoading:", dataLoading)
-	// console.log("🚀 ~ Analytics ~ dataLoading:", dataLoading)
 
 	const [settings, setSettings] = useState<Setting[]>([]);
 	const [courses, setCourses] = useState<Course[]>([])
@@ -308,7 +307,7 @@ const Analytics = () => {
 			}
 		}
 		fetchSettings();
-	}, [user]);
+	}, [user, pathname]);
 
 	// fetch course registration
 	useEffect(() => {
@@ -346,7 +345,7 @@ const Analytics = () => {
 
 		fetchCourseRegistration()
 		
-	}, [user, pathname, academicSession])
+	}, [user, pathname, academicSession, pathname])
 
 	// fetch courses
 	useEffect(() => {
@@ -365,7 +364,7 @@ const Analytics = () => {
 		}
 		
 		fetchLecturerCourses();
-	}, [courseIds])
+	}, [courseIds, pathname])
 
 	// fetch attendance session for student
 	useEffect(() => {
@@ -389,7 +388,7 @@ const Analytics = () => {
 			}
 		}
 		fetchAttendanceSession();
-	}, [user, courseIds, academicSession, semester]);
+	}, [user, courseIds, academicSession, semester, pathname]);
 
 	// fetch attendance records for student
 	useEffect(() => {
@@ -414,7 +413,7 @@ const Analytics = () => {
 			}
 		}
 		fetchAttendanceRecords();
-	}, [user, semester, academicSession]);
+	}, [user, semester, academicSession, pathname]);
 
 	// fetch student schedules
 	useEffect(() => {
@@ -438,7 +437,7 @@ const Analytics = () => {
 			}
 		}
 		fetchSchedule();
-	}, [semester, academicSession, user, courses]);
+	}, [semester, academicSession, user, courses, pathname]);
 	
 	const data = useMemo((): Array<RecordListItem> => {
 		if (dataLoading.courseRegistration || dataLoading.courses || dataLoading.attendanceRecords || dataLoading.attendanceSession || dataLoading.schedules || dataLoading.settings) {
@@ -677,7 +676,7 @@ const Analytics = () => {
 				{sheetParameters.content === 'Select Session' && (
 					<BottomSheetFlashList
 						data={sessionOptions}
-						keyExtractor={(item) => item.id}
+						keyExtractor={(item: SelectableAcademicSession) => item.id}
 						contentContainerStyle={{paddingTop: 50}}
 						estimatedItemSize={81}
 						renderItem={renderSessionItem}
@@ -686,7 +685,7 @@ const Analytics = () => {
 				{sheetParameters.content === 'Select Semester' && (
 					<BottomSheetFlashList
 						data={semesterOptions}
-						keyExtractor={(item) => item.id}
+						keyExtractor={(item: SelectableSemester) => item.id}
 						contentContainerStyle={{paddingTop: 50}}
 						estimatedItemSize={81}
 						renderItem={renderSemsterItem}

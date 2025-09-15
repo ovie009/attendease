@@ -1,6 +1,6 @@
 import { Alert, Platform, StyleSheet } from 'react-native'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { useLocalSearchParams } from 'expo-router'
+import { useLocalSearchParams, usePathname } from 'expo-router'
 import { colors } from '@/utilities/colors'
 import Flex from '@/components/Flex'
 import InterText from '@/components/InterText'
@@ -48,31 +48,31 @@ const CourseCode = () => {
 		_start_of_semester,
 		_end_of_semester,
 	} = useLocalSearchParams()
-		console.log("🚀 ~ CourseCode ~ _end_of_semester:", _end_of_semester)
-		console.log("🚀 ~ CourseCode ~ _start_of_semester:", _start_of_semester)
 
 	const {
 		displayToast
 	} = useAppStore.getState();
 
 	const user = useAuthStore(state => state.user);
+	console.log("🚀 ~ CourseCode ~ user:", user)
 	const numberOfSemesterWeeks = useAuthStore(state => state.numberOfSemesterWeeks)
 
 	const [dataLoading, setDataLoading] = useState<DataLoading>({
 		attendanceSession: true,
 		attendanceRecords: true,
 		lecturers: true,
-		students: true,
+		students: user?.account_type === AccountType.Lecturer,
 		courseRegistrations: true,
 		schedules: true,
 	})
+	console.log("🚀 ~ CourseCode ~ dataLoading:", dataLoading)
 	// console.log("🚀 ~ CourseCode ~ dataLoading:", dataLoading)
 
 	const [searchQuery, setSearchQuery] = useState<string>('')
 	const [attendanceSession, setAttendanceSession] = useState<AttendanceSession[]>([])
 	const [lecturers, setLecturers] = useState<Lecturer[]>([]);
 	const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([])
-	const [students, setStudents] = useState<Student[]>([]);
+	const [students, setStudents] = useState<Student[]>(user?.account_type === AccountType.Student ? [user as Student] : []);
 	const [courseResgistrations, setCourseResgistrations] = useState<CourseRegistration[]>([]);
 	const [schedules, setSchedules] = useState<Schedule[]>([])
 	// console.log("🚀 ~ CourseCode ~ schedules:", schedules)
@@ -220,7 +220,6 @@ const CourseCode = () => {
 			return studentRecord;
 		});
 	}, [students, attendanceSession, attendanceRecords, schedules, dataLoading, _start_of_semester, _end_of_semester]);
-	console.log("🚀 ~ CourseCode ~ exportedData:", exportedData)
 
 	// Method 2: Storage Access Framework (Android 10+)
 	const exportToExcelWithStorageAccess = async (data: Array<any>, filename = `${_course_code as string}_attendance_record.xlsx`) => {
@@ -347,6 +346,34 @@ const CourseCode = () => {
 					semester: parseInt(_semester as string) as Semester,
 					academic_session: _academic_session as string,
 					attendance_session_ids: attendanceSession.map(item => item.id),
+				});
+				// console.log("🚀 ~ fetchAttendanceRecords ~ attendanceRecordsResponse:", attendanceRecordsResponse)
+				setAttendanceRecords(attendanceRecordsResponse.data)
+
+				if (attendanceRecordsResponse.data.length === 0) {
+					handleDisableDataLoading('students', setDataLoading)
+				}
+
+				handleDisableDataLoading('attendanceRecords', setDataLoading)
+			} catch (error: any) {
+				displayToast('ERROR', error?.message)
+			}
+		}
+		fetchAttendanceRecords();
+	}, [attendanceSession]);
+
+	// fetch attendance records for lecturer
+	useEffect(() => {
+		if (user?.account_type !== AccountType.Student) return;
+		if (attendanceSession.length === 0) return;
+
+		const fetchAttendanceRecords = async () => {
+			try {
+				const attendanceRecordsResponse = await handleAttendanceRecords.getAttendanceRecordsByAttendanceSessionSemesterSessionAndStudent({
+					semester: parseInt(_semester as string) as Semester,
+					academic_session: _academic_session as string,
+					attendance_session_ids: attendanceSession.map(item => item.id),
+					student_id: user.id!
 				});
 				// console.log("🚀 ~ fetchAttendanceRecords ~ attendanceRecordsResponse:", attendanceRecordsResponse)
 				setAttendanceRecords(attendanceRecordsResponse.data)
@@ -496,68 +523,66 @@ const CourseCode = () => {
 	
 	return (
 		<React.Fragment>
-			{user?.account_type === AccountType.Lecturer && (
-				<Container
-					height={HEIGHT}
-					width={WIDTH}
-					paddingHorizontal={20}
-					backgroundColor={colors.white}
-					style={{
-						position: 'relative',
+			<Container
+				height={HEIGHT}
+				width={WIDTH}
+				paddingHorizontal={20}
+				backgroundColor={colors.white}
+				style={{
+					position: 'relative',
+				}}
+			>
+				<FlashList
+					data={dataStudents}
+					estimatedItemSize={100}
+					contentContainerStyle={{
+						paddingTop: 20
 					}}
-				>
-					<FlashList
-						data={dataStudents}
-						estimatedItemSize={100}
-						contentContainerStyle={{
-							paddingTop: 20
-						}}
-						showsVerticalScrollIndicator={false}
-						ListHeaderComponent={(
-							<Flex
-								paddingBottom={30}
-								gap={20}
-							>
-								<InterText>
-									Attenndance records for {moment(_semester as string, 'd').format('do')} semeter, {_academic_session} session
-								</InterText>
-								<Input
-									defaultValue={searchQuery}
-									onChangeText={setSearchQuery}
-									placeholder='Search for a student'
-									returnKeyType='search'
-								/>
-							</Flex>
-						)}
-						renderItem={renderStudents}
-						ListEmptyComponent={(
-							<Flex
-								height={HEIGHT/2}
-								width={WIDTH - 40}
-								justifyContent='center'
-								alignItems='center'
-								gap={20}
-							>
-								<EmptyAttendanceIcon />
-								<InterText
-									fontSize={16}
-									lineHeight={20}
-								>
-									Cannot find any attendance records
-								</InterText>
-							</Flex>
-						)}
-					/>
-					{exportedData.length > 0 && attendanceSession.length > 0 && (
-						<FloatingButton
-							Icon={<FontAwesome6 name="file-excel" size={30} color={colors.white} />}
-							onPress={() => {
-								exportToExcelWithStorageAccess(exportedData)
-							}}
-						/>
+					showsVerticalScrollIndicator={false}
+					ListHeaderComponent={(
+						<Flex
+							paddingBottom={30}
+							gap={20}
+						>
+							<InterText>
+								Attenndance records for {moment(_semester as string, 'd').format('do')} semeter, {_academic_session} session
+							</InterText>
+							<Input
+								defaultValue={searchQuery}
+								onChangeText={setSearchQuery}
+								placeholder='Search for a student'
+								returnKeyType='search'
+							/>
+						</Flex>
 					)}
-				</Container>
-			)}
+					renderItem={renderStudents}
+					ListEmptyComponent={(
+						<Flex
+							height={HEIGHT/2}
+							width={WIDTH - 40}
+							justifyContent='center'
+							alignItems='center'
+							gap={20}
+						>
+							<EmptyAttendanceIcon />
+							<InterText
+								fontSize={16}
+								lineHeight={20}
+							>
+								Cannot find any attendance records
+							</InterText>
+						</Flex>
+					)}
+				/>
+				{exportedData.length > 0 && attendanceSession.length > 0 && (
+					<FloatingButton
+						Icon={<FontAwesome6 name="file-excel" size={30} color={colors.white} />}
+						onPress={() => {
+							exportToExcelWithStorageAccess(exportedData)
+						}}
+					/>
+				)}
+			</Container>
 		</React.Fragment>
 	)
 }

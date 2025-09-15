@@ -143,6 +143,7 @@ export type User = {
     device_id?: string,
     created_at: string;
     updated_at: string;
+    matric_number?: string,
     account_type: AccountType;
 }
 
