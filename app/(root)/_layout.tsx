@@ -50,7 +50,9 @@ export default function RootLayout() {
 		}
 
 		const { id } = supabaseSession.user;
+		console.log("🚀 ~ RootLayout ~ id:", id)
 		const type = supabaseSession.user.user_metadata.account_type;
+		console.log("🚀 ~ RootLayout ~ type:", type)
 
 		if (!id) return;
 		try {
@@ -61,7 +63,9 @@ export default function RootLayout() {
 				const res = await handleLecturers.getById(id);
 				if (res.data) setUser({ ...res.data, is_admin: false, account_type: type });
 			} else if (type === AccountType.Student) {
+				console.log('getting user...')
 				const res = await handleStudents.getById(id);
+				console.log("🚀 ~ RootLayout ~ res:", res)
 				if (res.data) setUser({ ...res.data, is_admin: false, account_type: type });
 			}
 		} catch (err:any) {

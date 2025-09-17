@@ -99,7 +99,7 @@ const Profile = () => {
                 {
                     name: "Change card",
                     href: '/changeCard',
-                    Icon: <AntDesign name="creditcard" size={20} color={colors.primary} />
+                    Icon: <AntDesign name="credit-card" size={20} color={colors.primary} />
                 },
                 {
                     name: "Get help",
@@ -123,7 +123,7 @@ const Profile = () => {
             {
                 name: "Change card",
                 href: '/changeCard',
-                Icon: <AntDesign name="creditcard" size={20} color={colors.primary} />
+                Icon: <AntDesign name="credit-card" size={20} color={colors.primary} />
             },
             {
                 name: "Authorise student device change",
@@ -191,7 +191,7 @@ const Profile = () => {
             <FlashList
                 data={adminsData}
                 keyExtractor={item => item.id}
-                estimatedItemSize={101}
+                // estimatedItemSize={101}
                 contentContainerStyle={{
                     paddingTop: 30,
                     paddingBottom: 120,

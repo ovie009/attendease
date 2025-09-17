@@ -1,5 +1,5 @@
 import CardIcon from '@/assets/svg/CardIcon.svg';
-import { AppState, Linking, StyleSheet, TextInput } from 'react-native'
+import { ActivityIndicator, AppState, Linking, StyleSheet, TextInput } from 'react-native'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Flex from '@/components/Flex'
 import { router, useLocalSearchParams, usePathname } from 'expo-router'
@@ -14,7 +14,6 @@ import EmptyAttendanceIcon from '@/assets/svg/EmptyAttendanceIcon.svg'
 import { BottomSheetModal } from '@gorhom/bottom-sheet'
 import CustomBottomSheet from '@/components/CustomBottomSheet'
 import Input from '@/components/Input'
-import { ActivityIndicator } from 'react-native-paper';
 import { useAppStore } from '@/stores/useAppStore';
 import * as Crypto from 'expo-crypto';
 import { useAuthStore } from '@/stores/useAuthStore';

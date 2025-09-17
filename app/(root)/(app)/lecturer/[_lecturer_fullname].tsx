@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native'
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { colors } from '@/utilities/colors'
 import Flex from '@/components/Flex'
@@ -17,7 +17,6 @@ import handleSettings from '@/api/handleSettings'
 import { handleDisableDataLoading } from '@/utilities/handleDisableDataLoading'
 import handleCourseRegistration from '@/api/handleCourseRegistration'
 import handleCourses from '@/api/handleCourses'
-import { ActivityIndicator } from 'react-native-paper'
 import { getLoadingData } from '@/utilities/getLoadingData'
 import moment from 'moment'
 import handleAttendanceSessions from '@/api/handleAttendanceSessions'
@@ -545,7 +544,7 @@ const Analytics = () => {
                             paddingBottom: 200
                         }}
                         renderItem={renderItem}
-                        estimatedItemSize={80}
+                        // estimatedItemSize={80}
                         showsVerticalScrollIndicator={false}
                         ListEmptyComponent={(
                             <Flex
@@ -574,7 +573,7 @@ const Analytics = () => {
                 {sheetParameters.content === 'Select Session' && (
                     <BottomSheetFlashList
                         data={sessionOptions}
-                        keyExtractor={(item) => item.id}
+                        keyExtractor={(item: SelectableAcademicSession) => item.id}
                         contentContainerStyle={{paddingTop: 50}}
                         estimatedItemSize={81}
                         renderItem={renderSessionItem}
@@ -583,7 +582,7 @@ const Analytics = () => {
                 {sheetParameters.content === 'Select Semester' && (
                     <BottomSheetFlashList
                         data={semesterOptions}
-                        keyExtractor={(item) => item.id}
+                        keyExtractor={(item: SelectableSemester) => item.id}
                         contentContainerStyle={{paddingTop: 50}}
                         estimatedItemSize={81}
                         renderItem={renderSemsterItem}

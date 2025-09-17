@@ -307,8 +307,16 @@ const Home = () => {
 						if (record) {
 							setAttendanceSession(prevState => {
 								console.log("🚀 ~ setupChannel ~ prevState:", prevState)
-								if (prevState.some(item => item.id === record.id) && record?.is_active === false) {
-									return prevState.filter(item => item.id !== record.id)
+								if (prevState.some(item => item.id === record.id)) {
+									if (record?.is_active === false) {
+										return prevState.filter(item => item.id !== record.id)
+									}
+									return prevState.map(item => {
+										if (item.id === record.id) {
+											return record;
+										}
+										return item
+									})
 								}
 								return [...prevState, record]
 							})
@@ -680,7 +688,7 @@ const Home = () => {
 							data={daysOfTheWeek}
 							keyExtractor={item => item.id}
 							contentContainerStyle={{paddingBottom: 250, paddingTop: 20}}
-							estimatedItemSize={100}
+							// estimatedItemSize={100}
 							renderItem={renderItem}
 							ListHeaderComponent={(
 								<Flex
@@ -786,7 +794,7 @@ const Home = () => {
 							data={daysOfTheWeek}
 							keyExtractor={item => item.id}
 							contentContainerStyle={{paddingBottom: 250, paddingTop: 20}}
-							estimatedItemSize={100}
+							// estimatedItemSize={100}
 							showsVerticalScrollIndicator={false}
 							ListHeaderComponent={daysOfTheWeek.length !== 0 ? (
 								<Flex

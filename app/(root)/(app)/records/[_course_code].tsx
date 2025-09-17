@@ -23,7 +23,7 @@ import moment from 'moment'
 import Input from '@/components/Input'
 import FloatingButton from '@/components/FloatingButton'
 import * as XLSX from 'xlsx';
-import * as FileSystem from 'expo-file-system';
+import { Directory, File, Paths } from 'expo-file-system'; // Updated import
 import * as Sharing from 'expo-sharing';
 import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import handleCourseRegistration from '@/api/handleCourseRegistration'
@@ -251,38 +251,42 @@ const CourseCode = () => {
 
 			XLSX.utils.book_append_sheet(workbook, worksheet, 'Attendance Records');
 
-			const excelBuffer = XLSX.write(workbook, {
+			// 1. Generate the Base64 string from the workbook
+			const base64 = XLSX.write(workbook, {
 				type: 'base64',
 				bookType: 'xlsx'
 			});
 
+			// 2. Decode the Base64 string into a Uint8Array
+			const binaryString = atob(base64);
+			const len = binaryString.length;
+			const bytes = new Uint8Array(len);
+			for (let i = 0; i < len; i++) {
+				bytes[i] = binaryString.charCodeAt(i);
+			}
+
 			if (Platform.OS === 'android') {
-				// Use Storage Access Framework for Android 10+
-				const { StorageAccessFramework } = FileSystem;
-				
-				const permissions = await StorageAccessFramework.requestDirectoryPermissionsAsync();
-				if (!permissions.granted) {
+				const directory = await Directory.pickDirectoryAsync();
+				if (!directory) {
 					Alert.alert('Permission required', 'Please select a folder to save the file.');
 					return;
 				}
 
-				const fileUri = await StorageAccessFramework.createFileAsync(
-					permissions.directoryUri,
+				const file = await directory.createFile(
 					filename,
 					'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 				);
-
-				await FileSystem.writeAsStringAsync(fileUri, excelBuffer, {
-					encoding: FileSystem.EncodingType.Base64,
-				});
+				
+				// 3. Write the Uint8Array (raw binary data) to the file
+				await file.write(bytes);
 
 				displayToast('SUCCESS', 'Excel file saved successfully!');
 			} else {
 				// iOS fallback
-				const fileUri = FileSystem.documentDirectory + filename;
-				await FileSystem.writeAsStringAsync(fileUri, excelBuffer, {
-					encoding: FileSystem.EncodingType.Base64
-				});
+				const file = new File(Paths.document, filename);
+				
+				// Also write the Uint8Array for iOS
+				await file.write(bytes);
 				
 				Alert.alert(
 					'File Saved',
@@ -292,7 +296,7 @@ const CourseCode = () => {
 							text: 'Share',
 							onPress: async () => {
 								if (await Sharing.isAvailableAsync()) {
-									await Sharing.shareAsync(fileUri);
+									await Sharing.shareAsync(file.uri);
 								}
 							}
 						},
@@ -308,7 +312,6 @@ const CourseCode = () => {
 			setIsExporting(false);
 		}
 	};
-
 
 	// fetch attendance session for student
 	useEffect(() => {
@@ -534,7 +537,7 @@ const CourseCode = () => {
 			>
 				<FlashList
 					data={dataStudents}
-					estimatedItemSize={100}
+					// estimatedItemSize={100}
 					contentContainerStyle={{
 						paddingTop: 20
 					}}

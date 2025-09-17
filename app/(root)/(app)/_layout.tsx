@@ -385,7 +385,7 @@ export default function AppLayout() {
 					options={{
 						headerBackTitle: "",
 						headerTintColor: colors.black,
-						headerLeft: () => <View style={{marginRight: 6}}><AntDesign name='creditcard' size={40} color={colors.primary} /></View>,
+						headerLeft: () => <View style={{marginRight: 6}}><AntDesign name='credit-card' size={40} color={colors.primary} /></View>,
 						headerTitle: () => <InterText fontSize={32} fontWeight={600} lineHeight={35}>Change card</InterText>,
 					}} 
 				/>
@@ -400,7 +400,7 @@ export default function AppLayout() {
 					}} 
 				/>
 			</Stack>
-			{(user && user?.account_type === AccountType.Student && user?.device_id && DEVICE_ID !== user?.device_id) && (
+			{((user?.account_type === AccountType.Student) && (user?.device_id && (DEVICE_ID !== user?.device_id))) && (
 				<Flex
 					flex={1}
 					height={'100%'}
