@@ -12,11 +12,12 @@ interface CourseAttendanceRecordListItemProps {
     isLoading?: boolean,
     totalWeeks: number,
     totalClasses: number,
+    totalLecturers?: number,
     classesPerWeek: number,
     onPress: () => void,
 }
 
-const CourseAttendanceRecordListItem: FC<CourseAttendanceRecordListItemProps> = ({ course, isLoading, totalWeeks, totalClasses, classesPerWeek, onPress }) => {
+const CourseAttendanceRecordListItem: FC<CourseAttendanceRecordListItemProps> = ({ totalLecturers, course, isLoading, totalWeeks, totalClasses, classesPerWeek, onPress }) => {
     const progress = Math.min((totalClasses/(totalWeeks*classesPerWeek)) * 100, 100);
     
     return (
@@ -101,13 +102,27 @@ const CourseAttendanceRecordListItem: FC<CourseAttendanceRecordListItemProps> = 
                         height={17}
                     />
                 ) : (
-                    <InterText
-                        fontSize={10}
-                        fontWeight={500}
-                        color={colors.subtext}
+                    <Flex
+                        // gap={5}
+                        alignItems='flex-end'
                     >
-                        {totalClasses}/{(totalWeeks*classesPerWeek)} lectures
-                    </InterText>
+                        {totalLecturers !== undefined && totalLecturers - totalClasses > 0 && (
+                            <InterText
+                                fontSize={10}
+                                fontWeight={500}
+                                color={colors.error}
+                            >
+                                {totalLecturers - totalClasses} missed lectures
+                            </InterText>
+                        )}
+                        <InterText
+                            fontSize={10}
+                            fontWeight={500}
+                            color={colors.subtext}
+                        >
+                            {totalLecturers === undefined ? totalClasses : totalLecturers}/{totalLecturers === undefined ? (totalWeeks*classesPerWeek) : (totalLecturers > (totalWeeks*classesPerWeek) ? totalLecturers : (totalWeeks*classesPerWeek))} lectures
+                        </InterText>
+                    </Flex>
                 )}
             </Flex>
         </TouchableOpacity>

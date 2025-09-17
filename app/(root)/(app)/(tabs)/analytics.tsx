@@ -40,6 +40,7 @@ type RecordListItem = {
 	course: Course,
 	total_classes: number,
 	classes_per_week: number,
+	total_lecturers?: number,
 	total_weeks: number,
 	is_loading?: boolean,
 	settings?: Array<Setting>
@@ -98,6 +99,7 @@ const Analytics = () => {
 	const [courseRegistration, setCourseRegistration] = useState<CourseRegistration | null>(null)
 
 	const [attendanceSession, setAttendanceSession] = useState<AttendanceSession[]>([])
+	console.log("🚀 ~ Analytics ~ attendanceSession:", attendanceSession)
 	// console.log("🚀 ~ Analytics ~ attendanceSession:", attendanceSession)
 
 	const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([])
@@ -466,6 +468,7 @@ const Analytics = () => {
 				total_classes: attendanceRecords.filter(item => attendanceSession.some(i => (i.course_id === id) && (i.id === item.attendance_session_id)))?.length,
 				classes_per_week: schedules.find(item => item.course_id === id || item?.course_code === courses.find(i => i.id === id)?.course_code)?.days_of_the_week?.length || 1,
 				total_weeks: numberOfSemesterWeeks,
+				total_lecturers: attendanceSession.filter(item => item.course_id === id)?.length, 
 				settings,
 				// classes_per_week: 1,
 			}
@@ -520,6 +523,7 @@ const Analytics = () => {
 			isLoading={item?.is_loading}
 			totalClasses={item?.total_classes}
 			totalWeeks={item?.total_weeks}
+			totalLecturers={item?.total_lecturers}
 			classesPerWeek={item?.classes_per_week}
 			onPress={() => {
 				if (!item?.course?.course_code) return;
